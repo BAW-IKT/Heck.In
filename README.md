@@ -20,9 +20,10 @@ BAW Hedge Profiler Flutter (Android/IOS App)
 - create local folder, must contain only lower case and underscores (e.g. `C:\repos\hedge_profiler_flutter`
 - clone repo: `git clone https://github.com/Mnikley/HedgeProfilerFlutter .`
 
-## Load project in Android Studio
+## Load project in Android Studio/IntelliJ
 - Install Android SDK (i used API V33)
 - Install JDK if necessary (i used 1.8 / 8)
+- Install Flutter Plugin if running on IntelliJ
 
 ## Add ADB to Path
 - `cd %localappdata%` --> Android --> Sdk --> platform-tools --> copy path (e.g. `C:\Users\Matthias\AppData\Local\Android\Sdk\platform-tools`)
@@ -37,6 +38,7 @@ BAW Hedge Profiler Flutter (Android/IOS App)
 - connect to adb once with `adb connect 127.0.0.1:58526`
 - select `Subsystem for Android TM (mobile)` from the Flutter Device Selection
 - run `my_app.dart`
+
 If an error *Could not identify launch activity* or similar appears, make sure to add a `package="com.example.hedge_profiler"` to the `<mainfest>` tag in `android/app/src/main/AndroidManifest.xml`:
 ![image](https://user-images.githubusercontent.com/75040444/232093628-24f31a74-5f48-467b-a1c8-d9136ee4329c.png)
 
