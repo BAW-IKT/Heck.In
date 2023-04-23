@@ -1,26 +1,23 @@
-# HedgeProfilerFlutter
-BAW Hedge Profiler Flutter (Android/IOS App)
+# BAW Hedge Profiler Flutter (Android/IOS App)
 
-# Prerequirements
-## Install Flutter SDK
-- Download from https://docs.flutter.dev/get-started/install
-- Extract to `C:\TOOLS\flutter`
-- Modify path in `local.properties`
+## Setup the development environment
+### Install Flutter SDK
+1. Download from https://docs.flutter.dev/get-started/install
+2. Extract to `C:\TOOLS\flutter`
 
-## Install Android Subsystem for Windows (WSA)
-- Run from cmd: `winget install --id=9P3395VX91NR -e --accept-package-agreements`
+### Install Android Subsystem for Windows (WSA)
+- Install from command line: `winget install --id=9P3395VX91NR -e --accept-package-agreements`
 - Alternatively: Open Microsoft Store --> Install amazon Appstore (automatically also installs android subsystem)
-- Configure WSA: Windows key --> `Windows Subsystem for Android Settings`
-  - System: Subsystem resources: Continuous
-  - System: Advanced networking: On
-  - Developer: Developer mode: On
-  - Click `Manage developer settings` once to start WSA --> close --> switch tab to `System` and back to `Developer` to refresh IP --> remember IP and **port**!
+#### Configure WSA
+1. Open Settings: `Windows key` --> `Windows Subsystem for Android Settings`
+2. System: Subsystem resources: Continuous
+3. System: Advanced networking: On
+4. Developer: Developer mode: On
+5. Click `Manage developer settings` once to start WSA --> close --> switch tab to `System` and back to `Developer` to refresh IP --> remember IP and **port**!
 
-## Prepare filesystem
-- create local folder, must contain only lower case and underscores (e.g. `C:\repos\hedge_profiler_flutter`
-- clone repo: `git clone https://github.com/Mnikley/HedgeProfilerFlutter .`
-
-## Load project in IntelliJ
+### Load project in IntelliJ
+- Clone repo: `cd C:\Repositories\` --> `git clone https://github.com/Mnikley/HedgeProfilerFlutter`
+- Open in IntelliJ
 - Install Flutter Plugin if running on IntelliJ
 - Set path to flutter SDK: `Ctrl+Alt+S` --> `Languages & Frameworks` --> `Flutter` --> set `Flutter SDK Path:` to `C:\TOOLS\flutter`
 - Install JDK: `Ctrl+Alt+S` --> `SDK` --> `Add SDK` --> `Download SDK` --> **Some Java version >= 8** (don't go over JDK 16, as Gradle has to be compatible with the Java version, see: https://docs.gradle.org/current/userguide/compatibility.html#java)
@@ -28,21 +25,26 @@ BAW Hedge Profiler Flutter (Android/IOS App)
 - Set Project SDK to Android: `Ctrl+Alt+Shift+S` --> `SDK:` select recently installed `Android API XX`
 - Restart IntelliJ
 
-## Install Android Debugging Bridge (ADB) and add to Path
+### Install Android Debugging Bridge (ADB)
 - Install Android SDK Platform tools: https://dl.google.com/android/repository/platform-tools-latest-windows.zip
 - Extract to `C:\TOOLS\platform-tools`, copy path to clipboard
-- Add platform-tools to PATH: (Windows key --> `Edit the system environment variables` --> `Environment variables ..` --> `User variables for XXX` --> double click `Path` --> `New` --> paste from clipboard)
-- Add JDK to PATH: `New` --> `%USERPROFILE%\.jdks\corretto-16.0.2\bin` (adapt corretto-16.0.2 to your installed JDK version)
-- restart console, test both paths were added successfully:
-  - adb can connect to android adapter with: `adb connect 127.0.0.1:58526`, replace with your **port**
-  - test the command `java` returns something
 
-## Install flutter dependency webview_flutter
+### Add JDK, ADB and flutter to PATH 
+- Open environmental variables: Windows key --> `Edit the system environment variables` --> `Environment variables ..` --> `User variables for XXX` --> double click `Path` 
+- Add platform-tools: `New` --> paste from clipboard
+- Add JDK: `New` --> `%USERPROFILE%\.jdks\corretto-16.0.2\bin` (adapt corretto-16.0.2 to your installed JDK version)
+- Add flutter: `New` -->
+- restart console, test paths were added successfully:
+  - test command `adb` returns something
+  - test command `java` returns something
+  - test command `flutter` returns something
+
+### Install flutter dependency webview_flutter
 - documentation: https://pub.dev/packages/webview_flutter
-- navigate to repo, add with: `flutter pub add webview_flutter
+- navigate to repo, add with: `flutter pub add webview_flutter`
 - install with: `flutter pub get`
 
-## Run project in Android Studio:
+### Run project in Android Studio:
 - Edit run configuration `my_app.dart` --> edit before launch --> add external tool:
   - Name: adb
   - Program: `C:\TOOLS\platform-tools\adb.exe`
@@ -52,7 +54,11 @@ BAW Hedge Profiler Flutter (Android/IOS App)
 - select `Subsystem for Android TM (mobile)` from the Flutter Device Selection
 - run `my_app.dart`
 
+# Toubleshooting
+### Could not identify launch activity
 If an error *Could not identify launch activity* or similar appears, make sure to add a `package="com.example.hedge_profiler"` to the `<mainfest>` tag in `android/app/src/main/AndroidManifest.xml`:
 ![image](https://user-images.githubusercontent.com/75040444/232093628-24f31a74-5f48-467b-a1c8-d9136ee4329c.png)
+
+
 
   
