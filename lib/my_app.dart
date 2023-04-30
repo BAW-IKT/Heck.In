@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
-// import 'package:location/location.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 void main() => runApp(const HedgeProfilerApp());
 
@@ -12,7 +13,6 @@ class HedgeProfilerApp extends StatefulWidget {
   @override
   _HedgeProfilerAppState createState() => _HedgeProfilerAppState();
 
-  /// ↓↓ ADDED
   /// InheritedWidget style accessor to our State object.
   static _HedgeProfilerAppState of(BuildContext context) =>
       context.findAncestorStateOfType<_HedgeProfilerAppState>()!;
@@ -28,7 +28,8 @@ class _HedgeProfilerAppState extends State<HedgeProfilerApp> {
       title: 'Hedge Profiler',
       theme: ThemeData(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
-      themeMode: _themeMode, // 2) ← ← ← use "state" field here //////////////
+      themeMode: _themeMode,
+      // 2) ← ← ← use "state" field here //////////////
       home: const WebViewPage(),
     );
   }
@@ -125,8 +126,6 @@ Page resource error:
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Hedge Profiler'),
@@ -141,7 +140,7 @@ Page resource error:
               ),
               child: Column(
                 // mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Row(children: [
                     const Text(
@@ -154,19 +153,22 @@ Page resource error:
                       icon: const Icon(Icons.refresh),
                     ),
                     IconButton(
-                      icon: _darkMode ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
+                      icon: _darkMode
+                          ? const Icon(Icons.light_mode)
+                          : const Icon(Icons.dark_mode),
                       // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
                       onPressed: () {
                         setState(() {
                           _darkMode = !_darkMode;
                           if (_darkMode) {
-                            HedgeProfilerApp.of(context).changeTheme(ThemeMode.dark);
+                            HedgeProfilerApp.of(context)
+                                .changeTheme(ThemeMode.dark);
                           } else {
-                            HedgeProfilerApp.of(context).changeTheme(ThemeMode.light);
+                            HedgeProfilerApp.of(context)
+                                .changeTheme(ThemeMode.light);
                           }
                         });
                       },
-
                     )
                   ]),
                   const Text('Last known location',
@@ -174,16 +176,10 @@ Page resource error:
                           TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   Text(_geoLastKnown,
                       style: const TextStyle(
-                        fontSize: 10,
-                        fontStyle: FontStyle.italic
-                      )
-                  ),
+                          fontSize: 10, fontStyle: FontStyle.italic)),
                   Text(_geoLastChange,
                       style: const TextStyle(
-                        fontSize: 10,
-                        fontStyle: FontStyle.italic
-                      )
-                  ),
+                          fontSize: 10, fontStyle: FontStyle.italic)),
                   Text(_geoWarning,
                       style: const TextStyle(
                           fontSize: 12,
@@ -298,6 +294,7 @@ class _NameFormState extends State<NameForm> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _numberController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  List<File> _selectedImages = [];
 
   @override
   void dispose() {
@@ -311,24 +308,28 @@ class _NameFormState extends State<NameForm> {
     _populateInputFields();
   }
 
+  /// action when page is initialized
   void _populateInputFields() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _nameController.text = prefs.getString('name') ?? '';
     _numberController.text = prefs.getString('number') ?? '';
   }
 
+  /// action when page is closed
   void _persistInputStorage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('name', _nameController.text.trim());
     prefs.setString('number', _numberController.text.trim());
   }
 
+  /// action for Clear button
   void _clearInputStorage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.clear();
     _populateInputFields();
   }
 
+  /// get form and image data and persist to database
   void _saveFormData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var position = await _getLastKnownLocation();
@@ -337,77 +338,153 @@ class _NameFormState extends State<NameForm> {
     showAlertDialog(context);
   }
 
+  Future<void> _addImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.getImage(source: source);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImages.add(File(pickedFile.path));
+      });
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
       child: Form(
         key: _formKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Profile the Hedge!',
-              style: TextStyle(fontSize: 24),
-            ),
-            Text('Some text', style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Name',
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Profile the Hedge!',
+                style: TextStyle(fontSize: 24),
+              ),
+              const Text('Some text', style: TextStyle(fontSize: 16)),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Name',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your name';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your name';
-                  }
-                  return null;
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextFormField(
+                  controller: _numberController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Number',
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a number';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _selectedImages.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemBuilder: (BuildContext context, int index) {
+                  return Stack(
+                    children: [
+                      Image.file(_selectedImages[index], fit: BoxFit.cover),
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: -5,
+                              blurRadius: 10,
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.highlight_remove,
+                              color: Colors.red),
+                          onPressed: () => _removeImage(index),
+                        ),
+                      ),
+                    ],
+                  );
                 },
               ),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextFormField(
-                controller: _numberController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Number',
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a number';
-                  }
-                  return null;
-                },
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  OutlinedButton(
+                    onPressed: _clearInputStorage,
+                    child: const Text(
+                      'Clear',
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.photo_size_select_actual, size: 32),
+                    onPressed: () => _addImage(ImageSource.gallery),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.camera_alt, size: 32),
+                    onPressed: () => _addImage(ImageSource.camera),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
+                        _saveFormData();
+                      }
+                    },
+                    child: const Text(
+                      'Submit',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
-                  _saveFormData();
-                }
-              },
-              child: const Text('Submit'),
-            ),
-            ElevatedButton(
-                onPressed: _clearInputStorage, child: const Text('Clear')),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// Determine the current position of the device.
-///
-/// When the location services are not enabled or permissions
-/// are denied the `Future` will return an error.
+/// Check if location services are available
 void _checkLocationPermissions() async {
   bool serviceEnabled;
   LocationPermission permission;
@@ -442,13 +519,6 @@ void _checkLocationPermissions() async {
     return Future.error('Location permissions are permanently denied. '
         'Enable in Settings > Location and Settings > Apps > hedge_profiler.');
   }
-
-  // When we reach here, permissions are granted and we can
-  // continue accessing the position of the device.
-
-  // return Geolocator.getCurrentPosition(
-  //     desiredAccuracy: LocationAccuracy.high
-  // );
 }
 
 Future<Position?> _getLastKnownLocation() async {
@@ -485,32 +555,6 @@ Future<String> _updateLocation() async {
   }
   return '';
 }
-
-// void _checkIfLocationServicesAreEnabled() async {
-//   Location location = new Location();
-//
-//   bool _serviceEnabled;
-//   PermissionStatus _permissionGranted;
-//   LocationData _locationData;
-//
-//   _serviceEnabled = await location.serviceEnabled();
-//   if (!_serviceEnabled) {
-//     _serviceEnabled = await location.requestService();
-//     if (!_serviceEnabled) {
-//       return;
-//     }
-//   }
-//
-//   _permissionGranted = await location.hasPermission();
-//   if (_permissionGranted == PermissionStatus.denied) {
-//     _permissionGranted = await location.requestPermission();
-//     if (_permissionGranted != PermissionStatus.granted) {
-//       return;
-//     }
-//   }
-//
-//   _locationData = await location.getLocation();
-// }
 
 showAlertDialog(BuildContext context) {
   // set up the button
