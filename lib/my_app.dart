@@ -2,21 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
+// import 'package:location/location.dart';
 
 void main() => runApp(const HedgeProfilerApp());
 
-class HedgeProfilerApp extends StatelessWidget {
+class HedgeProfilerApp extends StatefulWidget {
   const HedgeProfilerApp({super.key});
+
+  @override
+  _HedgeProfilerAppState createState() => _HedgeProfilerAppState();
+
+  /// ↓↓ ADDED
+  /// InheritedWidget style accessor to our State object.
+  static _HedgeProfilerAppState of(BuildContext context) =>
+      context.findAncestorStateOfType<_HedgeProfilerAppState>()!;
+}
+
+class _HedgeProfilerAppState extends State<HedgeProfilerApp> {
+  /// 1) our themeMode "state" field
+  ThemeMode _themeMode = ThemeMode.system;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Hedge Profiler',
-      theme: ThemeData(
-        primarySwatch: Colors.indigo,
-      ),
+      theme: ThemeData(useMaterial3: true),
+      darkTheme: ThemeData.dark(useMaterial3: true),
+      themeMode: _themeMode, // 2) ← ← ← use "state" field here //////////////
       home: const WebViewPage(),
     );
+  }
+
+  /// 3) Call this to change theme from any context using "of" accessor
+  /// e.g.:
+  /// HedgeProfilerApp.of(context).changeTheme(ThemeMode.dark);
+  void changeTheme(ThemeMode themeMode) {
+    setState(() {
+      _themeMode = themeMode;
+    });
   }
 }
 
@@ -33,10 +56,28 @@ class _WebViewPageState extends State<WebViewPage> {
   bool _showNameForm = true;
   final NameForm _nameForm = const NameForm();
   String _currentUrlStem = '';
+  String _geoLastChange = 'not initialized';
+  String _geoLastKnown = 'not initialized';
+  String _geoWarning = 'test';
+  bool _darkMode = true;
+
+  _updateLocationWrapper() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? warning = await _updateLocation();
+    setState(() {
+      _geoWarning = warning;
+      _geoLastChange = prefs.getString("geoLastChange")?.split(".")[0] ?? 'n/a';
+      String lat = prefs.getString("latitude") ?? "n/a";
+      String lon = prefs.getString("longitude") ?? "n/a";
+      _geoLastKnown = "lat: $lat\nlon: $lon";
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+
+    _updateLocationWrapper();
 
     final WebViewController controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -74,11 +115,6 @@ Page resource error:
           ''');
           },
           onNavigationRequest: (NavigationRequest request) {
-            if (request.url.startsWith('https://www.youtube.com/')) {
-              debugPrint('blocking navigation to ${request.url}');
-              return NavigationDecision.prevent;
-            }
-            debugPrint('allowing navigation to ${request.url}');
             return NavigationDecision.navigate;
           },
         ),
@@ -89,6 +125,8 @@ Page resource error:
 
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Hedge Profiler'),
@@ -97,11 +135,62 @@ Page resource error:
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
+            DrawerHeader(
+              decoration: const BoxDecoration(
                 color: Colors.indigoAccent,
               ),
-              child: Text('BAW Hedge Profiler\nMenu'),
+              child: Column(
+                // mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    const Text(
+                      'Hedge Profiler',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      onPressed: _updateLocationWrapper,
+                      icon: const Icon(Icons.refresh),
+                    ),
+                    IconButton(
+                      icon: _darkMode ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
+                      // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
+                      onPressed: () {
+                        setState(() {
+                          _darkMode = !_darkMode;
+                          if (_darkMode) {
+                            HedgeProfilerApp.of(context).changeTheme(ThemeMode.dark);
+                          } else {
+                            HedgeProfilerApp.of(context).changeTheme(ThemeMode.light);
+                          }
+                        });
+                      },
+
+                    )
+                  ]),
+                  const Text('Last known location',
+                      style:
+                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text(_geoLastKnown,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontStyle: FontStyle.italic
+                      )
+                  ),
+                  Text(_geoLastChange,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontStyle: FontStyle.italic
+                      )
+                  ),
+                  Text(_geoWarning,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.deepOrange,
+                          fontWeight: FontWeight.bold)),
+                ],
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.eco_rounded, color: Colors.green),
@@ -111,8 +200,6 @@ Page resource error:
                   _showNameForm = true;
                 });
                 Navigator.pop(context);
-                // Navigator.of(context).push(MaterialPageRoute(
-                //     builder: (BuildContext context) => _form));
               },
             ),
             ListTile(
@@ -122,10 +209,7 @@ Page resource error:
                 setState(() {
                   _showNameForm = false;
                 });
-                _loadPage(context,
-                    // 'https://maps.arcanum.com/en/map/europe-19century-secondsurvey/?bbox=703865.3388931998%2C6876591.638315973%2C1744020.4197978782%2C7349889.717457783&map-list=1&layers=osm%2C158%2C164'
-                    'https://maps.arcanum.com/'
-                );
+                _loadPage(context, 'https://maps.arcanum.com/');
                 Navigator.pop(context);
               },
             ),
@@ -136,8 +220,7 @@ Page resource error:
                 setState(() {
                   _showNameForm = false;
                 });
-                _loadPage(context,
-                    'https://bodenkarte.at/');
+                _loadPage(context, 'https://bodenkarte.at/');
                 Navigator.pop(context);
               },
             ),
@@ -173,35 +256,29 @@ Page resource error:
     if (_currentUrlStem != stem && stem != '') {
       _currentUrlStem = stem;
 
-      // update geoinfo
-      _updateLocation();
+      // update geo info
+      // _updateLocation();
+      _updateLocationWrapper();
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       var latitude = prefs.getString("latitude");
       var longitude = prefs.getString("longitude");
+      var zoom =
+          "15"; // change location zoom depending on whether location can be loaded
 
-      // if no latitude and longitude is stored in memory variables, fetch last location
-      if (latitude == null || longitude == null) {
-        Position? pos = await _getLastKnownLocation();
-
-        // if no last location is known, use viennese coordinates
-        if (pos == null) {
-          latitude = "16.3389";
-          longitude = "48.1970";
-        } else {
-          latitude = pos.latitude.toString();
-          longitude = pos.longitude.toString();
-        }
+      if (latitude == "16.3389" || longitude == "48.1970") {
+        zoom = "10";
       }
 
       // re-build boden karte URL with updated coords
       if (url.startsWith("https://bodenkarte.at")) {
-        url = "https://bodenkarte.at/#/center/$latitude,$longitude/zoom/10";
+        url = "https://bodenkarte.at/#/center/$longitude,$latitude/zoom/$zoom";
       }
 
       if (url.startsWith("https://maps.arcanum.com/")) {
-        // TODO: figure out how bbox is calculated based on lat / lon
-
+        String stem = "https://maps.arcanum.com/en/map";
+        String map = "europe-19century-secondsurvey";
+        url = "$stem/$map/?lon=$longitude&lat=$latitude&zoom=$zoom";
       }
 
       // load page via controller
@@ -232,17 +309,12 @@ class _NameFormState extends State<NameForm> {
   void initState() {
     super.initState();
     _populateInputFields();
-    _updateLocation();  // TODO: error handling, display geo information is unavailable somehow
-    // TODO: showAlertDialog() can be used, needs context
   }
 
   void _populateInputFields() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _nameController.text = prefs.getString('name') ?? '';
     _numberController.text = prefs.getString('number') ?? '';
-
-    // get geo location
-    _updateLocation();
   }
 
   void _persistInputStorage() async {
@@ -259,7 +331,7 @@ class _NameFormState extends State<NameForm> {
 
   void _saveFormData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var position  = await _getLastKnownLocation();
+    var position = await _getLastKnownLocation();
     //TODO: implement writing to database
     final name = _nameController.text.trim();
     showAlertDialog(context);
@@ -277,6 +349,7 @@ class _NameFormState extends State<NameForm> {
               'Profile the Hedge!',
               style: TextStyle(fontSize: 24),
             ),
+            Text('Some text', style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -323,9 +396,7 @@ class _NameFormState extends State<NameForm> {
               child: const Text('Submit'),
             ),
             ElevatedButton(
-                onPressed: _clearInputStorage,
-                child: const Text('Clear')
-            )
+                onPressed: _clearInputStorage, child: const Text('Clear')),
           ],
         ),
       ),
@@ -337,7 +408,7 @@ class _NameFormState extends State<NameForm> {
 ///
 /// When the location services are not enabled or permissions
 /// are denied the `Future` will return an error.
-Future<Position> _determinePosition() async {
+void _checkLocationPermissions() async {
   bool serviceEnabled;
   LocationPermission permission;
 
@@ -347,7 +418,9 @@ Future<Position> _determinePosition() async {
     // Location services are not enabled don't continue
     // accessing the position and request users of the
     // App to enable the location services.
-    return Future.error('Location services are disabled.');
+    await Geolocator.openLocationSettings();
+    return Future.error('Location services are disabled. '
+        'Enable in Settings > Location.');
   }
 
   permission = await Geolocator.checkPermission();
@@ -359,45 +432,101 @@ Future<Position> _determinePosition() async {
       // Android's shouldShowRequestPermissionRationale
       // returned true. According to Android guidelines
       // your App should show an explanatory UI now.
-      return Future.error('Location permissions are denied');
+      return Future.error('Location permissions are denied. '
+          'Enable in Settings > Apps > hedge_profiler.');
     }
   }
 
   if (permission == LocationPermission.deniedForever) {
     // Permissions are denied forever, handle appropriately.
-    return Future.error(
-      'Location permissions are permanently denied, we cannot request permissions.');
+    return Future.error('Location permissions are permanently denied. '
+        'Enable in Settings > Location and Settings > Apps > hedge_profiler.');
   }
 
   // When we reach here, permissions are granted and we can
   // continue accessing the position of the device.
-  return await Geolocator.getCurrentPosition();
+
+  // return Geolocator.getCurrentPosition(
+  //     desiredAccuracy: LocationAccuracy.high
+  // );
 }
 
 Future<Position?> _getLastKnownLocation() async {
-  return await Geolocator.getLastKnownPosition(forceAndroidLocationManager: true);
+  return await Geolocator.getLastKnownPosition(
+      forceAndroidLocationManager: true);
 }
 
-void _updateLocation() async {
+Future<String> _updateLocation() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  var position = await _determinePosition();
-  prefs.setString("latitude", position.latitude.toString());
-  prefs.setString("longitude", position.longitude.toString());
+  try {
+    // try to get current position
+    _checkLocationPermissions();
+    Position currPos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best);
+    prefs.setString("latitude", currPos.latitude.toString());
+    prefs.setString("longitude", currPos.longitude.toString());
+    prefs.setString("geoLastChange", DateTime.now().toString());
+  } catch (e) {
+    // if not available, get last known position
+    Position? lastPos = await Geolocator.getLastKnownPosition(
+        forceAndroidLocationManager: true);
+    if (lastPos != null) {
+      prefs.setString("latitude", lastPos.latitude.toString());
+      prefs.setString("longitude", lastPos.longitude.toString());
+      prefs.setString("geoLastChange", lastPos.timestamp.toString());
+    } else {
+      // if not available, set to defaults (vienna)
+      prefs.setString("latitude", "48.1970");
+      prefs.setString("longitude", "16.3389");
+      prefs.setString("geoLastChange", "n/a");
+    }
+
+    return e.toString();
+  }
+  return '';
 }
+
+// void _checkIfLocationServicesAreEnabled() async {
+//   Location location = new Location();
+//
+//   bool _serviceEnabled;
+//   PermissionStatus _permissionGranted;
+//   LocationData _locationData;
+//
+//   _serviceEnabled = await location.serviceEnabled();
+//   if (!_serviceEnabled) {
+//     _serviceEnabled = await location.requestService();
+//     if (!_serviceEnabled) {
+//       return;
+//     }
+//   }
+//
+//   _permissionGranted = await location.hasPermission();
+//   if (_permissionGranted == PermissionStatus.denied) {
+//     _permissionGranted = await location.requestPermission();
+//     if (_permissionGranted != PermissionStatus.granted) {
+//       return;
+//     }
+//   }
+//
+//   _locationData = await location.getLocation();
+// }
 
 showAlertDialog(BuildContext context) {
-
   // set up the button
   Widget okButton = TextButton(
     child: const Text("Close"),
-    onPressed: () { Navigator.of(context).pop(); },
+    onPressed: () {
+      Navigator.of(context).pop();
+    },
   );
 
   // set up the AlertDialog
   AlertDialog alert = AlertDialog(
-    title: const Text("Geocoordinates not available"),
-    content: const Text("Could not get location. Make sure Location services are "
-        "enabled (Android: Settings -- >Location --> Enable)."),
+    title: const Text("Geo coordinates not available"),
+    content:
+        const Text("Could not get location. Make sure Location services are "
+            "enabled (Android: Settings -- >Location --> Enable)."),
     actions: [
       okButton,
     ],
