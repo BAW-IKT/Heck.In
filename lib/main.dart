@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'dart:io';
+import 'utils_geo.dart' as geo;
+import 'utils_db.dart' as db;
 
 void main() => runApp(const HedgeProfilerApp());
 
@@ -51,22 +57,24 @@ class WebViewPage extends StatefulWidget {
   State<WebViewPage> createState() => _WebViewPageState();
 }
 
+/// main page, instantiates WebView controller and NameForm (displayed as overlay)
 class _WebViewPageState extends State<WebViewPage> {
   var loadingPercentage = 0;
   late final WebViewController _controller;
   bool _showNameForm = true;
   final NameForm _nameForm = const NameForm();
   String _currentUrlStem = '';
-  String _geoLastChange = 'not initialized';
-  String _geoLastKnown = 'not initialized';
-  String _geoWarning = 'test';
+  String _geoLastChange = 'never updated';
+  String _geoLastKnown = 'no location available';
+  String _geoOrDatabaseWarning = 'not initialized';
   bool _darkMode = true;
 
+  /// refreshes geo coordinates and updates variables for menu accordingly
   _updateLocationWrapper() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? warning = await _updateLocation();
+    String? warning = await geo.updateLocation();
     setState(() {
-      _geoWarning = warning;
+      _geoOrDatabaseWarning = warning;
       _geoLastChange = prefs.getString("geoLastChange")?.split(".")[0] ?? 'n/a';
       String lat = prefs.getString("latitude") ?? "n/a";
       String lon = prefs.getString("longitude") ?? "n/a";
@@ -74,11 +82,23 @@ class _WebViewPageState extends State<WebViewPage> {
     });
   }
 
+  /// initializes the firebase app
+  _initDatabase() async {
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    } catch (e) {
+      _geoOrDatabaseWarning += e.toString();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
 
     _updateLocationWrapper();
+    _initDatabase();
 
     final WebViewController controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -124,6 +144,8 @@ Page resource error:
     _controller = controller;
   }
 
+  /// scaffold of app with menu drawer and WebViewWidget as body
+  /// NameForm is stacked on top and controlled with _showNameForm
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,7 +202,7 @@ Page resource error:
                   Text(_geoLastChange,
                       style: const TextStyle(
                           fontSize: 10, fontStyle: FontStyle.italic)),
-                  Text(_geoWarning,
+                  Text(_geoOrDatabaseWarning,
                       style: const TextStyle(
                           fontSize: 12,
                           color: Colors.deepOrange,
@@ -246,6 +268,7 @@ Page resource error:
     );
   }
 
+  /// loads a page
   void _loadPage(BuildContext context, String url) async {
     // prevent loading of page if page was already loaded before
     String stem = RegExp("http.*(com|at)").firstMatch(url)?.group(0) ?? '';
@@ -290,11 +313,12 @@ class NameForm extends StatefulWidget {
   State<NameForm> createState() => _NameFormState();
 }
 
+/// form page
 class _NameFormState extends State<NameForm> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _numberController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  List<File> _selectedImages = [];
+  final List<File> _selectedImages = [];
 
   @override
   void dispose() {
@@ -332,10 +356,19 @@ class _NameFormState extends State<NameForm> {
   /// get form and image data and persist to database
   void _saveFormData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var position = await _getLastKnownLocation();
-    //TODO: implement writing to database
+
+    // get all documents
+    // List<DocumentSnapshot> docs = await db.getAllDocuments();
+
     final name = _nameController.text.trim();
-    showAlertDialog(context);
+    final latitude = prefs.getString("latitude") ?? 'unknown';
+    final longitude = prefs.getString("longitude") ?? 'unknown';
+    final timeStamp = DateTime.now();
+
+    // write to the database, show snackbar with result
+    db.writeDocument(name, latitude, longitude, timeStamp, (success, message) {
+      _showSnackBar(message, success: success);
+    });
   }
 
   Future<void> _addImage(ImageSource source) async {
@@ -354,233 +387,147 @@ class _NameFormState extends State<NameForm> {
     });
   }
 
+  void _showSnackBar(String message, {bool success = true}) async {
+    final snackBar = SnackBar(
+      content: Text(message),
+      duration: const Duration(seconds: 3),
+      backgroundColor: success ? null : Colors.red,
+    );
+
+// Find the ScaffoldMessenger in the widget tree
+// and use it to show a SnackBar.
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Profile the Hedge!',
-                style: TextStyle(fontSize: 24),
-              ),
-              const Text('Some text', style: TextStyle(fontSize: 16)),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Name',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
-                    }
-                    return null;
-                  },
+    return Scaffold(
+      body: Material(
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Profile the Hedge!',
+                  style: TextStyle(fontSize: 24),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TextFormField(
-                  controller: _numberController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Number',
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a number';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _selectedImages.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemBuilder: (BuildContext context, int index) {
-                  return Stack(
-                    children: [
-                      Image.file(_selectedImages[index], fit: BoxFit.cover),
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: -5,
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.highlight_remove,
-                              color: Colors.red),
-                          onPressed: () => _removeImage(index),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  OutlinedButton(
-                    onPressed: _clearInputStorage,
-                    child: const Text(
-                      'Clear',
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
+                const Text('Some text', style: TextStyle(fontSize: 16)),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Name',
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.photo_size_select_actual, size: 32),
-                    onPressed: () => _addImage(ImageSource.gallery),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.camera_alt, size: 32),
-                    onPressed: () => _addImage(ImageSource.camera),
-                  ),
-                  FilledButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-                        _saveFormData();
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your name';
                       }
+                      return null;
                     },
-                    child: const Text(
-                      'Submit',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
                   ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: TextFormField(
+                    controller: _numberController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Number',
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a number';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _selectedImages.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemBuilder: (BuildContext context, int index) {
+                    return Stack(
+                      children: [
+                        Image.file(_selectedImages[index], fit: BoxFit.cover),
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: -5,
+                                blurRadius: 10,
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.highlight_remove,
+                                color: Colors.red),
+                            onPressed: () => _removeImage(index),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            OutlinedButton(
+              onPressed: _clearInputStorage,
+              child: const Text(
+                'Clear',
+                style: TextStyle(
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.photo_size_select_actual, size: 32),
+              onPressed: () => _addImage(ImageSource.gallery),
+            ),
+            IconButton(
+              icon: const Icon(Icons.camera_alt, size: 32),
+              onPressed: () => _addImage(ImageSource.camera),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  _formKey.currentState!.save();
+                  _saveFormData();
+                }
+              },
+              child: const Text(
+                'Submit',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-}
-
-/// Check if location services are available
-void _checkLocationPermissions() async {
-  bool serviceEnabled;
-  LocationPermission permission;
-
-  // Test if location services are enabled.
-  serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  if (!serviceEnabled) {
-    // Location services are not enabled don't continue
-    // accessing the position and request users of the
-    // App to enable the location services.
-    await Geolocator.openLocationSettings();
-    return Future.error('Location services are disabled. '
-        'Enable in Settings > Location.');
-  }
-
-  permission = await Geolocator.checkPermission();
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied) {
-      // Permissions are denied, next time you could try
-      // requesting permissions again (this is also where
-      // Android's shouldShowRequestPermissionRationale
-      // returned true. According to Android guidelines
-      // your App should show an explanatory UI now.
-      return Future.error('Location permissions are denied. '
-          'Enable in Settings > Apps > hedge_profiler.');
-    }
-  }
-
-  if (permission == LocationPermission.deniedForever) {
-    // Permissions are denied forever, handle appropriately.
-    return Future.error('Location permissions are permanently denied. '
-        'Enable in Settings > Location and Settings > Apps > hedge_profiler.');
-  }
-}
-
-Future<Position?> _getLastKnownLocation() async {
-  return await Geolocator.getLastKnownPosition(
-      forceAndroidLocationManager: true);
-}
-
-Future<String> _updateLocation() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  try {
-    // try to get current position
-    _checkLocationPermissions();
-    Position currPos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best);
-    prefs.setString("latitude", currPos.latitude.toString());
-    prefs.setString("longitude", currPos.longitude.toString());
-    prefs.setString("geoLastChange", DateTime.now().toString());
-  } catch (e) {
-    // if not available, get last known position
-    Position? lastPos = await Geolocator.getLastKnownPosition(
-        forceAndroidLocationManager: true);
-    if (lastPos != null) {
-      prefs.setString("latitude", lastPos.latitude.toString());
-      prefs.setString("longitude", lastPos.longitude.toString());
-      prefs.setString("geoLastChange", lastPos.timestamp.toString());
-    } else {
-      // if not available, set to defaults (vienna)
-      prefs.setString("latitude", "48.1970");
-      prefs.setString("longitude", "16.3389");
-      prefs.setString("geoLastChange", "n/a");
-    }
-
-    return e.toString();
-  }
-  return '';
-}
-
-showAlertDialog(BuildContext context) {
-  // set up the button
-  Widget okButton = TextButton(
-    child: const Text("Close"),
-    onPressed: () {
-      Navigator.of(context).pop();
-    },
-  );
-
-  // set up the AlertDialog
-  AlertDialog alert = AlertDialog(
-    title: const Text("Geo coordinates not available"),
-    content:
-        const Text("Could not get location. Make sure Location services are "
-            "enabled (Android: Settings -- >Location --> Enable)."),
-    actions: [
-      okButton,
-    ],
-  );
-
-  // show the dialog
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return alert;
-    },
-  );
 }
