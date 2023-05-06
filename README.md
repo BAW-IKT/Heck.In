@@ -54,6 +54,17 @@
 - select `Subsystem for Android TM (mobile)` from the Flutter Device Selection
 - run `my_app.dart`
 
+### Install and init firebase
+1. install NVM: https://github.com/coreybutler/nvm-windows
+2. install node: `nvm install latest`
+3. activate node: `npm use 20.0.0`
+4. install firebase cli: `npm install -g firebase-tools`
+5. login and test firebase cli: `firebase login`
+6. verify projects are listed correctly: `firebase projects:list`
+7. create project & go to cloud firestore: https://console.firebase.google.com/
+8. create database
+9. check https://firebase.google.com/docs/firestore/quickstart?authuser=0 for how to init
+
 # Toubleshooting
 ### Could not identify launch activity
 If an error *Could not identify launch activity* or similar appears, make sure to add a `package="com.example.hedge_profiler"` to the `<mainfest>` tag in `android/app/src/main/AndroidManifest.xml`:
