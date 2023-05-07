@@ -1,11 +1,12 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'firebase_options.dart';
 import 'dart:io';
 import 'utils_geo.dart' as geo;
@@ -318,7 +319,7 @@ class _NameFormState extends State<NameForm> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _numberController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final List<File> _selectedImages = [];
+  List<File> _selectedImages = [];
 
   @override
   void dispose() {
@@ -330,9 +331,12 @@ class _NameFormState extends State<NameForm> {
   void initState() {
     super.initState();
     _populateInputFields();
+    _checkPermissions();
+    _getLostImageData();
+    _loadPersistedImages();
   }
 
-  /// action when page is initialized
+  /// populate input fields on page init
   void _populateInputFields() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _nameController.text = prefs.getString('name') ?? '';
@@ -348,9 +352,21 @@ class _NameFormState extends State<NameForm> {
 
   /// action for Clear button
   void _clearInputStorage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.clear();
-    _populateInputFields();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return ConfirmationDialog(
+          message: 'Are you sure you want to clear the form data?',
+          onConfirm: () => Navigator.of(context).pop(true),
+          onCancel: () => Navigator.of(context).pop(false),
+        );
+      },
+    );
+    if (confirmed == true) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.clear();
+      _populateInputFields();
+    }
   }
 
   /// get form and image data and persist to database
@@ -371,20 +387,98 @@ class _NameFormState extends State<NameForm> {
     });
   }
 
+  Future<void> _loadPersistedImages() async {
+    // final directory = await getApplicationDocumentsDirectory();
+    final directory = await getExternalStorageDirectory();
+    final imagesDirectory = Directory('${directory?.path}/Pictures');
+    if (await imagesDirectory.exists()) {
+      final files = await imagesDirectory.list().toList();
+      _selectedImages = files.map((file) => File(file.path)).toList();
+      setState(() {});
+    }
+  }
+
+  Future<void> _persistImages() async {
+    // final directory = await getApplicationDocumentsDirectory();
+    final directory = await getExternalStorageDirectory();
+    final imagesDirectory = Directory('${directory?.path}/Pictures');
+    if (!await imagesDirectory.exists()) {
+      await imagesDirectory.create();
+    }
+    for (final image in _selectedImages) {
+      final path = '${imagesDirectory.path}/${image.path.split('/').last}';
+      await image.copy(path);
+    }
+  }
+
   Future<void> _addImage(ImageSource source) async {
     final picker = ImagePicker();
-    final pickedFile = await picker.getImage(source: source);
+    final pickedFile = await picker.pickImage(source: source);
     if (pickedFile != null) {
       setState(() {
         _selectedImages.add(File(pickedFile.path));
       });
+      _persistImages();
     }
   }
 
-  void _removeImage(int index) {
+  void _removeImage(int index) async {
+    final File image = _selectedImages[index];
     setState(() {
       _selectedImages.removeAt(index);
     });
+    await image.delete();
+    _persistImages();
+  }
+
+  Future<void> _clearImages() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return ConfirmationDialog(
+          message: 'Are you sure you want to delete all images?',
+          onConfirm: () => Navigator.of(context).pop(true),
+          onCancel: () => Navigator.of(context).pop(false),
+        );
+      },
+    );
+    if (confirmed == true) {
+      for (final image in _selectedImages) {
+        await image.delete();
+      }
+      _selectedImages.clear();
+      final directory = await getExternalStorageDirectory();
+      final imagesDirectory = Directory('${directory?.path}/Pictures');
+      if (await imagesDirectory.exists()) {
+        await imagesDirectory.delete(recursive: true);
+      }
+      setState(() {});
+    }
+  }
+
+  Future<void> _getLostImageData() async {
+    final ImagePicker picker = ImagePicker();
+    final LostDataResponse response = await picker.retrieveLostData();
+    if (response.isEmpty) {
+      return;
+    }
+    final List<XFile>? files = response.files;
+    if (files != null) {
+      _showSnackBar("recovered images successfully");
+      _selectedImages.addAll(files as Iterable<File>);
+    } else {
+      _showSnackBar("couldn't restore images - ${response.exception}");
+    }
+  }
+
+  void _checkPermissions() async {
+    if (await Permission.storage.request().isDenied) {
+      _showSnackBar("No storage permission - cannot write images to storage",
+          success: false);
+    }
+    // if (await Permission.camera.request().isDenied) {
+    //   _showSnackBar("No camera permission - cannot take pictures", success: false);
+    // }
   }
 
   void _showSnackBar(String message, {bool success = true}) async {
@@ -494,9 +588,18 @@ class _NameFormState extends State<NameForm> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             OutlinedButton(
+              onPressed: _clearImages,
+              child: const Text(
+                'Clear Images',
+                style: TextStyle(
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            OutlinedButton(
               onPressed: _clearInputStorage,
               child: const Text(
-                'Clear',
+                'Clear Form',
                 style: TextStyle(
                   fontSize: 16,
                 ),
@@ -528,6 +631,37 @@ class _NameFormState extends State<NameForm> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class ConfirmationDialog extends StatelessWidget {
+  final String message;
+  final VoidCallback onConfirm;
+  final VoidCallback onCancel;
+
+  const ConfirmationDialog({
+    Key? key,
+    required this.message,
+    required this.onConfirm,
+    required this.onCancel,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Confirm Action'),
+      content: Text(message),
+      actions: <Widget>[
+        TextButton(
+          onPressed: onCancel,
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: onConfirm,
+          child: const Text('Confirm'),
+        ),
+      ],
     );
   }
 }
