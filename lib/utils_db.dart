@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'dart:io';
 
 String collectionName = "hedge_profiles";
@@ -17,6 +19,16 @@ Future<List<DocumentSnapshot>> getAllDocuments() async {
   return documents;
 }
 
+Future<void> signInAnonymously() async {
+  try {
+    UserCredential userCredential =
+        await FirebaseAuth.instance.signInAnonymously();
+    print('User ID: ${userCredential.user?.uid}');
+  } catch (e) {
+    print('Error: $e');
+  }
+}
+
 /// creates a document based on the given arguments
 /// returns a tuple (bool, String) with success status and message
 Future<void> writeDocument(
@@ -27,6 +39,9 @@ Future<void> writeDocument(
     DateTime timestamp,
     Function(bool, String) onResult) async {
   try {
+    // Sign in anonymously
+    await FirebaseAuth.instance.signInAnonymously();
+
     // Get a reference to the Firestore collection
     final collection = FirebaseFirestore.instance.collection(collectionName);
 
@@ -61,4 +76,3 @@ Future<void> writeDocument(
     onResult(false, 'Error saving document: $e');
   }
 }
-
