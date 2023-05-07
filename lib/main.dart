@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -320,6 +321,7 @@ class _NameFormState extends State<NameForm> {
   final TextEditingController _numberController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   List<File> _selectedImages = [];
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -376,13 +378,23 @@ class _NameFormState extends State<NameForm> {
     // get all documents
     // List<DocumentSnapshot> docs = await db.getAllDocuments();
 
+    // get stuff from input fields and SharedPreferences
     final name = _nameController.text.trim();
     final latitude = prefs.getString("latitude") ?? 'unknown';
     final longitude = prefs.getString("longitude") ?? 'unknown';
     final timeStamp = DateTime.now();
 
-    // write to the database, show snackbar with result
-    db.writeDocument(name, latitude, longitude, timeStamp, (success, message) {
+    // start loading indicator
+    setState(() {
+      _isSaving = true;
+    });
+
+    // write to the database, show snackbar with result, stop loading indicator
+    db.writeDocument(name, latitude, longitude, _selectedImages, timeStamp,
+        (success, message) {
+      setState(() {
+        _isSaving = false;
+      });
       _showSnackBar(message, success: success);
     });
   }
@@ -413,7 +425,8 @@ class _NameFormState extends State<NameForm> {
 
   Future<void> _addImage(ImageSource source) async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
+    // set image quality to 50% to save storage
+    final pickedFile = await picker.pickImage(source: source, imageQuality: 50);
     if (pickedFile != null) {
       setState(() {
         _selectedImages.add(File(pickedFile.path));
@@ -613,20 +626,30 @@ class _NameFormState extends State<NameForm> {
               icon: const Icon(Icons.camera_alt, size: 32),
               onPressed: () => _addImage(ImageSource.camera),
             ),
-            FilledButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
-                  _saveFormData();
-                }
-              },
-              child: const Text(
-                'Submit',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+            Stack(
+              children: [
+                FilledButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
+                      _saveFormData();
+                    }
+                  },
+                  child: const Text(
+                    'Submit',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
                 ),
-              ),
+                if (_isSaving)
+                  const Positioned.fill(
+                    child: Center(
+                      child: CircularProgressIndicator(color: Colors.black),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),
