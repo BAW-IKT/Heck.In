@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -32,7 +31,7 @@ Future<void> signInAnonymously() async {
 /// creates a document based on the given arguments
 /// returns a tuple (bool, String) with success status and message
 Future<void> writeDocument(
-    String name,
+    Map<String, dynamic> formData,
     String latitude,
     String longitude,
     List<File> images,
@@ -54,20 +53,23 @@ Future<void> writeDocument(
       String imageName = path.basename(image.path);
       // saves images into folder images/2023-05-07/NAME
       Reference imageRef = FirebaseStorage.instance.ref().child(
-          'images/${timestamp.toString().split(" ")[0]}/$name/$imageName');
+          'images/${timestamp.toString().split(" ")[0]}/${formData["Heckenname"]}/$imageName');
       await imageRef.putFile(image);
       String downloadUrl = await imageRef.getDownloadURL();
       downloadUrls.add(downloadUrl);
     }
 
     // Set the data for the new document
-    await document.set({
-      'name': name,
-      'latitude': latitude,
-      'longitude': longitude,
-      'images': downloadUrls,
-      'timestamp': timestamp,
-    });
+    // populate formdata, images, timestamp and geo coords
+    Map<String, dynamic> documentData = {};
+    for (var entry in formData.entries) {
+      documentData[entry.key] = entry.value;
+    }
+    documentData['images'] = downloadUrls;
+    documentData['timestamp'] = timestamp;
+    documentData['latitude'] = latitude;
+    documentData['longitude'] = longitude;
+    await document.set(documentData);
 
     // Call the callback function with success status and message
     onResult(true, 'Document saved successfully.');

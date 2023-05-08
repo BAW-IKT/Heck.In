@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -12,7 +10,6 @@ import 'firebase_options.dart';
 import 'dart:io';
 import 'utils_geo.dart' as geo;
 import 'utils_db.dart' as db;
-
 
 void main() => runApp(const HedgeProfilerApp());
 
@@ -318,11 +315,115 @@ class NameForm extends StatefulWidget {
 
 /// form page
 class _NameFormState extends State<NameForm> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _numberController = TextEditingController();
+  // final TextEditingController _nameController = TextEditingController();
+  // final TextEditingController _numberController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   List<File> _selectedImages = [];
   bool _isSaving = false;
+  List<Map<String, dynamic>> inputFields = [
+    {
+      'type': 'text',
+      'label': 'Heckenname',
+      'section': 'General',
+      'controller': TextEditingController(),
+      'validatorText': 'Bitte Namen der Hecke eingeben',
+    },
+    {
+      'type': 'text',
+      'label': 'Ort',
+      'section': 'General',
+      'controller': TextEditingController(),
+      'validatorText': 'Bitte Ort eingeben',
+    },
+    {
+      'type': 'text',
+      'label': 'Begutachter',
+      'section': 'General',
+      'controller': TextEditingController(),
+      'validatorText': 'Bitte Namen des Begutachters eingeben',
+    },
+    {
+      'type': 'number',
+      'label': 'Irgendeine nummer',
+      'section': 'General',
+      'controller': TextEditingController(),
+      'validatorText': 'Please enter a number',
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Irgendwas',
+      'section': 'General',
+      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Another dropdown',
+      'section': 'General',
+      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+    },
+    {
+      'type': 'dropdown',
+      'label': 'fredl',
+      'section': 'Advanced',
+      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+    },
+    {
+      'type': 'dropdown',
+      'label': 'fesl',
+      'section': 'Advanced',
+      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+    },
+  ];
+
+  // List<Map<String, dynamic>> inputFields = [
+  //   {
+  //     'type': 'text',
+  //     'controller': TextEditingController(),
+  //     'label': 'Heckenname',
+  //     'section': 'General',
+  //     'validator': (value) {
+  //       if (value == null || value.isEmpty) {
+  //         return 'Bitte namen der Hecke eingeben';
+  //       }
+  //       return null;
+  //     },
+  //   },
+  //   {
+  //     'controller': TextEditingController(),
+  //     'label': 'Ort',
+  //     'section': 'General',
+  //     'validator': (value) {
+  //       if (value == null || value.isEmpty) {
+  //         return 'Bitte Ortsnamen eingeben';
+  //       }
+  //       return null;
+  //     },
+  //   },
+  //   {
+  //     'controller': TextEditingController(),
+  //     'label': 'Begutachter',
+  //     'section': 'General',
+  //     'validator': (value) {
+  //       if (value == null || value.isEmpty) {
+  //         return 'Bitte Namen des Begutachters eingeben';
+  //       }
+  //       return null;
+  //     },
+  //   },
+  //   {
+  //     'controller': TextEditingController(),
+  //     'label': 'Some number',
+  //     'section': 'General',
+  //     'keyboardType': TextInputType.number,
+  //     'validator': (value) {
+  //       if (value == null || value.isEmpty) {
+  //         return 'Please enter a number';
+  //       }
+  //       return null;
+  //     },
+  //   },
+  //   // Add more input field configurations here
+  // ];
 
   @override
   void dispose() {
@@ -342,15 +443,26 @@ class _NameFormState extends State<NameForm> {
   /// populate input fields on page init
   void _populateInputFields() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    _nameController.text = prefs.getString('name') ?? '';
-    _numberController.text = prefs.getString('number') ?? '';
+    for (var field in inputFields) {
+      if (field['type'] == 'text' || field['type'] == 'number') {
+        field['controller'].text = prefs.getString(field['label']) ?? '';
+      } else if (field['type'] == 'dropdown') {
+        String value = prefs.getString(field['label']) ?? field['values'][0];
+        field['selectedValue'] = value;
+      }
+    }
   }
 
   /// action when page is closed
   void _persistInputStorage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('name', _nameController.text.trim());
-    prefs.setString('number', _numberController.text.trim());
+    for (var field in inputFields) {
+      if (field['type'] == 'text' || field['type'] == 'number') {
+        prefs.setString(field['label'], field['controller'].text.trim());
+      } else if (field['type'] == 'dropdown') {
+        prefs.setString(field['label'], field['selectedValue']);
+      }
+    }
   }
 
   /// action for Clear button
@@ -380,7 +492,17 @@ class _NameFormState extends State<NameForm> {
     // List<DocumentSnapshot> docs = await db.getAllDocuments();
 
     // get stuff from input fields and SharedPreferences
-    final name = _nameController.text.trim();
+    Map<String, dynamic> formData = {};
+    for (var field in inputFields) {
+      if (field.containsKey("type") && field.containsKey("label")) {
+        if (field['type'] == 'dropdown') {
+          formData[field['label']] = field['selectedValue'];
+        } else {
+          formData[field['label']] = field['controller'].text.trim();
+        }
+      }
+    }
+    // final name = _nameController.text.trim();
     final latitude = prefs.getString("latitude") ?? 'unknown';
     final longitude = prefs.getString("longitude") ?? 'unknown';
     final timeStamp = DateTime.now();
@@ -391,7 +513,7 @@ class _NameFormState extends State<NameForm> {
     });
 
     // write to the database, show snackbar with result, stop loading indicator
-    db.writeDocument(name, latitude, longitude, _selectedImages, timeStamp,
+    db.writeDocument(formData, latitude, longitude, _selectedImages, timeStamp,
         (success, message) {
       setState(() {
         _isSaving = false;
@@ -502,9 +624,145 @@ class _NameFormState extends State<NameForm> {
       backgroundColor: success ? null : Colors.red,
     );
 
-// Find the ScaffoldMessenger in the widget tree
-// and use it to show a SnackBar.
+    // Find the ScaffoldMessenger in the widget tree
+    // and use it to show a SnackBar.
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  // List<Widget> _buildInputFields(String sectionToBuild) {
+  //   List<Widget> rows = [];
+  //   List<Widget> rowChildren = [];
+  //   for (var field in inputFields) {
+  //     if (field['section'] != sectionToBuild) {
+  //       continue;
+  //     }
+  //     rowChildren.add(
+  //       Expanded(
+  //         child: Padding(
+  //           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+  //           child: TextFormField(
+  //             controller: field['controller'],
+  //             decoration: InputDecoration(
+  //               border: const OutlineInputBorder(),
+  //               labelText: field['label'],
+  //             ),
+  //             keyboardType: field['keyboardType'] ?? TextInputType.text,
+  //             validator: field['validator'],
+  //           ),
+  //         ),
+  //       ),
+  //     );
+  //     if (rowChildren.length == 3) {
+  //       rows.add(Row(children: rowChildren));
+  //       rowChildren = [];
+  //     }
+  //   }
+  //   if (rowChildren.isNotEmpty) {
+  //     rows.add(Row(children: rowChildren));
+  //   }
+  //   return rows;
+  // }
+
+  List<Widget> _buildInputFields(String sectionToBuild) {
+    List<Widget> rows = [];
+    List<Widget> rowChildren = [];
+    for (var field in inputFields) {
+      if (field['section'] != sectionToBuild) {
+        continue;
+      }
+      if (field['type'] == 'text') {
+        rowChildren.add(
+          Expanded(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              child: TextFormField(
+                controller: field['controller'],
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: field['label'],
+                ),
+                keyboardType: TextInputType.text,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return field['validatorText'];
+                  }
+                  return null;
+                },
+              ),
+            ),
+          ),
+        );
+      } else if (field['type'] == 'dropdown') {
+        var dropdownItems =
+            field['values'].map<DropdownMenuItem<String>>((value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList();
+        rowChildren.add(
+          Expanded(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(field['label']),
+                  DropdownButtonFormField(
+                    value: field['selectedValue'] ?? field['values'][0],
+                    items: dropdownItems,
+                    onChanged: (value) {
+                      setState(() {
+                        field['selectedValue'] = value;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value == field['values'][0]) {
+                        return 'Please select a valid value';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      } else if (field['type'] == 'number') {
+        rowChildren.add(
+          Expanded(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              child: TextFormField(
+                controller: field['controller'],
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: field['label'],
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return field['validatorText'];
+                  }
+                  return null;
+                },
+              ),
+            ),
+          ),
+        );
+      }
+      if (rowChildren.length == 3) {
+        rows.add(Row(children: rowChildren));
+        rowChildren = [];
+      }
+    }
+    if (rowChildren.isNotEmpty) {
+      rows.add(Row(children: rowChildren));
+    }
+    return rows;
   }
 
   @override
@@ -514,85 +772,67 @@ class _NameFormState extends State<NameForm> {
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Profile the Hedge!',
-                  style: TextStyle(fontSize: 24),
-                ),
-                const Text('Some text', style: TextStyle(fontSize: 16)),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Name',
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Center(
+                    child: Text(
+                      'Profile the Hedge!',
+                      style: TextStyle(fontSize: 24),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your name';
-                      }
-                      return null;
+                  ),
+                  Column(
+                    children: _buildInputFields('General'),
+                  ),
+                  const Center(
+                    child: Text(
+                      'Advanced section',
+                      style: TextStyle(fontSize: 24),
+                    )
+                  ),
+                  Column(
+                    children: _buildInputFields('Advanced'),
+                  ),
+                  const SizedBox(height: 16),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _selectedImages.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemBuilder: (BuildContext context, int index) {
+                      return Stack(
+                        children: [
+                          Image.file(_selectedImages[index], fit: BoxFit.cover),
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5),
+                                  spreadRadius: -5,
+                                  blurRadius: 10,
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.highlight_remove,
+                                  color: Colors.red),
+                              onPressed: () => _removeImage(index),
+                            ),
+                          ),
+                        ],
+                      );
                     },
                   ),
-                ),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: TextFormField(
-                    controller: _numberController,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Number',
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a number';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _selectedImages.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                  ),
-                  itemBuilder: (BuildContext context, int index) {
-                    return Stack(
-                      children: [
-                        Image.file(_selectedImages[index], fit: BoxFit.cover),
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: -5,
-                                blurRadius: 10,
-                              ),
-                            ],
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.highlight_remove,
-                                color: Colors.red),
-                            onPressed: () => _removeImage(index),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
