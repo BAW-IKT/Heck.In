@@ -568,6 +568,11 @@ class _NameFormState extends State<NameForm> {
 
   @override
   Widget build(BuildContext context) {
+
+  // Determine amount of columns based on screen width and orientation
+  final mediaQueryData = MediaQuery.of(context);
+  final columns = determineRequiredColumns(mediaQueryData);
+
     return Scaffold(
       body: Material(
         child: Form(
@@ -578,10 +583,10 @@ class _NameFormState extends State<NameForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  buildFormFieldGrid(inputFields, 'General', setState, columns: 2, borderColor: Colors.deepOrangeAccent),
+                  buildFormFieldGrid(inputFields, 'General', setState, columns: columns, borderColor: Colors.deepOrangeAccent),
                   const Divider(),
                   createHeader("GIS"),
-                  buildFormFieldGrid(inputFields, 'GIS', setState),
+                  buildFormFieldGrid(inputFields, 'GIS', setState, columns: columns, borderColor: Colors.indigoAccent),
                   const SizedBox(height: 16),
                   GridView.builder(
                     shrinkWrap: true,
