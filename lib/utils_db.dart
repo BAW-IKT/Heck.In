@@ -19,13 +19,13 @@ Future<List<DocumentSnapshot>> getAllDocuments() async {
 }
 
 Future<void> signInAnonymously() async {
-  try {
+  // try {
     UserCredential userCredential =
         await FirebaseAuth.instance.signInAnonymously();
     print('User ID: ${userCredential.user?.uid}');
-  } catch (e) {
-    print('Error: $e');
-  }
+  // } catch (e) {
+  //   print('Error: $e');
+  // }
 }
 
 /// creates a document based on the given arguments

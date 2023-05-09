@@ -6,10 +6,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'form_data.dart';
 import 'firebase_options.dart';
 import 'dart:io';
+import 'form_utils.dart';
 import 'utils_geo.dart' as geo;
 import 'utils_db.dart' as db;
+import 'snackbar.dart';
 
 void main() => runApp(const HedgeProfilerApp());
 
@@ -320,110 +323,7 @@ class _NameFormState extends State<NameForm> {
   final _formKey = GlobalKey<FormState>();
   List<File> _selectedImages = [];
   bool _isSaving = false;
-  List<Map<String, dynamic>> inputFields = [
-    {
-      'type': 'text',
-      'label': 'Heckenname',
-      'section': 'General',
-      'controller': TextEditingController(),
-      'validatorText': 'Bitte Namen der Hecke eingeben',
-    },
-    {
-      'type': 'text',
-      'label': 'Ort',
-      'section': 'General',
-      'controller': TextEditingController(),
-      'validatorText': 'Bitte Ort eingeben',
-    },
-    {
-      'type': 'text',
-      'label': 'Begutachter',
-      'section': 'General',
-      'controller': TextEditingController(),
-      'validatorText': 'Bitte Namen des Begutachters eingeben',
-    },
-    {
-      'type': 'number',
-      'label': 'Irgendeine nummer',
-      'section': 'General',
-      'controller': TextEditingController(),
-      'validatorText': 'Please enter a number',
-    },
-    {
-      'type': 'dropdown',
-      'label': 'Irgendwas',
-      'section': 'General',
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
-    },
-    {
-      'type': 'dropdown',
-      'label': 'Another dropdown',
-      'section': 'General',
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
-    },
-    {
-      'type': 'dropdown',
-      'label': 'fredl',
-      'section': 'Advanced',
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
-    },
-    {
-      'type': 'dropdown',
-      'label': 'fesl',
-      'section': 'Advanced',
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
-    },
-  ];
-
-  // List<Map<String, dynamic>> inputFields = [
-  //   {
-  //     'type': 'text',
-  //     'controller': TextEditingController(),
-  //     'label': 'Heckenname',
-  //     'section': 'General',
-  //     'validator': (value) {
-  //       if (value == null || value.isEmpty) {
-  //         return 'Bitte namen der Hecke eingeben';
-  //       }
-  //       return null;
-  //     },
-  //   },
-  //   {
-  //     'controller': TextEditingController(),
-  //     'label': 'Ort',
-  //     'section': 'General',
-  //     'validator': (value) {
-  //       if (value == null || value.isEmpty) {
-  //         return 'Bitte Ortsnamen eingeben';
-  //       }
-  //       return null;
-  //     },
-  //   },
-  //   {
-  //     'controller': TextEditingController(),
-  //     'label': 'Begutachter',
-  //     'section': 'General',
-  //     'validator': (value) {
-  //       if (value == null || value.isEmpty) {
-  //         return 'Bitte Namen des Begutachters eingeben';
-  //       }
-  //       return null;
-  //     },
-  //   },
-  //   {
-  //     'controller': TextEditingController(),
-  //     'label': 'Some number',
-  //     'section': 'General',
-  //     'keyboardType': TextInputType.number,
-  //     'validator': (value) {
-  //       if (value == null || value.isEmpty) {
-  //         return 'Please enter a number';
-  //       }
-  //       return null;
-  //     },
-  //   },
-  //   // Add more input field configurations here
-  // ];
+  List<Map<String, dynamic>> inputFields = [];
 
   @override
   void dispose() {
@@ -434,11 +334,14 @@ class _NameFormState extends State<NameForm> {
   @override
   void initState() {
     super.initState();
+    inputFields = createFormFields();
     _populateInputFields();
     _checkPermissions();
     _getLostImageData();
     _loadPersistedImages();
   }
+
+
 
   /// populate input fields on page init
   void _populateInputFields() async {
@@ -447,10 +350,11 @@ class _NameFormState extends State<NameForm> {
       if (field['type'] == 'text' || field['type'] == 'number') {
         field['controller'].text = prefs.getString(field['label']) ?? '';
       } else if (field['type'] == 'dropdown') {
-        String value = prefs.getString(field['label']) ?? field['values'][0];
+        String value = prefs.getString(field['label']) ?? '';
         field['selectedValue'] = value;
       }
     }
+    setState(() {});
   }
 
   /// action when page is closed
@@ -518,7 +422,7 @@ class _NameFormState extends State<NameForm> {
       setState(() {
         _isSaving = false;
       });
-      _showSnackBar(message, success: success);
+      showSnackbar(context, message, success: success);
     });
   }
 
@@ -592,6 +496,48 @@ class _NameFormState extends State<NameForm> {
     }
   }
 
+  void _showClearDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Clear Form Data'),
+          content: const Text('Do you want to clear the images '
+              'or the text in the form?'),
+          actions: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                OutlinedButton(
+                  child:
+                      const Text('Images', style: TextStyle(color: Colors.red)),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _clearImages();
+                  },
+                ),
+                OutlinedButton(
+                  child:
+                      const Text('Form', style: TextStyle(color: Colors.red)),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _clearInputStorage();
+                  },
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _getLostImageData() async {
     final ImagePicker picker = ImagePicker();
     final LostDataResponse response = await picker.retrieveLostData();
@@ -600,16 +546,18 @@ class _NameFormState extends State<NameForm> {
     }
     final List<XFile>? files = response.files;
     if (files != null) {
-      _showSnackBar("recovered images successfully");
+      showSnackbar(context, "recovered images successfully");
       _selectedImages.addAll(files as Iterable<File>);
     } else {
-      _showSnackBar("couldn't restore images - ${response.exception}");
+      showSnackbar(context, "couldn't restore images - ${response.exception}",
+          success: false);
     }
   }
 
   void _checkPermissions() async {
     if (await Permission.storage.request().isDenied) {
-      _showSnackBar("No storage permission - cannot write images to storage",
+      showSnackbar(context,
+          "No storage permission - cannot write images to storage",
           success: false);
     }
     // if (await Permission.camera.request().isDenied) {
@@ -617,153 +565,6 @@ class _NameFormState extends State<NameForm> {
     // }
   }
 
-  void _showSnackBar(String message, {bool success = true}) async {
-    final snackBar = SnackBar(
-      content: Text(message),
-      duration: const Duration(seconds: 3),
-      backgroundColor: success ? null : Colors.red,
-    );
-
-    // Find the ScaffoldMessenger in the widget tree
-    // and use it to show a SnackBar.
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  // List<Widget> _buildInputFields(String sectionToBuild) {
-  //   List<Widget> rows = [];
-  //   List<Widget> rowChildren = [];
-  //   for (var field in inputFields) {
-  //     if (field['section'] != sectionToBuild) {
-  //       continue;
-  //     }
-  //     rowChildren.add(
-  //       Expanded(
-  //         child: Padding(
-  //           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-  //           child: TextFormField(
-  //             controller: field['controller'],
-  //             decoration: InputDecoration(
-  //               border: const OutlineInputBorder(),
-  //               labelText: field['label'],
-  //             ),
-  //             keyboardType: field['keyboardType'] ?? TextInputType.text,
-  //             validator: field['validator'],
-  //           ),
-  //         ),
-  //       ),
-  //     );
-  //     if (rowChildren.length == 3) {
-  //       rows.add(Row(children: rowChildren));
-  //       rowChildren = [];
-  //     }
-  //   }
-  //   if (rowChildren.isNotEmpty) {
-  //     rows.add(Row(children: rowChildren));
-  //   }
-  //   return rows;
-  // }
-
-  List<Widget> _buildInputFields(String sectionToBuild) {
-    List<Widget> rows = [];
-    List<Widget> rowChildren = [];
-    for (var field in inputFields) {
-      if (field['section'] != sectionToBuild) {
-        continue;
-      }
-      if (field['type'] == 'text') {
-        rowChildren.add(
-          Expanded(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-              child: TextFormField(
-                controller: field['controller'],
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: field['label'],
-                ),
-                keyboardType: TextInputType.text,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return field['validatorText'];
-                  }
-                  return null;
-                },
-              ),
-            ),
-          ),
-        );
-      } else if (field['type'] == 'dropdown') {
-        var dropdownItems =
-            field['values'].map<DropdownMenuItem<String>>((value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
-          );
-        }).toList();
-        rowChildren.add(
-          Expanded(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(field['label']),
-                  DropdownButtonFormField(
-                    value: field['selectedValue'] ?? field['values'][0],
-                    items: dropdownItems,
-                    onChanged: (value) {
-                      setState(() {
-                        field['selectedValue'] = value;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value == field['values'][0]) {
-                        return 'Please select a valid value';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      } else if (field['type'] == 'number') {
-        rowChildren.add(
-          Expanded(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-              child: TextFormField(
-                controller: field['controller'],
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: field['label'],
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return field['validatorText'];
-                  }
-                  return null;
-                },
-              ),
-            ),
-          ),
-        );
-      }
-      if (rowChildren.length == 3) {
-        rows.add(Row(children: rowChildren));
-        rowChildren = [];
-      }
-    }
-    if (rowChildren.isNotEmpty) {
-      rows.add(Row(children: rowChildren));
-    }
-    return rows;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -777,24 +578,10 @@ class _NameFormState extends State<NameForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Center(
-                    child: Text(
-                      'Profile the Hedge!',
-                      style: TextStyle(fontSize: 24),
-                    ),
-                  ),
-                  Column(
-                    children: _buildInputFields('General'),
-                  ),
-                  const Center(
-                    child: Text(
-                      'Advanced section',
-                      style: TextStyle(fontSize: 24),
-                    )
-                  ),
-                  Column(
-                    children: _buildInputFields('Advanced'),
-                  ),
+                  buildFormFieldGrid(inputFields, 'General', setState, columns: 2, borderColor: Colors.deepOrangeAccent),
+                  const Divider(),
+                  createHeader("GIS"),
+                  buildFormFieldGrid(inputFields, 'GIS', setState),
                   const SizedBox(height: 16),
                   GridView.builder(
                     shrinkWrap: true,
@@ -842,29 +629,20 @@ class _NameFormState extends State<NameForm> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             OutlinedButton(
-              onPressed: _clearImages,
+              onPressed: () {
+                _showClearDialog();
+              },
               child: const Text(
-                'Clear Images',
-                style: TextStyle(
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            OutlinedButton(
-              onPressed: _clearInputStorage,
-              child: const Text(
-                'Clear Form',
-                style: TextStyle(
-                  fontSize: 16,
-                ),
+                'Clear',
+                style: TextStyle(fontSize: 16, color: Colors.deepOrange),
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.photo_size_select_actual, size: 32),
+              icon: const Icon(Icons.photo_library, size: 32),
               onPressed: () => _addImage(ImageSource.gallery),
             ),
             IconButton(
-              icon: const Icon(Icons.camera_alt, size: 32),
+              icon: const Icon(Icons.add_a_photo, size: 32),
               onPressed: () => _addImage(ImageSource.camera),
             ),
             Stack(
