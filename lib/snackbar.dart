@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-void showSnackbar(BuildContext context, String message, {bool success = true}) async {
+void showSnackbar(BuildContext context, String message,
+    {bool success = true}) async {
   int elapsedTime = 0;
   int duration = 100;
 
   final progress = ValueNotifier<double>(0.0);
+  final colScheme = Theme.of(context).colorScheme;
+  final col = success ? colScheme.inversePrimary : colScheme.errorContainer;
 
   final snackBar = SnackBar(
     duration: Duration(seconds: duration),
@@ -20,21 +23,22 @@ void showSnackbar(BuildContext context, String message, {bool success = true}) a
               child: CircularProgressIndicator(
                 value: value,
                 strokeWidth: 3.0,
-                valueColor: AlwaysStoppedAnimation<Color>(success ? Colors.blue : Colors.red),
+                valueColor: AlwaysStoppedAnimation<Color>(col),
               ),
             ),
             const SizedBox(width: 16.0),
+            success ? Container() : Icon(Icons.warning, color: col),
             Expanded(
               child: Center(
                 child: Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: success ? null : Colors.red,),
+                  style: TextStyle(color: col),
                 ),
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.close),
+              icon: Icon(Icons.close, color: col),
               onPressed: () {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
               },

@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dynamic_dropdown.dart';
 import 'form_data.dart';
 import 'firebase_options.dart';
 import 'dart:io';
@@ -324,6 +325,7 @@ class _NameFormState extends State<NameForm> {
   List<File> _selectedImages = [];
   bool _isSaving = false;
   List<Map<String, dynamic>> inputFields = [];
+  Map<String, String> dynamicFields = {};
 
   @override
   void dispose() {
@@ -340,8 +342,6 @@ class _NameFormState extends State<NameForm> {
     _getLostImageData();
     _loadPersistedImages();
   }
-
-
 
   /// populate input fields on page init
   void _populateInputFields() async {
@@ -391,9 +391,6 @@ class _NameFormState extends State<NameForm> {
   /// get form and image data and persist to database
   void _saveFormData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    // get all documents
-    // List<DocumentSnapshot> docs = await db.getAllDocuments();
 
     // get stuff from input fields and SharedPreferences
     Map<String, dynamic> formData = {};
@@ -556,8 +553,8 @@ class _NameFormState extends State<NameForm> {
 
   void _checkPermissions() async {
     if (await Permission.storage.request().isDenied) {
-      showSnackbar(context,
-          "No storage permission - cannot write images to storage",
+      showSnackbar(
+          context, "No storage permission - cannot write images to storage",
           success: false);
     }
     // if (await Permission.camera.request().isDenied) {
@@ -565,13 +562,11 @@ class _NameFormState extends State<NameForm> {
     // }
   }
 
-
   @override
   Widget build(BuildContext context) {
-
-  // Determine amount of columns based on screen width and orientation
-  final mediaQueryData = MediaQuery.of(context);
-  final columns = determineRequiredColumns(mediaQueryData);
+    // Determine amount of columns based on screen width and orientation
+    final mediaQueryData = MediaQuery.of(context);
+    final columns = determineRequiredColumns(mediaQueryData);
 
     return Scaffold(
       body: Material(
@@ -583,10 +578,18 @@ class _NameFormState extends State<NameForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  buildFormFieldGrid(inputFields, 'General', setState, columns: columns, borderColor: Colors.deepOrangeAccent),
+                  buildFormFieldGrid(inputFields, 'General', setState,
+                      columns: columns, borderColor: Colors.deepOrangeAccent),
+                  DynamicDropdown(
+                    defaultValues: ["franz", "value 1", "value2"],
+                    headerText: "Fredl",
+                    borderColor: Colors.red,
+                    dynamicFields: dynamicFields,
+                  ),
                   const Divider(),
                   createHeader("GIS"),
-                  buildFormFieldGrid(inputFields, 'GIS', setState, columns: columns, borderColor: Colors.indigoAccent),
+                  buildFormFieldGrid(inputFields, 'GIS', setState,
+                      columns: columns, borderColor: Colors.indigoAccent),
                   const SizedBox(height: 16),
                   GridView.builder(
                     shrinkWrap: true,
@@ -637,14 +640,16 @@ class _NameFormState extends State<NameForm> {
               onPressed: () {
                 _showClearDialog();
               },
-              child: const Text(
+              child: Text(
                 'Clear',
-                style: TextStyle(fontSize: 16, color: Colors.deepOrange),
+                style: TextStyle(
+                    fontSize: 16, color: Theme.of(context).colorScheme.error),
               ),
             ),
             IconButton(
               icon: const Icon(Icons.photo_library, size: 32),
               onPressed: () => _addImage(ImageSource.gallery),
+              // onPressed: () => showSnackbar(context, "fredl", success: false),
             ),
             IconButton(
               icon: const Icon(Icons.add_a_photo, size: 32),
@@ -668,9 +673,10 @@ class _NameFormState extends State<NameForm> {
                   ),
                 ),
                 if (_isSaving)
-                  const Positioned.fill(
+                  Positioned.fill(
                     child: Center(
-                      child: CircularProgressIndicator(color: Colors.black),
+                      child: CircularProgressIndicator(
+                          color: Theme.of(context).colorScheme.inversePrimary),
                     ),
                   ),
               ],

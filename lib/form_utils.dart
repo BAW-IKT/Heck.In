@@ -13,8 +13,8 @@ Column buildFormFieldGrid(List<Map<String, dynamic>> inputFields,
     if (field['type'] == 'text') {
       rowChildren.add(_createTextInput(field, borderColor: borderColor));
     } else if (field['type'] == 'dropdown') {
-      rowChildren.add(_createDropdownInput(field, setState, borderColor: borderColor));
-      // rowChildren.add(DropdownButtonExample(field: field,));
+      rowChildren
+          .add(_createDropdownInput(field, setState, borderColor: borderColor));
     } else if (field['type'] == 'number') {
       rowChildren.add(_createNumberInput(field, borderColor: borderColor));
     }
@@ -95,7 +95,7 @@ Expanded _createDropdownInput(var field, Function setState,
       child: Text(
         value,
         style: TextStyle(
-            fontSize: value.length > 16 ? 10:12,
+          fontSize: value.length > 16 ? 10 : 12,
         ),
       ),
     );
@@ -113,7 +113,7 @@ Expanded _createDropdownInput(var field, Function setState,
           ),
           labelText: field['label'],
           labelStyle: TextStyle(
-            fontSize: field['label'].length > 24 ? 14:16,
+            fontSize: field['label'].length > 24 ? 14 : 16,
           ),
         ),
         items: dropdownItems,
@@ -166,8 +166,6 @@ class ConfirmationDialog extends StatelessWidget {
     );
   }
 }
-
-
 
 // class DropdownButtonExample extends StatefulWidget {
 //   final Map<String, dynamic> field;
