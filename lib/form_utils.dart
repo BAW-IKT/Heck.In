@@ -1,6 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
+import 'dynamic_dropdowns.dart';
+
 Column buildFormFieldGrid(List<Map<String, dynamic>> inputFields,
     String sectionToBuild, Function setState,
     {columns = 3, Color? borderColor}) {
@@ -28,6 +30,50 @@ Column buildFormFieldGrid(List<Map<String, dynamic>> inputFields,
   }
   return Column(children: rows);
   // return rows;
+}
+
+Column buildDynamicFormFieldGrid({
+  required List<Widget> children,
+  int columns = 3,
+}) {
+  List<Widget> rows = [];
+  List<Widget> rowChildren = [];
+  int currentColumnCount = 0;
+
+  for (var child in children) {
+    rowChildren.add(
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: child,
+        ),
+      ),
+    );
+
+    currentColumnCount++;
+    if (currentColumnCount == columns) {
+      rows.add(Row(children: rowChildren));
+      rowChildren = [];
+      currentColumnCount = 0;
+    }
+  }
+
+  if (rowChildren.isNotEmpty) {
+    rows.add(Row(children: rowChildren));
+  }
+
+  return Column(children: rows);
+}
+
+int determineRequiredColumnsDynamicDropdowns(var mediaQueryData) {
+  final screenWidth = mediaQueryData.size.width;
+  int columns = 1;
+  if (screenWidth > 960) {
+    columns = 3;
+  } else if (screenWidth > 720) {
+    columns = 2;
+  }
+  return columns;
 }
 
 int determineRequiredColumns(var mediaQueryData) {

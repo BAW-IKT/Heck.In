@@ -7,6 +7,8 @@ String? generateValidator(String? value, String label, bool required) {
   return null;
 }
 
+/// This function defines the static inputs (text, number or dropdown)
+/// the section renders certain
 List<Map<String, dynamic>> createFormFields() {
   return [
     {
@@ -125,3 +127,14 @@ List<Map<String, dynamic>> createFormFields() {
     },
   ];
 }
+
+// List<Map<String, dynamic>> createDynamicFormFields() {
+//   return [
+//     {
+//       'headerText': 'Fredl',
+//       'borderColor': Colors.red,
+//       'defValues': const ['', 'franz', 'value', 'value2'],
+//       'key': 'i dont know how to do this'
+//     }
+//   ];
+// }

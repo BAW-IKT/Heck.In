@@ -596,6 +596,8 @@ class _NameFormState extends State<NameForm> {
     // Determine amount of columns based on screen width and orientation
     final mediaQueryData = MediaQuery.of(context);
     final columns = determineRequiredColumns(mediaQueryData);
+    final dynamicColumns =
+        determineRequiredColumnsDynamicDropdowns(mediaQueryData);
 
     return Scaffold(
       body: Material(
@@ -609,20 +611,22 @@ class _NameFormState extends State<NameForm> {
                 children: [
                   buildFormFieldGrid(inputFields, 'General', setState,
                       columns: columns, borderColor: Colors.deepOrangeAccent),
-                  DynamicDropdowns(
-                    key: _dropdownsKeys[0],
-                    defValues: ['', 'franz', 'value1', 'value2'],
-                    headerText: 'Fredl',
-                    borderColor: Colors.red,
-                    onChanged: onDynamicDropdownsChanged,
-                  ),
-                  DynamicDropdowns(
-                    key: _dropdownsKeys[1],
-                    defValues: ['', 'first', 'second', 'third'],
-                    headerText: 'Frudl',
-                    borderColor: Colors.blue,
-                    onChanged: onDynamicDropdownsChanged,
-                  ),
+                  buildDynamicFormFieldGrid(children: [
+                    DynamicDropdowns(
+                      key: _dropdownsKeys[0],
+                      defValues: const ['', 'franz', 'value1', 'value2'],
+                      headerText: 'Fredl',
+                      borderColor: Colors.red,
+                      onChanged: onDynamicDropdownsChanged,
+                    ),
+                    DynamicDropdowns(
+                      key: _dropdownsKeys[1],
+                      defValues: const ['', 'first', 'second', 'third'],
+                      headerText: 'Frudl',
+                      borderColor: Colors.blue,
+                      onChanged: onDynamicDropdownsChanged,
+                    ),
+                  ], columns: dynamicColumns),
                   const Divider(),
                   createHeader("GIS"),
                   buildFormFieldGrid(inputFields, 'GIS', setState,
