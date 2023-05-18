@@ -338,7 +338,7 @@ class _NameFormState extends State<NameForm> {
   List<File> _selectedImages = [];
   bool _isSaving = false;
   List<Map<String, dynamic>> inputFields = [];
-  Map<String, String> dynamicFields = {};
+  List<Map<String, dynamic>> dynamicFields = [];
   List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
 
   // GlobalKey<DynamicDropdownsState> _dropdownsKey = GlobalKey<DynamicDropdownsState>();
@@ -353,9 +353,9 @@ class _NameFormState extends State<NameForm> {
   void initState() {
     super.initState();
     inputFields = createFormFields();
-    // TODO: update based on amount of dropdowns
-    _dropdownsKeys =
-        List.generate(2, (_) => GlobalKey<DynamicDropdownsState>());
+    dynamicFields = createDynamicFormFields();
+    _dropdownsKeys = List.generate(
+        dynamicFields.length, (_) => GlobalKey<DynamicDropdownsState>());
     _populateInputFields();
     _checkPermissions();
     _getLostImageData();
@@ -610,27 +610,26 @@ class _NameFormState extends State<NameForm> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   buildFormFieldGrid(inputFields, 'General', setState,
-                      columns: columns, borderColor: Colors.deepOrangeAccent),
-                  buildDynamicFormFieldGrid(children: [
-                    DynamicDropdowns(
-                      key: _dropdownsKeys[0],
-                      defValues: const ['', 'franz', 'value1', 'value2'],
-                      headerText: 'Fredl',
-                      borderColor: Colors.red,
-                      onChanged: onDynamicDropdownsChanged,
-                    ),
-                    DynamicDropdowns(
-                      key: _dropdownsKeys[1],
-                      defValues: const ['', 'first', 'second', 'third'],
-                      headerText: 'Frudl',
-                      borderColor: Colors.blue,
-                      onChanged: onDynamicDropdownsChanged,
-                    ),
-                  ], columns: dynamicColumns),
+                      columns: columns),
+                  buildDynamicFormFieldGrid(
+                    children: dynamicFields,
+                    section: 'General',
+                    dropdownKeys: _dropdownsKeys,
+                    onDropdownChanged: onDynamicDropdownsChanged,
+                    columns: dynamicColumns,
+                    // minDropdownCount: 1,
+                    // maxDropdownCount: 3,
+                  ),
                   const Divider(),
                   createHeader("GIS"),
                   buildFormFieldGrid(inputFields, 'GIS', setState,
-                      columns: columns, borderColor: Colors.indigoAccent),
+                      columns: columns),
+                  buildDynamicFormFieldGrid(
+                      children: dynamicFields,
+                      section: 'GIS',
+                      dropdownKeys: _dropdownsKeys,
+                      onDropdownChanged: onDynamicDropdownsChanged,
+                      columns: dynamicColumns),
                   const SizedBox(height: 16),
                   GridView.builder(
                     shrinkWrap: true,

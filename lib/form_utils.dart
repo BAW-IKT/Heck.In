@@ -1,60 +1,45 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-
 import 'dynamic_dropdowns.dart';
 
-Column buildFormFieldGrid(List<Map<String, dynamic>> inputFields,
-    String sectionToBuild, Function setState,
-    {columns = 3, Color? borderColor}) {
-  List<Widget> rows = [];
-  List<Widget> rowChildren = [];
-  for (var field in inputFields) {
-    if (field['section'] != sectionToBuild) {
-      continue;
-    }
-    if (field['type'] == 'text') {
-      rowChildren.add(_createTextInput(field, borderColor: borderColor));
-    } else if (field['type'] == 'dropdown') {
-      rowChildren
-          .add(_createDropdownInput(field, setState, borderColor: borderColor));
-    } else if (field['type'] == 'number') {
-      rowChildren.add(_createNumberInput(field, borderColor: borderColor));
-    }
-    if (rowChildren.length == columns) {
-      rows.add(Row(children: rowChildren));
-      rowChildren = [];
-    }
-  }
-  if (rowChildren.isNotEmpty) {
-    rows.add(Row(children: rowChildren));
-  }
-  return Column(children: rows);
-  // return rows;
-}
-
 Column buildDynamicFormFieldGrid({
-  required List<Widget> children,
+  required List<Map<String, dynamic>> children,
+  required String section,
+  required List<GlobalKey<DynamicDropdownsState>> dropdownKeys,
+  required void Function(String, String) onDropdownChanged,
   int columns = 3,
+  int minDropdownCount = 0,
+  int maxDropdownCount = 6,
 }) {
   List<Widget> rows = [];
   List<Widget> rowChildren = [];
   int currentColumnCount = 0;
 
   for (var child in children) {
-    rowChildren.add(
-      Expanded(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          child: child,
+    if (child['section'] == section) {
+      int index = children.indexOf(child);
+      rowChildren.add(
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            child: DynamicDropdowns(
+              key: dropdownKeys[index],
+              defValues: child['defValues'],
+              headerText: child['headerText'],
+              borderColor: child['borderColor'],
+              onChanged: onDropdownChanged,
+              minDropdownCount: minDropdownCount,
+              maxDropdownCount: maxDropdownCount,
+            ),
+          ),
         ),
-      ),
-    );
+      );
 
-    currentColumnCount++;
-    if (currentColumnCount == columns) {
-      rows.add(Row(children: rowChildren));
-      rowChildren = [];
-      currentColumnCount = 0;
+      currentColumnCount++;
+      if (currentColumnCount == columns) {
+        rows.add(Row(children: rowChildren));
+        rowChildren = [];
+        currentColumnCount = 0;
+      }
     }
   }
 
@@ -64,6 +49,44 @@ Column buildDynamicFormFieldGrid({
 
   return Column(children: rows);
 }
+
+
+
+Column buildFormFieldGrid(
+  List<Map<String, dynamic>> inputFields,
+  String sectionToBuild,
+  Function setState,
+  {columns = 3}
+) {
+  List<Widget> rows = [];
+  List<Widget> rowChildren = [];
+
+  for (var field in inputFields) {
+    if (field['section'] != sectionToBuild) {
+      continue;
+    }
+    Color? borderColor = field['borderColor'];
+    if (field['type'] == 'text') {
+      rowChildren.add(_createTextInput(field, borderColor: borderColor));
+    } else if (field['type'] == 'dropdown') {
+      rowChildren.add(_createDropdownInput(field, setState, borderColor: borderColor));
+    } else if (field['type'] == 'number') {
+      rowChildren.add(_createNumberInput(field, borderColor: borderColor));
+    }
+
+    if (rowChildren.length == columns) {
+      rows.add(Row(children: rowChildren));
+      rowChildren = [];
+    }
+  }
+
+  if (rowChildren.isNotEmpty) {
+    rows.add(Row(children: rowChildren));
+  }
+
+  return Column(children: rows);
+}
+
 
 int determineRequiredColumnsDynamicDropdowns(var mediaQueryData) {
   final screenWidth = mediaQueryData.size.width;

@@ -6,6 +6,8 @@ class DynamicDropdowns extends StatefulWidget {
   final String headerText;
   final Color borderColor;
   final Function(String, String) onChanged;
+  final int minDropdownCount;
+  final int maxDropdownCount;
 
   const DynamicDropdowns({
     super.key,
@@ -13,6 +15,8 @@ class DynamicDropdowns extends StatefulWidget {
     required this.headerText,
     required this.borderColor,
     required this.onChanged,
+    this.minDropdownCount = 0,
+    this.maxDropdownCount = 6,
   });
 
   @override
@@ -53,14 +57,14 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
         selectedValues.add(prefs.get(key).toString());
       }
     } else {
-      // otherwise, build one widget as default
+      // otherwise, build minDropdownCount amount of widgets as default
       dropdownCount++;
       selectedValues.add(widget.defValues[0]);
     }
   }
 
   void addDropdown() {
-    if (dropdownCount < 6) {
+    if (dropdownCount < widget.maxDropdownCount) {
       setState(() {
         dropdownCount++;
         selectedValues.add(widget.defValues[0]);
@@ -69,7 +73,7 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
   }
 
   void removeDropdown() {
-    if (dropdownCount > 0) {
+    if (dropdownCount > widget.minDropdownCount) {
       setState(() {
         dropdownCount--;
         selectedValues.removeLast();
