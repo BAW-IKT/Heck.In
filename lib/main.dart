@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'dynamic_dropdown.dart';
+import 'dynamic_dropdowns.dart';
 import 'form_data.dart';
 import 'firebase_options.dart';
 import 'dart:io';
@@ -175,6 +175,10 @@ Page resource error:
                           TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     IconButton(
+                      onPressed: _prefs_debug,
+                      icon: const Icon(Icons.calculate_outlined),
+                    ),
+                    IconButton(
                       onPressed: _updateLocationWrapper,
                       icon: const Icon(Icons.refresh),
                     ),
@@ -272,6 +276,14 @@ Page resource error:
     );
   }
 
+  void _prefs_debug() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    for (String key in prefs.getKeys()) {
+      Object? val = prefs.get(key);
+      print('$key | $val');
+    }
+  }
+
   /// loads a page
   void _loadPage(BuildContext context, String url) async {
     // prevent loading of page if page was already loaded before
@@ -319,13 +331,13 @@ class NameForm extends StatefulWidget {
 
 /// form page
 class _NameFormState extends State<NameForm> {
-  // final TextEditingController _nameController = TextEditingController();
-  // final TextEditingController _numberController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   List<File> _selectedImages = [];
   bool _isSaving = false;
   List<Map<String, dynamic>> inputFields = [];
   Map<String, String> dynamicFields = {};
+  List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
+  // GlobalKey<DynamicDropdownsState> _dropdownsKey = GlobalKey<DynamicDropdownsState>();
 
   @override
   void dispose() {
@@ -337,13 +349,17 @@ class _NameFormState extends State<NameForm> {
   void initState() {
     super.initState();
     inputFields = createFormFields();
+    // TODO: update based on amount of dropdowns
+    _dropdownsKeys = List.generate(2, (_) => GlobalKey<DynamicDropdownsState>());
     _populateInputFields();
     _checkPermissions();
     _getLostImageData();
     _loadPersistedImages();
   }
 
-  /// populate input fields on page init
+  /// populate input fields on page init;
+  /// dynamic fields are populated in DynamicDropdowns class
+  /// from SharedPreferences
   void _populateInputFields() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     for (var field in inputFields) {
@@ -360,12 +376,26 @@ class _NameFormState extends State<NameForm> {
   /// action when page is closed
   void _persistInputStorage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // persist input fields
     for (var field in inputFields) {
       if (field['type'] == 'text' || field['type'] == 'number') {
         prefs.setString(field['label'], field['controller'].text.trim());
       } else if (field['type'] == 'dropdown') {
         prefs.setString(field['label'], field['selectedValue']);
       }
+    }
+  }
+
+  /// action triggered by DynamicDropdowns onChanged events (select + remove)
+  void onDynamicDropdownsChanged(String dropdownKey, String dropdownValue) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    // in case dropdown gets removed, remove key/val from preferences
+    if (dropdownValue == "" && sharedPreferences.get(dropdownKey) != null) {
+      sharedPreferences.remove(dropdownKey);
+    } else {
+      // otherwise, add/update preferences with dropdown values
+      sharedPreferences.setString(dropdownKey, dropdownValue);
     }
   }
 
@@ -385,6 +415,10 @@ class _NameFormState extends State<NameForm> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.clear();
       _populateInputFields();
+      // trigger rebuild of dynamic dropdowns
+      for (GlobalKey<DynamicDropdownsState> dropdownKey in _dropdownsKeys) {
+        dropdownKey.currentState?.rebuild();
+      }
     }
   }
 
@@ -392,21 +426,11 @@ class _NameFormState extends State<NameForm> {
   void _saveFormData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // get stuff from input fields and SharedPreferences
-    Map<String, dynamic> formData = {};
-    for (var field in inputFields) {
-      if (field.containsKey("type") && field.containsKey("label")) {
-        if (field['type'] == 'dropdown') {
-          formData[field['label']] = field['selectedValue'];
-        } else {
-          formData[field['label']] = field['controller'].text.trim();
-        }
-      }
+    // re-map preferences (contains all input fields)
+    Map<String, dynamic> dataMap = {};
+    for (String key in prefs.getKeys()) {
+      dataMap[key] = prefs.get(key);
     }
-    // final name = _nameController.text.trim();
-    final latitude = prefs.getString("latitude") ?? 'unknown';
-    final longitude = prefs.getString("longitude") ?? 'unknown';
-    final timeStamp = DateTime.now();
 
     // start loading indicator
     setState(() {
@@ -414,8 +438,7 @@ class _NameFormState extends State<NameForm> {
     });
 
     // write to the database, show snackbar with result, stop loading indicator
-    db.writeDocument(formData, latitude, longitude, _selectedImages, timeStamp,
-        (success, message) {
+    db.writeDocument(dataMap, _selectedImages, (success, message) {
       setState(() {
         _isSaving = false;
       });
@@ -580,11 +603,19 @@ class _NameFormState extends State<NameForm> {
                 children: [
                   buildFormFieldGrid(inputFields, 'General', setState,
                       columns: columns, borderColor: Colors.deepOrangeAccent),
-                  DynamicDropdown(
-                    defaultValues: ["franz", "value 1", "value2"],
-                    headerText: "Fredl",
+                  DynamicDropdowns(
+                    key: _dropdownsKeys[0],
+                    defValues: ['', 'franz', 'value1', 'value2'],
+                    headerText: 'Fredl',
                     borderColor: Colors.red,
-                    dynamicFields: dynamicFields,
+                    onChanged: onDynamicDropdownsChanged,
+                  ),
+                  DynamicDropdowns(
+                    key: _dropdownsKeys[1],
+                    defValues: ['', 'first', 'second', 'third'],
+                    headerText: 'Frudl',
+                    borderColor: Colors.blue,
+                    onChanged: onDynamicDropdownsChanged,
                   ),
                   const Divider(),
                   createHeader("GIS"),

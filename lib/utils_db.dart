@@ -32,10 +32,7 @@ Future<void> signInAnonymously() async {
 /// returns a tuple (bool, String) with success status and message
 Future<void> writeDocument(
     Map<String, dynamic> formData,
-    String latitude,
-    String longitude,
     List<File> images,
-    DateTime timestamp,
     Function(bool, String) onResult) async {
   try {
     // Sign in anonymously
@@ -46,6 +43,7 @@ Future<void> writeDocument(
 
     // Create a new document with a unique ID
     final document = collection.doc();
+    DateTime timestamp = DateTime.now();
 
     // Upload images to Firebase Storage and get download URLs
     List<String> downloadUrls = [];
@@ -67,8 +65,6 @@ Future<void> writeDocument(
     }
     documentData['images'] = downloadUrls;
     documentData['timestamp'] = timestamp;
-    documentData['latitude'] = latitude;
-    documentData['longitude'] = longitude;
     await document.set(documentData);
 
     // Call the callback function with success status and message
