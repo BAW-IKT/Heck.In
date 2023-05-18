@@ -157,98 +157,109 @@ Page resource error:
         title: const Text('Hedge Profiler'),
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                color: Colors.indigoAccent,
-              ),
-              child: Column(
-                // mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(children: [
-                    const Text(
-                      'Hedge Profiler',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: <Widget>[
+                  DrawerHeader(
+                    decoration: const BoxDecoration(
+                      color: Colors.indigoAccent,
                     ),
-                    IconButton(
-                      onPressed: _prefs_debug,
-                      icon: const Icon(Icons.calculate_outlined),
+                    child: Column(
+                      // mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(children: [
+                          const Text(
+                            'Hedge Profiler',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            onPressed: _updateLocationWrapper,
+                            icon: const Icon(Icons.refresh),
+                          ),
+                          IconButton(
+                            icon: _darkMode
+                                ? const Icon(Icons.light_mode)
+                                : const Icon(Icons.dark_mode),
+                            // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
+                            onPressed: () {
+                              setState(() {
+                                _darkMode = !_darkMode;
+                                if (_darkMode) {
+                                  HedgeProfilerApp.of(context)
+                                      .changeTheme(ThemeMode.dark);
+                                } else {
+                                  HedgeProfilerApp.of(context)
+                                      .changeTheme(ThemeMode.light);
+                                }
+                              });
+                            },
+                          )
+                        ]),
+                        const Text('Last known location',
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.bold)),
+                        Text(_geoLastKnown,
+                            style: const TextStyle(
+                                fontSize: 10, fontStyle: FontStyle.italic)),
+                        Text(_geoLastChange,
+                            style: const TextStyle(
+                                fontSize: 10, fontStyle: FontStyle.italic)),
+                        Text(_geoOrDatabaseWarning,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.deepOrange,
+                                fontWeight: FontWeight.bold)),
+                      ],
                     ),
-                    IconButton(
-                      onPressed: _updateLocationWrapper,
-                      icon: const Icon(Icons.refresh),
-                    ),
-                    IconButton(
-                      icon: _darkMode
-                          ? const Icon(Icons.light_mode)
-                          : const Icon(Icons.dark_mode),
-                      // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
-                      onPressed: () {
-                        setState(() {
-                          _darkMode = !_darkMode;
-                          if (_darkMode) {
-                            HedgeProfilerApp.of(context)
-                                .changeTheme(ThemeMode.dark);
-                          } else {
-                            HedgeProfilerApp.of(context)
-                                .changeTheme(ThemeMode.light);
-                          }
-                        });
-                      },
-                    )
-                  ]),
-                  const Text('Last known location',
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  Text(_geoLastKnown,
-                      style: const TextStyle(
-                          fontSize: 10, fontStyle: FontStyle.italic)),
-                  Text(_geoLastChange,
-                      style: const TextStyle(
-                          fontSize: 10, fontStyle: FontStyle.italic)),
-                  Text(_geoOrDatabaseWarning,
-                      style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.deepOrange,
-                          fontWeight: FontWeight.bold)),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.eco_rounded, color: Colors.green),
+                    title: const Text('Rate Hedge'),
+                    onTap: () {
+                      setState(() {
+                        _showNameForm = true;
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.map_outlined, color: Colors.red),
+                    title: const Text('Arcanum'),
+                    onTap: () {
+                      setState(() {
+                        _showNameForm = false;
+                      });
+                      _loadPage(context, 'https://maps.arcanum.com/');
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.map_outlined, color: Colors.blue),
+                    title: const Text('Bodenkarte'),
+                    onTap: () {
+                      setState(() {
+                        _showNameForm = false;
+                      });
+                      _loadPage(context, 'https://bodenkarte.at/');
+                      Navigator.pop(context);
+                    },
+                  ),
                 ],
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.eco_rounded, color: Colors.green),
-              title: const Text('Rate Hedge'),
-              onTap: () {
-                setState(() {
-                  _showNameForm = true;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.map_outlined, color: Colors.red),
-              title: const Text('Arcanum'),
-              onTap: () {
-                setState(() {
-                  _showNameForm = false;
-                });
-                _loadPage(context, 'https://maps.arcanum.com/');
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.map_outlined, color: Colors.blue),
-              title: const Text('Bodenkarte'),
-              onTap: () {
-                setState(() {
-                  _showNameForm = false;
-                });
-                _loadPage(context, 'https://bodenkarte.at/');
-                Navigator.pop(context);
-              },
+            Column(
+              children: [
+                Image.asset(
+                  'data/lsw_logo.png',
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 30)
+              ],
             ),
           ],
         ),
@@ -274,14 +285,6 @@ Page resource error:
         ],
       ),
     );
-  }
-
-  void _prefs_debug() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    for (String key in prefs.getKeys()) {
-      Object? val = prefs.get(key);
-      print('$key | $val');
-    }
   }
 
   /// loads a page
@@ -337,6 +340,7 @@ class _NameFormState extends State<NameForm> {
   List<Map<String, dynamic>> inputFields = [];
   Map<String, String> dynamicFields = {};
   List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
+
   // GlobalKey<DynamicDropdownsState> _dropdownsKey = GlobalKey<DynamicDropdownsState>();
 
   @override
@@ -350,7 +354,8 @@ class _NameFormState extends State<NameForm> {
     super.initState();
     inputFields = createFormFields();
     // TODO: update based on amount of dropdowns
-    _dropdownsKeys = List.generate(2, (_) => GlobalKey<DynamicDropdownsState>());
+    _dropdownsKeys =
+        List.generate(2, (_) => GlobalKey<DynamicDropdownsState>());
     _populateInputFields();
     _checkPermissions();
     _getLostImageData();
@@ -388,7 +393,8 @@ class _NameFormState extends State<NameForm> {
   }
 
   /// action triggered by DynamicDropdowns onChanged events (select + remove)
-  void onDynamicDropdownsChanged(String dropdownKey, String dropdownValue) async {
+  void onDynamicDropdownsChanged(
+      String dropdownKey, String dropdownValue) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     // in case dropdown gets removed, remove key/val from preferences
     if (dropdownValue == "" && sharedPreferences.get(dropdownKey) != null) {
