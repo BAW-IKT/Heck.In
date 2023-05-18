@@ -398,7 +398,13 @@ class _NameFormState extends State<NameForm> {
     );
     if (confirmed == true) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
+      Object? lat = prefs.get("latitude");
+      Object? lon = prefs.get("longitude");
+      Object? geoLastChange = prefs.get("geoLastChange");
       prefs.clear();
+      prefs.setString("latitude", lat.toString());
+      prefs.setString("longitude", lon.toString());
+      prefs.setString("geoLastChange", geoLastChange.toString());
       _populateStaticInputFields();
 
       // trigger rebuild of dynamic dropdowns
