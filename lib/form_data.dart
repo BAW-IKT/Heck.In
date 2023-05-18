@@ -13,6 +13,7 @@ String? generateValidator(String? value, String label, bool required) {
 ///    buildFormFieldGrid(inputFields, 'General', setState, columns: columns)
 List<Map<String, dynamic>> createFormFields() {
   return [
+    // general fields
     {
       'type': 'text',
       'label': 'Heckenname',
@@ -38,6 +39,7 @@ List<Map<String, dynamic>> createFormFields() {
       'validator': (value) =>
           generateValidator(value, "Namen des Gutachters", true),
     },
+    // GIS fields
     {
       'type': 'number',
       'label': 'Länge [m]',
@@ -142,11 +144,41 @@ List<Map<String, dynamic>> createFormFields() {
       'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
       'validator': (value) => generateValidator(value, "Humusbilanz", false),
     },
+    // gelände fields
+    {'type': 'text', 'label': 'Position zum Hang', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Position zum Hang', false),},
+    {'type': 'text', 'label': 'Hangneigung', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Hangneigung', false),},
+    {'type': 'text', 'label': 'Netzwerk', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Netzwerk', false),},
+    {'type': 'text', 'label': 'Erschließung', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Erschließung', false),},
+    {'type': 'text', 'label': 'horizontale Schichtung', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'horizontale Schichtung', false),},
+    {'type': 'text', 'label': 'vertikale Schichtung', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'vertikale Schichtung', false),},
+    {'type': 'text', 'label': 'Strukturvielfalt', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Strukturvielfalt', false),},
+    {'type': 'text', 'label': 'Lücken', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Lücken', false),},
+    {'type': 'text', 'label': 'Totholz', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Totholz', false),},
+    {'type': 'text', 'label': 'Alterszusammensetzung', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Alterszusammensetzung', false),},
+    {'type': 'text', 'label': 'Saumart', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Saumart', false),},
+    {'type': 'text', 'label': 'Saumbreite', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Saumbreite', false),},
+    {'type': 'text', 'label': 'Höhe', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Höhe', false),},
+    {'type': 'text', 'label': 'Breite', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Breite', false),},
+    {'type': 'text', 'label': 'Baumanteil', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Baumanteil', false),},
+    {'type': 'text', 'label': 'Anzahl Gehölzarten', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Anzahl Gehölzarten', false),},
+    {'type': 'text', 'label': 'Dominanzen', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Dominanzen', false),},
+    {'type': 'text', 'label': 'Neophyten', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Neophyten', false),},
+    // anmerkungen
+    {
+      'type': 'text',
+      'label': 'Anmerkungen',
+      'section': 'Anmerkungen',
+      'borderColor': Colors.amber,
+      'validator': (value) => generateValidator(value, 'Anmerkungen', false),
+    },
   ];
 }
 
 /// this section defines the data for dynamic dropdown fields
 /// labels must be unique across all static & dynamic widgets!
+/// optional fields for definition of widgets:
+///    - minDropdownCount [int]: lower threshold of dropdowns created with -
+///    - maxDropdownCount [int]: upper threshold of dropdowns created with +
 /// example usage to create widgets:
 ///    buildDynamicFormFieldGrid(
 ///      children: dynamicFields,
@@ -157,31 +189,11 @@ List<Map<String, dynamic>> createFormFields() {
 ///    ),
 List<Map<String, dynamic>> createDynamicFormFields() {
   return [
-    {
-      'headerText': 'Fredl',
-      'borderColor': Colors.deepOrangeAccent,
-      'defValues': const ['', 'franz', 'value', 'value2'],
-      'section': 'General',
-    },
-    {
-      'headerText': 'Frudl',
-      'borderColor': Colors.deepOrangeAccent,
-      'defValues': const ['', 'first', 'second', 'third'],
-      'section': 'General'
-    },
-    {
-      'headerText': 'Forkl',
-      'borderColor': Colors.indigoAccent,
-      'defValues': const ['', 'first', 'second', 'third'],
-      'section': 'GIS',
-      'minDropdownCount': 1,
-      'maxDropdownCount': 3,
-    },
-    {
-      'headerText': 'Pforkl',
-      'borderColor': Colors.indigoAccent,
-      'defValues': const ['', 'first', 'second', 'third'],
-      'section': 'GIS'
-    },
+    // Gelände fields
+    {'headerText': 'Nachbarflächen', 'borderColor': Colors.greenAccent, 'defValues': const['', 'first', 'second'], 'section': 'Gelände',},
+    {'headerText': 'Nutzungsspuren', 'borderColor': Colors.greenAccent, 'defValues': const['', 'first', 'second'], 'section': 'Gelände', 'maxDropdownCount': 4,},
+    {'headerText': 'Zusatzstrukturen', 'borderColor': Colors.greenAccent, 'defValues': const['', 'first', 'second'], 'section': 'Gelände', 'maxDropdownCount': 4,},
+    {'headerText': 'Management', 'borderColor': Colors.greenAccent, 'defValues': const['', 'first', 'second'], 'section': 'Gelände', 'maxDropdownCount': 5,},
+    {'headerText': 'Sonderform', 'borderColor': Colors.greenAccent, 'defValues': const['', 'first', 'second'], 'section': 'Gelände', 'maxDropdownCount': 4,},
   ];
 }

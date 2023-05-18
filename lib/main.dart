@@ -162,7 +162,7 @@ Page resource error:
                 children: <Widget>[
                   DrawerHeader(
                     decoration: const BoxDecoration(
-                      color: Colors.indigoAccent,
+                      color: Color.fromRGBO(0, 96, 205, 1),
                     ),
                     child: Column(
                       // mainAxisAlignment: MainAxisAlignment.start,
@@ -410,9 +410,13 @@ class _NameFormState extends State<NameForm> {
 
   /// get form and image data and persist to database
   void _saveFormData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // clear validation warnings
+    setState(() {
 
+    });
+    
     // re-map preferences (contains all input fields)
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     Map<String, dynamic> dataMap = {};
     for (String key in prefs.getKeys()) {
       dataMap[key] = prefs.get(key);
@@ -609,6 +613,28 @@ class _NameFormState extends State<NameForm> {
                       onDropdownChanged: onDynamicDropdownsChanged,
                       columns: dynamicColumns),
                   const SizedBox(height: 16),
+                  const Divider(),
+                  createHeader("Gelände"),
+                  buildFormFieldGrid(inputFields, "Gelände", setState,
+                      columns: columns),
+                  buildDynamicFormFieldGrid(
+                      children: dynamicFields,
+                      section: 'Gelände',
+                      dropdownKeys: _dropdownsKeys,
+                      onDropdownChanged: onDynamicDropdownsChanged,
+                      columns: dynamicColumns),
+                  const Divider(),
+                  createHeader("Anmerkungen"),
+                  buildFormFieldGrid(inputFields, "Anmerkungen", setState,
+                      columns: columns),
+                  buildDynamicFormFieldGrid(
+                      children: dynamicFields,
+                      section: 'Anmerkungen',
+                      dropdownKeys: _dropdownsKeys,
+                      onDropdownChanged: onDynamicDropdownsChanged,
+                      columns: dynamicColumns),
+                  const Divider(),
+                  createHeader("Images"),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
