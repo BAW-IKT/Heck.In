@@ -8,6 +8,7 @@ String? generateValidator(String? value, String label, bool required) {
 }
 
 /// This function defines the data for static inputs (text, number or dropdown)
+/// labels must be unique across all static & dynamic widgets!
 /// example usage to create widgets:
 ///    buildFormFieldGrid(inputFields, 'General', setState, columns: columns)
 List<Map<String, dynamic>> createFormFields() {
@@ -145,6 +146,7 @@ List<Map<String, dynamic>> createFormFields() {
 }
 
 /// this section defines the data for dynamic dropdown fields
+/// labels must be unique across all static & dynamic widgets!
 /// example usage to create widgets:
 ///    buildDynamicFormFieldGrid(
 ///      children: dynamicFields,

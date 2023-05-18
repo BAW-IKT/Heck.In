@@ -21,15 +21,13 @@ class HedgeProfilerApp extends StatefulWidget {
   const HedgeProfilerApp({super.key});
 
   @override
-  _HedgeProfilerAppState createState() => _HedgeProfilerAppState();
+  HedgeProfilerAppState createState() => HedgeProfilerAppState();
 
-  /// InheritedWidget style accessor to our State object.
-  static _HedgeProfilerAppState of(BuildContext context) =>
-      context.findAncestorStateOfType<_HedgeProfilerAppState>()!;
+  static HedgeProfilerAppState of(BuildContext context) =>
+      context.findAncestorStateOfType<HedgeProfilerAppState>()!;
 }
 
-class _HedgeProfilerAppState extends State<HedgeProfilerApp> {
-  /// 1) our themeMode "state" field
+class HedgeProfilerAppState extends State<HedgeProfilerApp> {
   ThemeMode _themeMode = ThemeMode.system;
 
   @override
@@ -39,7 +37,6 @@ class _HedgeProfilerAppState extends State<HedgeProfilerApp> {
       theme: ThemeData(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
       themeMode: _themeMode,
-      // 2) ← ← ← use "state" field here //////////////
       home: const WebViewPage(),
     );
   }
@@ -341,11 +338,8 @@ class _NameFormState extends State<NameForm> {
   List<Map<String, dynamic>> dynamicFields = [];
   List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
 
-  // GlobalKey<DynamicDropdownsState> _dropdownsKey = GlobalKey<DynamicDropdownsState>();
-
   @override
   void dispose() {
-    _persistInputStorage();
     super.dispose();
   }
 
@@ -356,7 +350,7 @@ class _NameFormState extends State<NameForm> {
     dynamicFields = createDynamicFormFields();
     _dropdownsKeys = List.generate(
         dynamicFields.length, (_) => GlobalKey<DynamicDropdownsState>());
-    _populateInputFields();
+    _populateStaticInputFields();
     _checkPermissions();
     _getLostImageData();
     _loadPersistedImages();
@@ -365,31 +359,16 @@ class _NameFormState extends State<NameForm> {
   /// populate input fields on page init;
   /// dynamic fields are populated in DynamicDropdowns class
   /// from SharedPreferences
-  void _populateInputFields() async {
+  void _populateStaticInputFields() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     for (var field in inputFields) {
       if (field['type'] == 'text' || field['type'] == 'number') {
         field['controller'].text = prefs.getString(field['label']) ?? '';
       } else if (field['type'] == 'dropdown') {
-        String value = prefs.getString(field['label']) ?? '';
-        field['selectedValue'] = value;
+        field['selectedValue'] = prefs.getString(field['label']) ?? '';
       }
     }
     setState(() {});
-  }
-
-  /// action when page is closed
-  void _persistInputStorage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    // persist input fields
-    for (var field in inputFields) {
-      if (field['type'] == 'text' || field['type'] == 'number') {
-        prefs.setString(field['label'], field['controller'].text.trim());
-      } else if (field['type'] == 'dropdown') {
-        prefs.setString(field['label'], field['selectedValue']);
-      }
-    }
   }
 
   /// action triggered by DynamicDropdowns onChanged events (select + remove)
@@ -420,7 +399,8 @@ class _NameFormState extends State<NameForm> {
     if (confirmed == true) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.clear();
-      _populateInputFields();
+      _populateStaticInputFields();
+
       // trigger rebuild of dynamic dropdowns
       for (GlobalKey<DynamicDropdownsState> dropdownKey in _dropdownsKeys) {
         dropdownKey.currentState?.rebuild();
@@ -617,8 +597,6 @@ class _NameFormState extends State<NameForm> {
                     dropdownKeys: _dropdownsKeys,
                     onDropdownChanged: onDynamicDropdownsChanged,
                     columns: dynamicColumns,
-                    // minDropdownCount: 1,
-                    // maxDropdownCount: 3,
                   ),
                   const Divider(),
                   createHeader("GIS"),

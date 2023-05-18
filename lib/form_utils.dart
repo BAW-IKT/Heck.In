@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dynamic_dropdowns.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Column buildDynamicFormFieldGrid({
   required List<Map<String, dynamic>> children,
@@ -114,6 +115,7 @@ int determineRequiredColumns(var mediaQueryData) {
   return columns;
 }
 
+
 Expanded _createTextInput(var field, {Color? borderColor}) {
   return Expanded(
     child: Padding(
@@ -130,6 +132,10 @@ Expanded _createTextInput(var field, {Color? borderColor}) {
         ),
         keyboardType: TextInputType.text,
         validator: field['validator'],
+        onChanged: (value) async {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString(field['label'], value);
+        },
       ),
     ),
   );
@@ -151,6 +157,10 @@ Expanded _createNumberInput(var field, {Color? borderColor}) {
         ),
         keyboardType: TextInputType.number,
         validator: field['validator'],
+        onChanged: (value) async {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString(field['label'], value);
+        },
       ),
     ),
   );
@@ -186,16 +196,20 @@ Expanded _createDropdownInput(var field, Function setState,
           ),
         ),
         items: dropdownItems,
-        onChanged: (value) {
+        onChanged: (value) async {
           setState(() {
             field['selectedValue'] = value;
           });
+
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString(field['label'], value.toString());
         },
         validator: field['validator'],
       ),
     ),
   );
 }
+
 
 Center createHeader(String headerText, {double fontSize = 24}) {
   return Center(
