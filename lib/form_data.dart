@@ -154,8 +154,6 @@ List<Map<String, dynamic>> createFormFields() {
 ///      dropdownKeys: _dropdownsKeys,
 ///      onDropdownChanged: onDynamicDropdownsChanged,
 ///      columns: dynamicColumns,
-///      minDropdownCount: 1,
-///      maxDropdownCount: 3,
 ///    ),
 List<Map<String, dynamic>> createDynamicFormFields() {
   return [
@@ -175,7 +173,9 @@ List<Map<String, dynamic>> createDynamicFormFields() {
       'headerText': 'Forkl',
       'borderColor': Colors.indigoAccent,
       'defValues': const ['', 'first', 'second', 'third'],
-      'section': 'GIS'
+      'section': 'GIS',
+      'minDropdownCount': 1,
+      'maxDropdownCount': 3,
     },
     {
       'headerText': 'Pforkl',
