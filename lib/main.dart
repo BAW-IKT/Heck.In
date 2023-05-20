@@ -14,6 +14,7 @@ import 'form_utils.dart';
 import 'utils_geo.dart' as geo;
 import 'utils_db.dart' as db;
 import 'snackbar.dart';
+import 'radar_chart.dart';
 
 void main() => runApp(const HedgeProfilerApp());
 
@@ -337,6 +338,13 @@ class _NameFormState extends State<NameForm> {
   List<Map<String, dynamic>> inputFields = [];
   List<Map<String, dynamic>> dynamicFields = [];
   List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
+  Map<String, double> _radarChartData = {'first': 1, 'second': 2, 'third': 3, 'max': 5};
+  Map<String, Color> _radarGroupColors = {
+  'Group 1': Colors.blue,
+  'Group 2': Colors.green,
+  'Group 3': Colors.red,
+  // Add more group-color mappings as needed
+};
 
   @override
   void dispose() {
@@ -417,10 +425,8 @@ class _NameFormState extends State<NameForm> {
   /// get form and image data and persist to database
   void _saveFormData() async {
     // clear validation warnings
-    setState(() {
+    setState(() {});
 
-    });
-    
     // re-map preferences (contains all input fields)
     SharedPreferences prefs = await SharedPreferences.getInstance();
     Map<String, dynamic> dataMap = {};
@@ -581,6 +587,12 @@ class _NameFormState extends State<NameForm> {
     // }
   }
 
+  void updateRadarChartData(Map<String, double> radarChartData) {
+    setState(() {
+      _radarChartData = radarChartData;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // Determine amount of columns based on screen width and orientation
@@ -734,6 +746,18 @@ class _NameFormState extends State<NameForm> {
           ],
         ),
       ),
+floatingActionButton: FloatingActionButton(
+  onPressed: () {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return RadarChartDialog(data: _radarChartData, groupColors: _radarGroupColors);
+      },
+    );
+  },
+  child: const Icon(Icons.analytics_outlined),
+),
+
     );
   }
 }
