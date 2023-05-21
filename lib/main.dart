@@ -338,13 +338,42 @@ class _NameFormState extends State<NameForm> {
   List<Map<String, dynamic>> inputFields = [];
   List<Map<String, dynamic>> dynamicFields = [];
   List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
-  Map<String, double> _radarChartData = {'first': 1, 'second': 2, 'third': 3, 'max': 5};
-  Map<String, Color> _radarGroupColors = {
-  'Group 1': Colors.blue,
-  'Group 2': Colors.green,
-  'Group 3': Colors.red,
-  // Add more group-color mappings as needed
-};
+  Map<String, double> _radarChartData = {
+    'Rohstoffe': 1,
+    'Ertragssteigerung': 1,
+    'Klimaschutz': 1,
+    'Wasserschutz': 1,
+    'Bodenschutz': 1,
+    'Nähr- & Schadstoffkreisläufe': 5,
+    'Bestäubung': 1,
+    'Schädlings- & Krankheitskontrolle': 3,
+    'Nahrungsquelle': 1,
+    'Korridor': 1,
+    'Fortpflanzungs- & Ruhestätte': 1,
+    'Erholung & Tourismus': 1,
+    'Kulturerbe': 1
+  };
+  final Map<String, String> _radarDataToGroup = {
+    'Rohstoffe': 'Bereitstellend',
+    'Ertragssteigerung': 'Bereitstellend',
+    'Klimaschutz': 'Regulierend',
+    'Wasserschutz': 'Regulierend',
+    'Bodenschutz': 'Regulierend',
+    'Nähr- & Schadstoffkreisläufe': 'Regulierend',
+    'Bestäubung': 'Regulierend',
+    'Schädlings- & Krankheitskontrolle': 'Regulierend',
+    'Nahrungsquelle': 'Habitat',
+    'Korridor': 'Habitat',
+    'Fortpflanzungs- & Ruhestätte': 'Habitat',
+    'Erholung & Tourismus': 'Kulturell',
+    'Kulturerbe': 'Kulturell'
+  };
+  final Map<String, Color> _radarGroupColors = {
+    'Bereitstellend': Colors.red,
+    'Regulierend': Colors.blue,
+    'Habitat': Colors.green,
+    'Kulturell': Colors.orange,
+  };
 
   @override
   void dispose() {
@@ -746,18 +775,21 @@ class _NameFormState extends State<NameForm> {
           ],
         ),
       ),
-floatingActionButton: FloatingActionButton(
-  onPressed: () {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return RadarChartDialog(data: _radarChartData, groupColors: _radarGroupColors);
-      },
-    );
-  },
-  child: const Icon(Icons.analytics_outlined),
-),
-
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return RadarChartDialog(
+                data: _radarChartData,
+                dataToGroup: _radarDataToGroup,
+                groupColors: _radarGroupColors,
+              );
+            },
+          );
+        },
+        child: const Icon(Icons.analytics_outlined),
+      ),
     );
   }
 }
