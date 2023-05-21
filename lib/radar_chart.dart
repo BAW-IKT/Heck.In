@@ -14,40 +14,52 @@ class RadarChartDialog extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _RadarChartDialogState createState() => _RadarChartDialogState();
+  RadarChartDialogState createState() => RadarChartDialogState();
 }
 
-class _RadarChartDialogState extends State<RadarChartDialog> {
+class RadarChartDialogState extends State<RadarChartDialog> {
 
-  List<Widget> _buildLegend() {
-    return widget.groupColors.entries.map((entry) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5),
-        child: Row(
-          children: [
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: entry.value,
-                shape: BoxShape.circle,
-              ),
+List<Widget> _buildLegend() {
+  return widget.groupColors.entries.map((entry) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: Column(
+        children: [
+          Container(
+            width: 12,
+            height: 10,
+            decoration: BoxDecoration(
+              color: entry.value,
+              shape: BoxShape.circle,
             ),
-            const SizedBox(width: 5),
-            Text(entry.key),
-          ],
-        ),
-      );
-    }).toList();
-  }
+          ),
+          const SizedBox(width: 5),
+          Text(
+            entry.key,
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.width > 600 ? 12 : 10,
+              // Add more properties if needed
+            ),
+          ),
+        ],
+      ),
+    );
+  }).toList();
+}
+
 
   @override
   Widget build(BuildContext context) {
     const int maxEntries = 13;
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = Theme.of(context).colorScheme.onSecondary;
 
     List<RadarDataSet> radarDataSets = [];
 
     widget.groupColors.forEach((group, color) {
+
       List<RadarEntry> entries = List.filled(maxEntries, const RadarEntry(value: 0));
 
       int index = 0;
@@ -61,24 +73,21 @@ class _RadarChartDialogState extends State<RadarChartDialog> {
       radarDataSets.add(
         RadarDataSet(
           dataEntries: entries,
-          fillColor: color.withOpacity(0.33),
+          fillColor: color.withOpacity(0.40),
           borderColor: color,
         ),
       );
 
       // Create an additional dataset to hide entries with value 0
-      List<RadarEntry> hiddenEntries = List.filled(maxEntries, const RadarEntry(value: 0));
+      List<RadarEntry> hiddenEntries = List.filled(maxEntries, RadarEntry(value: 0));
       radarDataSets.add(
         RadarDataSet(
           dataEntries: hiddenEntries,
-          fillColor: Colors.black,
-          borderColor: Colors.black,
+          fillColor: backgroundColor,
+          borderColor: backgroundColor,
         ),
       );
     });
-
-    final screenSize = MediaQuery.of(context).size;
-    final isTablet = screenSize.width > 600;
 
     return Dialog(
       child: SizedBox(
@@ -87,7 +96,7 @@ class _RadarChartDialogState extends State<RadarChartDialog> {
         child: Column(
           children: [
             const SizedBox(height: 10),
-            Text(
+            const Text(
               'Ergebnisrose',
               style: TextStyle(
                 fontSize: 18,
@@ -103,7 +112,7 @@ class _RadarChartDialogState extends State<RadarChartDialog> {
                 children: _buildLegend(),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 40),
             Expanded(
               child: RadarChart(
                 RadarChartData(
@@ -127,12 +136,20 @@ class _RadarChartDialogState extends State<RadarChartDialog> {
                     return RadarChartTitle(
                       text: tickText,
                       angle: rotationAngle,
+                      // positionPercentageOffset: 0.7,
                     );
                   },
-                  // ticksTextStyle: TextStyle(textBaseline: ), // TODO: align text left somehow
+                  ticksTextStyle: TextStyle(fontSize: 8, color: isDarkMode ? Colors.white70 : Colors.black87),
+                  titlePositionPercentageOffset: isTablet ? 0.25 : 0.35,
+                  titleTextStyle: TextStyle(fontSize: isTablet ? 8:7),
+                  radarBackgroundColor: backgroundColor.withOpacity(0.5),
+                  gridBorderData: const BorderSide(color: Colors.black26, width: 2),
+                  tickBorderData: const BorderSide(color: Colors.black26, width: 2),
+                  radarBorderData: const BorderSide(color: Colors.black87, width: 2),
                 ),
               ),
             ),
+            const SizedBox(height: 40),
           ],
         ),
       ),
