@@ -70,8 +70,11 @@ List<Map<String, dynamic>> createFormFields() {
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': ['', 'S-N', 'SO-NW', 'W-O', 'SW-NO'],
-      'valueScores': [null, 5, 3, 1, 3],
-      'valueFor': ["Schädlings- & Krankheitskontrolle", "Ertragssteigerung", "Bodenschutz"],
+      'valueMap': {
+        "Schädlings- & Krankheitskontrolle": [null, 5, 3, 1, 3],
+        "Ertragssteigerung": [null, 5, 3, 1, 3],
+        "Bodenschutz": [null, 5, 3, 1, 3]
+      },
       'validator': (value) =>
           generateValidator(value, "Ausrichtung Himmelsrichtung", false),
     },
@@ -81,7 +84,9 @@ List<Map<String, dynamic>> createFormFields() {
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': ['', 'Schutzgebiet', 'Kein Schutzgebiet'],
-      'valueScores': [null, 1, 0],
+      'valueMap': {
+        "Erholung & Tourismus": [null, 1, 0],
+      },
       'validator': (value) => generateValidator(value, "Schutzgebiet", false),
     },
     {
@@ -89,8 +94,14 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Naturdenkmal',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['', 'Naturdenkmal in/nahe der Hecke', 'Kein Naturdenkmal in/nahe der Hecke'],
-      'valueScores': [null, 1, 0],
+      'values': [
+        '',
+        'Naturdenkmal in/nahe der Hecke',
+        'Kein Naturdenkmal in/nahe der Hecke'
+      ],
+      'valueMap': {
+        "Kulturerbe": [null, 1, 0]
+      },
       'validator': (value) => generateValidator(value, "Naturdenkmal", false),
     },
     {
@@ -98,8 +109,24 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Heckendichte',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['','<250m/25 ha','250-800m/25 ha','800-1500m/25 ha','1500-2200m/25 ha','>2200m/25 ha'],
-      'valueScores': [null, 1,2,3,4,5],
+      'values': [
+        '',
+        '<250m/25 ha',
+        '250-800m/25 ha',
+        '800-1500m/25 ha',
+        '1500-2200m/25 ha',
+        '>2200m/25 ha'
+      ],
+      'valueMap': {
+        'Klimaschutz': [null, 1, 2, 3, 4, 5],
+        'Wasserschutz': [null, 1, 2, 3, 4, 5],
+        'Bodenschutz': [null, 1, 2, 3, 4, 5],
+        'Bestäubung': [null, 1, 2, 3, 4, 5],
+        'Schädlings- & Krankheitskontrolle': [null, 1, 2, 3, 4, 5],
+        'Korridor': [null, 1, 2, 3, 4, 5],
+        'Fortpflanzungs- & Ruhestätte': [null, 1, 2, 3, 4, 5],
+        'Erholung & Tourismus': [null, 1, 2, 3, 4, 5],
+      },
       'validator': (value) => generateValidator(value, "Heckendichte", false),
     },
     {
@@ -107,8 +134,18 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'klimatische Wasserbilanz',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['','violett','blau ','weißblau-hellblau ','hellgelb-weiß ','rot, orange'],
-      'valueScores': [null, 1, 2, 3, 4, 5], // [null, 5, 4, 3, 2, 1] for 'Klimaschutz', managed in updateRadarChartData() in main.dart
+      'values': [
+        '',
+        'violett',
+        'blau ',
+        'weißblau-hellblau ',
+        'hellgelb-weiß ',
+        'rot, orange'
+      ],
+      'valueMap': {
+        'Klimaschutz': [null, 5, 4, 3, 2, 1],
+        'Bodenschutz': [null, 1, 2, 3, 4, 5],
+      },
       'validator': (value) =>
           generateValidator(value, "klimatische Wasserbilanz", false),
     },
@@ -117,8 +154,10 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Bevölkerungsdichte',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['','0-15','16-30','31-75','76-200','>200'],
-      'valueScores': [null, 1, 2, 3, 4, 5],
+      'values': ['', '0-15', '16-30', '31-75', '76-200', '>200'],
+      'valueMap': {
+        "Erholung & Tourismus": [null, 1, 2, 3, 4, 5],
+      },
       'validator': (value) =>
           generateValidator(value, "Bevölkerungsdichte", false),
     },
@@ -128,7 +167,9 @@ List<Map<String, dynamic>> createFormFields() {
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': ['', 'ja', 'nein'],
-      'valueScores': [null, 1, 0],
+      'valueMap': {
+        "Korridor": [null, 1, 0],
+      },
       'validator': (value) =>
           generateValidator(value, "in Wildtierkorridor", false),
     },
@@ -138,7 +179,9 @@ List<Map<String, dynamic>> createFormFields() {
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': ['', 'Heckenregion', 'Keine Heckenregion'],
-      'valueScores': [0, 5, 1],
+      'valueMap': {
+        "Kulturerbe": [null, 5, 1],
+      },
       'validator': (value) =>
           generateValidator(value, "traditionelle Heckenregion", false),
     },
@@ -147,8 +190,10 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Franziszeischer Kataster',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['','Im Kataster erkennbar','Nicht im Kataster erkennbar'],
-      'valueScores': [null, 5, 1],
+      'values': ['', 'Im Kataster erkennbar', 'Nicht im Kataster erkennbar'],
+      'valueMap': {
+        "Kulturerbe": [null, 5, 1],
+      },
       'validator': (value) =>
           generateValidator(value, "Franziszeischer Kataster", false),
     },
@@ -157,8 +202,17 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'nutzbare Feldkapazität',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['','sehr gering (<60mm)','gering (60-140mm)','mittel (140-220mm)','hoch (220-300mm)'],
-      'valueScores': [null, 5, 4, 2, 1],
+      'values': [
+        '',
+        'sehr gering (<60mm)',
+        'gering (60-140mm)',
+        'mittel (140-220mm)',
+        'hoch (220-300mm)'
+      ],
+      'valueMap': {
+        'Wasserschutz': [null, 5, 4, 2, 1],
+        'Nähr- & Schadstoffkreisläufe': [null, 5, 4, 2, 1],
+      },
       'validator': (value) =>
           generateValidator(value, "nutzbare Feldkapazität", false),
     },
@@ -167,8 +221,15 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Humusbilanz',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['','Standortgruppe 1, 2','Standortgruppe 3, 4','Standortgruppe 5, 6'],
-      'valueScores': [null, 1, 3, 5],
+      'values': [
+        '',
+        'Standortgruppe 1, 2',
+        'Standortgruppe 3, 4',
+        'Standortgruppe 5, 6'
+      ],
+      'valueMap': {
+        "Klimaschutz": [null, 1, 3, 5],
+      },
       'validator': (value) => generateValidator(value, "Humusbilanz", false),
     },
     // gelände fields
@@ -177,8 +238,20 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Position zum Hang',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','in Hangrichtung','Oberhang','diagonal zur Falllinie','Unterhang / Hangfuß','im Hang, quer','(keine Hangneigung)'],
-      'valueScores': [null, 1, 1, 3, 4, 5, 1],
+      'values': [
+        '',
+        'in Hangrichtung',
+        'Oberhang',
+        'diagonal zur Falllinie',
+        'Unterhang / Hangfuß',
+        'im Hang, quer',
+        '(keine Hangneigung)'
+      ],
+      'valueMap': {
+        'Wasserschutz': [null, 1, 1, 3, 4, 5, 1],
+        'Bodenschutz': [null, 1, 1, 3, 4, 5, 1],
+        'Nähr- & Schadstoffkreisläufe': [null, 1, 1, 3, 4, 5, 1],
+      },
       'validator': (value) =>
           generateValidator(value, 'Position zum Hang', false),
     },
@@ -187,8 +260,19 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Hangneigung',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','annähernd eben','Neigung merkbar','deutlich steigend','durchschn. Bergstraße','steilste Abschnitte v. Bergstraßen'],
-      'valueScores': [null, 1, 2, 3, 4, 5],
+      'values': [
+        '',
+        'annähernd eben',
+        'Neigung merkbar',
+        'deutlich steigend',
+        'durchschn. Bergstraße',
+        'steilste Abschnitte v. Bergstraßen'
+      ],
+      'valueMap': {
+        'Wasserschutz': [null, 1, 2, 3, 4, 5],
+        'Bodenschutz': [null, 1, 2, 3, 4, 5],
+        'Nähr- & Schadstoffkreisläufe': [null, 1, 2, 3, 4, 5],
+      },
       'validator': (value) => generateValidator(value, 'Hangneigung', false),
     },
     {
@@ -196,8 +280,18 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Netzwerk',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','keine Verbindungen zu (semi‑) natürlichen LR','1 Verbindung ','>1 Verbindung ','Teil von Rainnetzwerk'],
-      'valueScores': [null, 1, 2, 5, 3], // [null, 1, 3, 5, 5] for 'Kulturerbe' - managed in updateRadarChartData() in main.dart
+      'values': [
+        '',
+        'keine Verbindungen zu (semi‑) natürlichen LR',
+        '1 Verbindung ',
+        '>1 Verbindung ',
+        'Teil von Rainnetzwerk'
+      ],
+      'valueMap': {
+        'Bestäubung': [null, 1, 2, 5, 3],
+        'Korridor': [null, 1, 2, 5, 3],
+        'Kulturerbe': [null, 1, 3, 5, 5],
+      },
       'validator': (value) => generateValidator(value, 'Netzwerk', false),
     },
     {
@@ -205,8 +299,10 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Erschließung',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','Weg an/in Hecke','Sichtbeziehung zu Hecke','Kein Weg'],
-      'valueScores': [null, 5, 3, 1],
+      'values': ['', 'Weg an/in Hecke', 'Sichtbeziehung zu Hecke', 'Kein Weg'],
+      'valueMap': {
+        'Erholung & Tourismus': [null, 5, 3, 1],
+      },
       'validator': (value) => generateValidator(value, 'Erschließung', false),
     },
     {
@@ -214,8 +310,18 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'horizontale Schichtung',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','nur Baumschicht','nur Strauchschicht','Baum- und Strauchschicht'],
-      'valueScores': [null, 0, 0, 1, 1],
+      'values': [
+        '',
+        'nur Baumschicht',
+        'nur Strauchschicht',
+        'Baum- und Strauchschicht'
+      ],
+      'valueMap': {
+        'Ertragssteigerung': [null, 0, 0, 1, 1],
+        'Wasserschutz': [null, 0, 0, 1, 1],
+        'Schädlings- & Krankheitskontrolle': [null, 0, 0, 1, 1],
+        'Fortpflanzungs- & Ruhestätte': [null, 0, 0, 1, 1],
+      },
       'validator': (value) =>
           generateValidator(value, 'horizontale Schichtung', false),
     },
@@ -224,8 +330,10 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'vertikale Schichtung',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','nur Kernzone','nur Mantelzone','Kern- und Mantelzone'],
-      'valueScores': [null, 0, 0, 1],
+      'values': ['', 'nur Kernzone', 'nur Mantelzone', 'Kern- und Mantelzone'],
+      'valueMap': {
+        'Fortpflanzungs- & Ruhestätte': [null, 0, 0, 1],
+      },
       'validator': (value) =>
           generateValidator(value, 'vertikale Schichtung', false),
     },
@@ -234,8 +342,16 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Strukturvielfalt',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','+/- gleich hoch, gleich breit','1 Dimension variabel','2 Dimensionen variabel'],
-      'valueScores': [null, 1, 3, 5],
+      'values': [
+        '',
+        '+/- gleich hoch, gleich breit',
+        '1 Dimension variabel',
+        '2 Dimensionen variabel'
+      ],
+      'valueMap': {
+        'Schädlings- & Krankheitskontrolle': [null, 1, 3, 5],
+        'Fortpflanzungs- & Ruhestätte': [null, 1, 3, 5],
+      },
       'validator': (value) =>
           generateValidator(value, 'Strukturvielfalt', false),
     },
@@ -244,8 +360,20 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Lücken',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','min. 1 Lücke >5m','>10% Lücken','5-10% Lücken','<5% Lücken','keine Lücken'],
-      'valueScores': [null, 1, 1, 3, 4, 5],
+      'values': [
+        '',
+        'min. 1 Lücke >5m',
+        '>10% Lücken',
+        '5-10% Lücken',
+        '<5% Lücken',
+        'keine Lücken'
+      ],
+      'valueMap': {
+        'Ertragssteigerung': [null, 1, 1, 3, 4, 5],
+        'Bodenschutz': [null, 1, 1, 3, 4, 5],
+        'Schädlings- & Krankheitskontrolle': [null, 1, 1, 3, 4, 5],
+        'Korridor': [null, 1, 1, 3, 4, 5],
+      },
       'validator': (value) => generateValidator(value, 'Lücken', false),
     },
     {
@@ -253,8 +381,21 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Totholz',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','kein Totholz','kein Merkmal','1 Merkmal','2 Merkmale','3 Merkmale:'],
-      'valueScores': [null, 1, 2, 3, 4, 5],  // [null, 0, 0, 0, -1, -1] for 'Rohstoffe aus der Hecke', [null, 5, 4, 3, 2, 1] for 'Nähr- und Schadstoffkreisläufe' - managed in updateRadarChartData() in main.dart
+      'values': [
+        '',
+        'kein Totholz',
+        'kein Merkmal',
+        '1 Merkmal',
+        '2 Merkmale',
+        '3 Merkmale:'
+      ],
+      'valueMap': {
+        'Rohstoffe': [null, 0, 0, 0, -1, -1],
+        'Nähr- & Schadstoffkreisläufe': [null, 5, 4, 3, 2, 1],
+        'Bestäubung': [null, 1, 2, 3, 4, 5],
+        'Nahrungsquelle': [null, 1, 2, 3, 4, 5],
+        'Fortpflanzungs- & Ruhestätte': [null, 1, 2, 3, 4, 5],
+      },
       'validator': (value) => generateValidator(value, 'Totholz', false),
     },
     {
@@ -262,8 +403,20 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Alterszusammensetzung',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','<6 Jahre','6-20 Jahre','20-50 Jahre','>50 Jahre','gemischtes Alter'],
-      'valueScores': [null, 1, 2, 4, 5, 4], // [null, 1, 2, 4, 3, 5] for 'Erholung' and 'Fortpflanzungs- und Ruhestätte'
+      'values': [
+        '',
+        '<6 Jahre',
+        '6-20 Jahre',
+        '20-50 Jahre',
+        '>50 Jahre',
+        'gemischtes Alter'
+      ],
+      'valueMap': {
+        'Klimaschutz': [null, 1, 2, 4, 5, 4],
+        'Bestäubung': [null, 1, 2, 4, 5, 4],
+        'Fortpflanzungs- & Ruhestätte': [null, 1, 2, 4, 3, 5],
+        'Erholung & Tourismus': [null, 1, 2, 4, 5, 4],
+      },
       'validator': (value) =>
           generateValidator(value, 'Alterszusammensetzung', false),
     },
@@ -272,8 +425,15 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Saumart',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['', 'Saum','Mähstreifen','Grünland','nichts davon'],
-      'valueScores': [null, 1, 0.8, 0.6, 1],
+      'values': ['', 'Saum', 'Mähstreifen', 'Grünland', 'nichts davon'],
+      'valueMap': {
+        'Klimaschutz': [null, 1, 0.8, 0.6, 1],
+        'Bestäubung': [null, 1, 0.8, 0.6, 1],
+        'Schädlings- & Krankheitskontrolle': [null, 1, 0.8, 0.6, 1],
+        'Nahrungsquelle': [null, 1, 0.8, 0.6, 1],
+        'Fortpflanzungs- & Ruhestätte': [null, 1, 0.8, 0.6, 1],
+        'Erholung & Tourismus': [null, 1, 0.8, 0.6, 1],
+      },
       'validator': (value) => generateValidator(value, 'Saumart', false),
     },
     {
@@ -281,8 +441,16 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Saumbreite',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','kein Saum','< 2 m','2-3 m','3-4 m','> 4 m'],
-      'valueScores': [null, 1, 2, 3, 4, 5],
+      'values': ['', 'kein Saum', '< 2 m', '2-3 m', '3-4 m', '> 4 m'],
+      'valueMap': {
+        'Klimaschutz': [null, 1, 2, 3, 4, 5],
+        'Wasserschutz': [null, 1, 2, 3, 4, 5],
+        'Bestäubung': [null, 1, 2, 3, 4, 5],
+        'Schädlings- & Krankheitskontrolle': [null, 1, 2, 3, 4, 5],
+        'Nahrungsquelle': [null, 1, 2, 3, 4, 5],
+        'Fortpflanzungs- & Ruhestätte': [null, 1, 2, 3, 4, 5],
+        'Erholung & Tourismus': [null, 1, 2, 3, 4, 5],
+      },
       'validator': (value) => generateValidator(value, 'Saumbreite', false),
     },
     {
@@ -290,8 +458,14 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Höhe',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','<2 m','2-5 m','5-10 m','10-15 m','>15 m'],
-      'valueScores': [null, 1, 2, 3, 4, 5],  // [null, 1, 3, 5, 5, 5] for 'Korridor'
+      'values': ['', '<2 m', '2-5 m', '5-10 m', '10-15 m', '>15 m'],
+      'valueMap': {
+        'Ertragssteigerung': [null, 1, 2, 3, 4, 5],
+        'Klimaschutz': [null, 1, 2, 3, 4, 5],
+        'Bodenschutz': [null, 1, 2, 3, 4, 5],
+        'Korridor': [null, 1, 3, 5, 5, 5],
+        'Fortpflanzungs- & Ruhestätte': [null, 1, 2, 3, 4, 5],
+      },
       'validator': (value) => generateValidator(value, 'Höhe', false),
     },
     {
@@ -299,8 +473,15 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Breite',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','<2 m','2-4 m','4-6 m','6-8 m','8-12 m'],
-      'valueScores': [null, 1, 2, 3, 4, 5],
+      'values': ['', '<2 m', '2-4 m', '4-6 m', '6-8 m', '8-12 m'],
+      'valueMap': {
+        'Klimaschutz': [null, 1, 2, 3, 4, 5],
+        'Wasserschutz': [null, 1, 2, 3, 4, 5],
+        'Bodenschutz': [null, 1, 2, 3, 4, 5],
+        'Nähr- & Schadstoffkreisläufe': [null, 1, 2, 3, 4, 5],
+        'Korridor': [null, 1, 2, 3, 4, 5],
+        'Fortpflanzungs- & Ruhestätte': [null, 1, 2, 3, 4, 5],
+      },
       'validator': (value) => generateValidator(value, 'Breite', false),
     },
     {
@@ -308,8 +489,11 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Baumanteil',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','0','1-2/ 100m','3-9/ 100m','10-20/ 100m','>20/ 100m'],
-      'valueScores': [null, 1, 2, 3, 4, 5], // [null, 1, 1, 1, 2, 3] for 'Rohstoffe aus der Hecke'
+      'values': ['', '0', '1-2/ 100m', '3-9/ 100m', '10-20/ 100m', '>20/ 100m'],
+      'valueMap': {
+        'Rohstoffe': [null, 1, 1, 1, 2, 3],
+        'Schädlings- & Krankheitskontrolle': [null, 1, 2, 3, 4, 5],
+      },
       'validator': (value) => generateValidator(value, 'Baumanteil', false),
     },
     {
@@ -317,8 +501,20 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Anzahl Gehölzarten',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','1-3 Arten in 30m','4-5 Arten in 30m','6-7 Arten in 30m','8-9 Arten in 30m','10+ Arten in 30m'],
-      'valueScores': [null, 1, 2, 3, 4, 5],
+      'values': [
+        '',
+        '1-3 Arten in 30m',
+        '4-5 Arten in 30m',
+        '6-7 Arten in 30m',
+        '8-9 Arten in 30m',
+        '10+ Arten in 30m'
+      ],
+      'valueMap': {
+        'Bestäubung': [null, 1, 2, 3, 4, 5],
+        'Nahrungsquelle': [null, 1, 2, 3, 4, 5],
+        'Fortpflanzungs- & Ruhestätte': [null, 1, 2, 3, 4, 5],
+        'Erholung & Tourismus': [null, 1, 2, 3, 4, 5],
+      },
       'validator': (value) =>
           generateValidator(value, 'Anzahl Gehölzarten', false),
     },
@@ -327,8 +523,12 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Dominanzen',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','(quasi) keine','leichte Dominanz','starke Dominanz'],
-      'valueScores': [null, 1, 3, 5],
+      'values': ['', '(quasi) keine', 'leichte Dominanz', 'starke Dominanz'],
+      'valueMap': {
+        'Bestäubung': [null, 1, 3, 5],
+        'Nahrungsquelle': [null, 1, 3, 5],
+        'Fortpflanzungs- & Ruhestätte': [null, 1, 3, 5],
+      },
       'validator': (value) => generateValidator(value, 'Dominanzen', false),
     },
     {
@@ -336,8 +536,13 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Neophyten',
       'section': 'Gelände',
       'borderColor': Colors.green,
-      'values': ['','>50%','25-50%','10-25%','5-10%','0-5%'],
-      'valueScores': [null, 1, 2, 3, 4, 5], // [null, 5, 4, 3, 2, 1] for 'Kulturerbe'
+      'values': ['', '>50%', '25-50%', '10-25%', '5-10%', '0-5%'],
+      'valueMap': {
+        'Bestäubung': [null, 1, 2, 3, 4, 5],
+        'Schädlings- & Krankheitskontrolle': [null, 1, 2, 3, 4, 5],
+        'Nahrungsquelle': [null, 1, 2, 3, 4, 5],
+        'Kulturerbe': [null, 5, 4, 3, 2, 1]
+      },
       'validator': (value) => generateValidator(value, 'Neophyten', false),
     },
     // anmerkungen
@@ -346,7 +551,7 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Anmerkungen',
       'section': 'Anmerkungen',
       'borderColor': Colors.amber,
-      'controller' :TextEditingController(),
+      'controller': TextEditingController(),
       'validator': (value) => generateValidator(value, 'Anmerkungen', false),
     },
   ];
@@ -380,46 +585,89 @@ List<Map<String, dynamic>> createDynamicFormFields() {
         'unbefestigter Weg',
         'Brache'
       ],
-      'valueScores': [null, 0, 1, 1, 1, 0, 0],
-      // [null, -1, 1, 0, 0, -1, 1] for 'Bestäubung'
-      // [null, -2, 2, 1, -1, -1, 2] for 'Fortpflanzungs- und Ruhestätte'
-      // [null, 4, 1, 2, 5, 1, 1] for 'Nähr- und Schadstoffkreisläufe'
-      //
+      'valueMap': {
+        'Ertragssteigerung': [null, 0, 1, 1, 1, 0, 0],
+        'Nähr- & Schadstoffkreisläufe': [null, 4, 1, 2, 5, 1, 1],
+        'Bestäubung': [null, -1, 1, 0, 0, -1, 1],
+        'Fortpflanzungs- & Ruhestätte': [null, -2, 2, 1, -1, -1, 2],
+      },
       'section': 'Gelände',
     },
     {
       'headerText': 'Nutzungsspuren',
       'borderColor': Colors.greenAccent,
-      'defValues': const ['','Siedlung/Straße','Grünland ext.','Grünland int.','Acker','unbefestigter Weg','Brache'],
-      'valueScores': [null, 0, 1, 1, 1, 1],  // [null, 0, 1, 0, 0, 0] for 'Bestäubung'
+      'defValues': const [
+        '',
+        'Siedlung/Straße',
+        'Grünland ext.',
+        'Grünland int.',
+        'Acker',
+        'unbefestigter Weg',
+        'Brache'
+      ],
+      'valueMap': {
+        'Rohstoffe': [null, 0, 1, 1, 1, 1],
+        'Bestäubung': [null, 0, 1, 0, 0, 0],
+      },
       'section': 'Gelände',
       'maxDropdownCount': 4,
     },
     {
       'headerText': 'Zusatzstrukturen',
       'borderColor': Colors.greenAccent,
-      'defValues': const ['','Jagd, z.B. Hochstand','Erholung, z.B. Bank','Bildung, z.B. Schautafel','Kulturdenkmal','nichts'],
-      'valueScores': [null, 1, 0, 0, 0, 0],
-      // [null, 0, 0, 0, 1, 0] for 'Kulturerbe'
-      // [null, 0.5, 1, 1, 0.5, 0] for 'Erholung'
+      'defValues': const [
+        '',
+        'Jagd, z.B. Hochstand',
+        'Erholung, z.B. Bank',
+        'Bildung, z.B. Schautafel',
+        'Kulturdenkmal',
+        'nichts'
+      ],
+      'valueMap': {
+        'Rohstoffe': [null, 1, 0, 0, 0, 0],
+        'Erholung & Tourismus': [null, 0.5, 1, 1, 0.5, 0],
+        'Kulturerbe': [null, 0, 0, 0, 1, 0],
+      },
       'section': 'Gelände',
       'maxDropdownCount': 4,
     },
     {
       'headerText': 'Management',
       'borderColor': Colors.greenAccent,
-      'defValues': const ['','nichts sichtbar','Baum/Strauch nachgepflanzt','Seitenschnitt sichtbar','auf Stock gesetzt','Einzelbaum/-strauch Rückschnitte','Einzelstamm Entnahme'],
-      'valueScores': [null, 0, 0, -1, 2, 0, 1], // [null, 1, 0, -1, 1, 1, 0] for 'Bestäubung'
+      'defValues': const [
+        '',
+        'nichts sichtbar',
+        'Baum/Strauch nachgepflanzt',
+        'Seitenschnitt sichtbar',
+        'auf Stock gesetzt',
+        'Einzelbaum/-strauch Rückschnitte',
+        'Einzelstamm Entnahme'
+      ],
+      'valueMap': {
+        'Rohstoffe': [null, 0, 0, -1, 2, 0, 1],
+        'Bestäubung': [null, 1, 0, -1, 1, 1, 0],
+      },
       'section': 'Gelände',
       'maxDropdownCount': 5,
     },
     {
       'headerText': 'Sonderform',
       'borderColor': Colors.greenAccent,
-      'defValues': const ['','keine Sonderform','Lesesteinhecke','Hecke auf Hochrain','Böschungshecke','Grabenhecke'],
-      'valueScores': [null, 0, 1, 1, 1, 1],
-      // [null, 0, 2, 2, 1, 1] for 'Schädlungs- & Krankheitskontrolle'
-      // [null, 0, 1, 1, 0, 0] for 'Nähr- und Schadstoffkreisläufe'
+      'defValues': const [
+        '',
+        'keine Sonderform',
+        'Lesesteinhecke',
+        'Hecke auf Hochrain',
+        'Böschungshecke',
+        'Grabenhecke'
+      ],
+      'valueMap': {
+        'Nähr- & Schadstoffkreisläufe': [null, 0, 1, 1, 0, 0],
+        'Bestäubung': [null, 0, 1, 1, 1, 1],
+        'Schädlings- & Krankheitskontrolle': [null, 0, 2, 2, 1, 1],
+        'Fortpflanzungs- & Ruhestätte': [null, 0, 1, 1, 1, 1],
+        'Kulturerbe': [null, 0, 1, 1, 1, 1],
+      },
       'section': 'Gelände',
       'maxDropdownCount': 4,
     },

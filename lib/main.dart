@@ -616,30 +616,32 @@ class _NameFormState extends State<NameForm> {
       'Korridor': 0,
       'Fortpflanzungs- & Ruhestätte': 0,
       'Erholung & Tourismus': 0,
-      'Kulturerbe': 0
+      'Kulturerbe': 0,
     };
   }
 
   void updateRadarChartData() async {
     resetRadarChartData();
 
+    // iterate over static fields, get values for each group based on _radarDataToGroup
     for (var inputField in inputFields) {
-      if (inputField.containsKey("valueFor")) {
-        for (var group in inputField["valueFor"]) {
-          if (inputField["type"] == "dropdown") {
-            int valueIndex = 0;
-            if (inputField["selectedValue"] != "") {
-              valueIndex =
-                  inputField["values"].indexOf(inputField["selectedValue"]);
-            }
-            int scoreOfValue = inputField["valueScores"][valueIndex];
-            if (_radarChartData.containsKey(group)) {
-              _radarChartData[group] = _radarChartData[group]! + scoreOfValue;
-            }
-          }
+      for (String group in _radarChartData.keys) {
+        if (inputField["type"] == "dropdown"
+            && inputField["selectedValue"] != ""
+            && inputField.containsKey("valueMap")
+            && inputField["valueMap"].containsKey(group)) {
+          int dropdownValueIndex = inputField["values"].indexOf(inputField["selectedValue"]);
+          var dropdownScore = inputField["valueMap"][group][dropdownValueIndex];
+          _radarChartData[group] = _radarChartData[group]! + dropdownScore;
         }
       }
     }
+
+    // TODO: add dynamic fields
+
+    // TODO: consider sums, means, ..
+
+    // TODO: create extra map with single values like in 'Details'
     setState(() {
       // _radarChartData["Rohstoffe"] = 4;
     });
