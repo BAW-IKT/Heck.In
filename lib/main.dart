@@ -338,21 +338,7 @@ class _NameFormState extends State<NameForm> {
   List<Map<String, dynamic>> inputFields = [];
   List<Map<String, dynamic>> dynamicFields = [];
   List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
-  Map<String, double> _radarChartData = {
-    'Rohstoffe': 1,
-    'Ertragssteigerung': 1,
-    'Klimaschutz': 1,
-    'Wasserschutz': 1,
-    'Bodenschutz': 1,
-    'Nähr- & Schadstoffkreisläufe': 5,
-    'Bestäubung': 1,
-    'Schädlings- & Krankheitskontrolle': 3,
-    'Nahrungsquelle': 1,
-    'Korridor': 1,
-    'Fortpflanzungs- & Ruhestätte': 1,
-    'Erholung & Tourismus': 1,
-    'Kulturerbe': 1
-  };
+  Map<String, double> _radarChartData = {};
   final Map<String, String> _radarDataToGroup = {
     'Rohstoffe': 'Bereitstellend',
     'Ertragssteigerung': 'Bereitstellend',
@@ -616,9 +602,46 @@ class _NameFormState extends State<NameForm> {
     // }
   }
 
-  void updateRadarChartData(Map<String, double> radarChartData) {
+  void resetRadarChartData() {
+    _radarChartData = {
+      'Rohstoffe': 0,
+      'Ertragssteigerung': 0,
+      'Klimaschutz': 0,
+      'Wasserschutz': 0,
+      'Bodenschutz': 0,
+      'Nähr- & Schadstoffkreisläufe': 0,
+      'Bestäubung': 0,
+      'Schädlings- & Krankheitskontrolle': 0,
+      'Nahrungsquelle': 0,
+      'Korridor': 0,
+      'Fortpflanzungs- & Ruhestätte': 0,
+      'Erholung & Tourismus': 0,
+      'Kulturerbe': 0
+    };
+  }
+
+  void updateRadarChartData() async {
+    resetRadarChartData();
+
+    for (var inputField in inputFields) {
+      if (inputField.containsKey("valueFor")) {
+        for (var group in inputField["valueFor"]) {
+          if (inputField["type"] == "dropdown") {
+            int valueIndex = 0;
+            if (inputField["selectedValue"] != "") {
+              valueIndex =
+                  inputField["values"].indexOf(inputField["selectedValue"]);
+            }
+            int scoreOfValue = inputField["valueScores"][valueIndex];
+            if (_radarChartData.containsKey(group)) {
+              _radarChartData[group] = _radarChartData[group]! + scoreOfValue;
+            }
+          }
+        }
+      }
+    }
     setState(() {
-      _radarChartData = radarChartData;
+      // _radarChartData["Rohstoffe"] = 4;
     });
   }
 
@@ -780,6 +803,7 @@ class _NameFormState extends State<NameForm> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
+              updateRadarChartData();
               return RadarChartDialog(
                 data: _radarChartData,
                 dataToGroup: _radarDataToGroup,

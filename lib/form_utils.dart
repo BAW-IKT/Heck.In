@@ -169,12 +169,19 @@ Expanded _createNumberInput(var field, {Color? borderColor}) {
 Expanded _createDropdownInput(var field, Function setState,
     {Color? borderColor}) {
   var dropdownItems = field['values'].map<DropdownMenuItem<String>>((value) {
+    double dynamicTextSize = 12;
+    if  (value.toString().length > 16) {
+      dynamicTextSize = 10;
+    }
+    if (value.toString().length > 24) {
+      dynamicTextSize = 7;
+    }
     return DropdownMenuItem<String>(
       value: value,
       child: Text(
         value,
         style: TextStyle(
-          fontSize: value.length > 16 ? 10 : 12,
+          fontSize: dynamicTextSize,
         ),
       ),
     );

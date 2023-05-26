@@ -11,6 +11,21 @@ String? generateValidator(String? value, String label, bool required) {
 /// labels must be unique across all static & dynamic widgets!
 /// example usage to create widgets:
 ///    buildFormFieldGrid(inputFields, 'General', setState, columns: columns)
+/// 'valueScores' must match amount of 'values' elements
+/// 'valueFor' must be one of the following to be correctly recognized:
+///    'Rohstoffe'
+///    'Ertragssteigerung'
+///    'Klimaschutz'
+///    'Wasserschutz'
+///    'Bodenschutz'
+///    'Nähr- & Schadstoffkreisläufe'
+///    'Bestäubung'
+///    'Schädlings- & Krankheitskontrolle'
+///    'Nahrungsquelle'
+///    'Korridor'
+///    'Fortpflanzungs- & Ruhestätte'
+///    'Erholung & Tourismus'
+///    'Kulturerbe
 List<Map<String, dynamic>> createFormFields() {
   return [
     // general fields
@@ -47,14 +62,16 @@ List<Map<String, dynamic>> createFormFields() {
       'borderColor': Colors.indigo,
       'controller': TextEditingController(),
       'validator': (value) =>
-          generateValidator(value, "Länge der Hecke", false),
+          generateValidator(value, "Länge der Hecke [m]", false),
     },
     {
       'type': 'dropdown',
       'label': 'Ausrichtung Himmelsrichtung',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['', 'a: S-N', 'b: SO-NW', 'c: W-O', 'd: SW-NO'],
+      'values': ['', 'S-N', 'SO-NW', 'W-O', 'SW-NO'],
+      'valueScores': [null, 5, 3, 1, 3],
+      'valueFor': ["Schädlings- & Krankheitskontrolle", "Ertragssteigerung", "Bodenschutz"],
       'validator': (value) =>
           generateValidator(value, "Ausrichtung Himmelsrichtung", false),
     },
@@ -63,7 +80,8 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Schutzgebiet',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['', 'a: Schutzgebiet', 'b: Kein Schutzgebiet'],
+      'values': ['', 'Schutzgebiet', 'Kein Schutzgebiet'],
+      'valueScores': [null, 1, 0],
       'validator': (value) => generateValidator(value, "Schutzgebiet", false),
     },
     {
@@ -71,7 +89,8 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Naturdenkmal',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+      'values': ['', 'Naturdenkmal in/nahe der Hecke', 'Kein Naturdenkmal in/nahe der Hecke'],
+      'valueScores': [null, 1, 0],
       'validator': (value) => generateValidator(value, "Naturdenkmal", false),
     },
     {
@@ -79,7 +98,8 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Heckendichte',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+      'values': ['','<250m/25 ha','250-800m/25 ha','800-1500m/25 ha','1500-2200m/25 ha','>2200m/25 ha'],
+      'valueScores': [null, 1,2,3,4,5],
       'validator': (value) => generateValidator(value, "Heckendichte", false),
     },
     {
@@ -87,7 +107,8 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'klimatische Wasserbilanz',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+      'values': ['','violett','blau ','weißblau-hellblau ','hellgelb-weiß ','rot, orange'],
+      'valueScores': [null, 1, 2, 3, 4, 5], // [null, 5, 4, 3, 2, 1] for 'Klimaschutz', managed in updateRadarChartData() in main.dart
       'validator': (value) =>
           generateValidator(value, "klimatische Wasserbilanz", false),
     },
@@ -96,7 +117,8 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Bevölkerungsdichte',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+      'values': ['','0-15','16-30','31-75','76-200','>200'],
+      'valueScores': [null, 1, 2, 3, 4, 5],
       'validator': (value) =>
           generateValidator(value, "Bevölkerungsdichte", false),
     },
@@ -105,7 +127,8 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'in Wildtierkorridor',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+      'values': ['', 'ja', 'nein'],
+      'valueScores': [null, 1, 0],
       'validator': (value) =>
           generateValidator(value, "in Wildtierkorridor", false),
     },
@@ -114,7 +137,8 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'traditionelle Heckenregion',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+      'values': ['', 'Heckenregion', 'Keine Heckenregion'],
+      'valueScores': [0, 5, 1],
       'validator': (value) =>
           generateValidator(value, "traditionelle Heckenregion", false),
     },
@@ -123,7 +147,8 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Franziszeischer Kataster',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+      'values': ['','Im Kataster erkennbar','Nicht im Kataster erkennbar'],
+      'valueScores': [null, 5, 1],
       'validator': (value) =>
           generateValidator(value, "Franziszeischer Kataster", false),
     },
@@ -132,7 +157,8 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'nutzbare Feldkapazität',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+      'values': ['','sehr gering (<60mm)','gering (60-140mm)','mittel (140-220mm)','hoch (220-300mm)'],
+      'valueScores': [null, 5, 4, 2, 1],
       'validator': (value) =>
           generateValidator(value, "nutzbare Feldkapazität", false),
     },
@@ -141,28 +167,179 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'Humusbilanz',
       'section': 'GIS',
       'borderColor': Colors.indigo,
-      'values': ['', 'Value 1', 'Value 2', 'Value 3', 'Value 4', 'Value 5'],
+      'values': ['','Standortgruppe 1, 2','Standortgruppe 3, 4','Standortgruppe 5, 6'],
+      'valueScores': [null, 1, 3, 5],
       'validator': (value) => generateValidator(value, "Humusbilanz", false),
     },
     // gelände fields
-    {'type': 'text', 'label': 'Position zum Hang', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Position zum Hang', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Hangneigung', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Hangneigung', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Netzwerk', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Netzwerk', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Erschließung', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Erschließung', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'horizontale Schichtung', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'horizontale Schichtung', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'vertikale Schichtung', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'vertikale Schichtung', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Strukturvielfalt', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Strukturvielfalt', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Lücken', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Lücken', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Totholz', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Totholz', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Alterszusammensetzung', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Alterszusammensetzung', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Saumart', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Saumart', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Saumbreite', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Saumbreite', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Höhe', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Höhe', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Breite', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Breite', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Baumanteil', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Baumanteil', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Anzahl Gehölzarten', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Anzahl Gehölzarten', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Dominanzen', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Dominanzen', false), 'controller': TextEditingController(), },
-    {'type': 'text', 'label': 'Neophyten', 'section': 'Gelände', 'borderColor': Colors.green, 'values': ['', 'value1', 'value2'], 'validator': (value) => generateValidator(value, 'Neophyten', false), 'controller': TextEditingController(), },
+    {
+      'type': 'dropdown',
+      'label': 'Position zum Hang',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','in Hangrichtung','Oberhang','diagonal zur Falllinie','Unterhang / Hangfuß','im Hang, quer','(keine Hangneigung)'],
+      'valueScores': [null, 1, 1, 3, 4, 5, 1],
+      'validator': (value) =>
+          generateValidator(value, 'Position zum Hang', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Hangneigung',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','annähernd eben','Neigung merkbar','deutlich steigend','durchschn. Bergstraße','steilste Abschnitte v. Bergstraßen'],
+      'valueScores': [null, 1, 2, 3, 4, 5],
+      'validator': (value) => generateValidator(value, 'Hangneigung', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Netzwerk',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','keine Verbindungen zu (semi‑) natürlichen LR','1 Verbindung ','>1 Verbindung ','Teil von Rainnetzwerk'],
+      'valueScores': [null, 1, 2, 5, 3], // [null, 1, 3, 5, 5] for 'Kulturerbe' - managed in updateRadarChartData() in main.dart
+      'validator': (value) => generateValidator(value, 'Netzwerk', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Erschließung',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','Weg an/in Hecke','Sichtbeziehung zu Hecke','Kein Weg'],
+      'valueScores': [null, 5, 3, 1],
+      'validator': (value) => generateValidator(value, 'Erschließung', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'horizontale Schichtung',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','nur Baumschicht','nur Strauchschicht','Baum- und Strauchschicht'],
+      'valueScores': [null, 0, 0, 1, 1],
+      'validator': (value) =>
+          generateValidator(value, 'horizontale Schichtung', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'vertikale Schichtung',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','nur Kernzone','nur Mantelzone','Kern- und Mantelzone'],
+      'valueScores': [null, 0, 0, 1],
+      'validator': (value) =>
+          generateValidator(value, 'vertikale Schichtung', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Strukturvielfalt',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','+/- gleich hoch, gleich breit','1 Dimension variabel','2 Dimensionen variabel'],
+      'valueScores': [null, 1, 3, 5],
+      'validator': (value) =>
+          generateValidator(value, 'Strukturvielfalt', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Lücken',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','min. 1 Lücke >5m','>10% Lücken','5-10% Lücken','<5% Lücken','keine Lücken'],
+      'valueScores': [null, 1, 1, 3, 4, 5],
+      'validator': (value) => generateValidator(value, 'Lücken', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Totholz',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','kein Totholz','kein Merkmal','1 Merkmal','2 Merkmale','3 Merkmale:'],
+      'valueScores': [null, 1, 2, 3, 4, 5],  // [null, 0, 0, 0, -1, -1] for 'Rohstoffe aus der Hecke', [null, 5, 4, 3, 2, 1] for 'Nähr- und Schadstoffkreisläufe' - managed in updateRadarChartData() in main.dart
+      'validator': (value) => generateValidator(value, 'Totholz', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Alterszusammensetzung',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','<6 Jahre','6-20 Jahre','20-50 Jahre','>50 Jahre','gemischtes Alter'],
+      'valueScores': [null, 1, 2, 4, 5, 4], // [null, 1, 2, 4, 3, 5] for 'Erholung' and 'Fortpflanzungs- und Ruhestätte'
+      'validator': (value) =>
+          generateValidator(value, 'Alterszusammensetzung', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Saumart',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['', 'Saum','Mähstreifen','Grünland','nichts davon'],
+      'valueScores': [null, 1, 0.8, 0.6, 1],
+      'validator': (value) => generateValidator(value, 'Saumart', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Saumbreite',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','kein Saum','< 2 m','2-3 m','3-4 m','> 4 m'],
+      'valueScores': [null, 1, 2, 3, 4, 5],
+      'validator': (value) => generateValidator(value, 'Saumbreite', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Höhe',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','<2 m','2-5 m','5-10 m','10-15 m','>15 m'],
+      'valueScores': [null, 1, 2, 3, 4, 5],  // [null, 1, 3, 5, 5, 5] for 'Korridor'
+      'validator': (value) => generateValidator(value, 'Höhe', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Breite',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','<2 m','2-4 m','4-6 m','6-8 m','8-12 m'],
+      'valueScores': [null, 1, 2, 3, 4, 5],
+      'validator': (value) => generateValidator(value, 'Breite', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Baumanteil',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','0','1-2/ 100m','3-9/ 100m','10-20/ 100m','>20/ 100m'],
+      'valueScores': [null, 1, 2, 3, 4, 5], // [null, 1, 1, 1, 2, 3] for 'Rohstoffe aus der Hecke'
+      'validator': (value) => generateValidator(value, 'Baumanteil', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Anzahl Gehölzarten',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','1-3 Arten in 30m','4-5 Arten in 30m','6-7 Arten in 30m','8-9 Arten in 30m','10+ Arten in 30m'],
+      'valueScores': [null, 1, 2, 3, 4, 5],
+      'validator': (value) =>
+          generateValidator(value, 'Anzahl Gehölzarten', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Dominanzen',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','(quasi) keine','leichte Dominanz','starke Dominanz'],
+      'valueScores': [null, 1, 3, 5],
+      'validator': (value) => generateValidator(value, 'Dominanzen', false),
+    },
+    {
+      'type': 'dropdown',
+      'label': 'Neophyten',
+      'section': 'Gelände',
+      'borderColor': Colors.green,
+      'values': ['','>50%','25-50%','10-25%','5-10%','0-5%'],
+      'valueScores': [null, 1, 2, 3, 4, 5], // [null, 5, 4, 3, 2, 1] for 'Kulturerbe'
+      'validator': (value) => generateValidator(value, 'Neophyten', false),
+    },
     // anmerkungen
     {
       'type': 'text',
@@ -191,10 +368,60 @@ List<Map<String, dynamic>> createFormFields() {
 List<Map<String, dynamic>> createDynamicFormFields() {
   return [
     // Gelände fields
-    {'headerText': 'Nachbarflächen', 'borderColor': Colors.greenAccent, 'defValues': const['', 'first', 'second'], 'section': 'Gelände',},
-    {'headerText': 'Nutzungsspuren', 'borderColor': Colors.greenAccent, 'defValues': const['', 'first', 'second'], 'section': 'Gelände', 'maxDropdownCount': 4,},
-    {'headerText': 'Zusatzstrukturen', 'borderColor': Colors.greenAccent, 'defValues': const['', 'first', 'second'], 'section': 'Gelände', 'maxDropdownCount': 4,},
-    {'headerText': 'Management', 'borderColor': Colors.greenAccent, 'defValues': const['', 'first', 'second'], 'section': 'Gelände', 'maxDropdownCount': 5,},
-    {'headerText': 'Sonderform', 'borderColor': Colors.greenAccent, 'defValues': const['', 'first', 'second'], 'section': 'Gelände', 'maxDropdownCount': 4,},
+    {
+      'headerText': 'Nachbarflächen',
+      'borderColor': Colors.greenAccent,
+      'defValues': const [
+        '',
+        'Siedlung/Straße',
+        'Grünland ext.',
+        'Grünland int.',
+        'Acker',
+        'unbefestigter Weg',
+        'Brache'
+      ],
+      'valueScores': [null, 0, 1, 1, 1, 0, 0],
+      // [null, -1, 1, 0, 0, -1, 1] for 'Bestäubung'
+      // [null, -2, 2, 1, -1, -1, 2] for 'Fortpflanzungs- und Ruhestätte'
+      // [null, 4, 1, 2, 5, 1, 1] for 'Nähr- und Schadstoffkreisläufe'
+      //
+      'section': 'Gelände',
+    },
+    {
+      'headerText': 'Nutzungsspuren',
+      'borderColor': Colors.greenAccent,
+      'defValues': const ['','Siedlung/Straße','Grünland ext.','Grünland int.','Acker','unbefestigter Weg','Brache'],
+      'valueScores': [null, 0, 1, 1, 1, 1],  // [null, 0, 1, 0, 0, 0] for 'Bestäubung'
+      'section': 'Gelände',
+      'maxDropdownCount': 4,
+    },
+    {
+      'headerText': 'Zusatzstrukturen',
+      'borderColor': Colors.greenAccent,
+      'defValues': const ['','Jagd, z.B. Hochstand','Erholung, z.B. Bank','Bildung, z.B. Schautafel','Kulturdenkmal','nichts'],
+      'valueScores': [null, 1, 0, 0, 0, 0],
+      // [null, 0, 0, 0, 1, 0] for 'Kulturerbe'
+      // [null, 0.5, 1, 1, 0.5, 0] for 'Erholung'
+      'section': 'Gelände',
+      'maxDropdownCount': 4,
+    },
+    {
+      'headerText': 'Management',
+      'borderColor': Colors.greenAccent,
+      'defValues': const ['','nichts sichtbar','Baum/Strauch nachgepflanzt','Seitenschnitt sichtbar','auf Stock gesetzt','Einzelbaum/-strauch Rückschnitte','Einzelstamm Entnahme'],
+      'valueScores': [null, 0, 0, -1, 2, 0, 1], // [null, 1, 0, -1, 1, 1, 0] for 'Bestäubung'
+      'section': 'Gelände',
+      'maxDropdownCount': 5,
+    },
+    {
+      'headerText': 'Sonderform',
+      'borderColor': Colors.greenAccent,
+      'defValues': const ['','keine Sonderform','Lesesteinhecke','Hecke auf Hochrain','Böschungshecke','Grabenhecke'],
+      'valueScores': [null, 0, 1, 1, 1, 1],
+      // [null, 0, 2, 2, 1, 1] for 'Schädlungs- & Krankheitskontrolle'
+      // [null, 0, 1, 1, 0, 0] for 'Nähr- und Schadstoffkreisläufe'
+      'section': 'Gelände',
+      'maxDropdownCount': 4,
+    },
   ];
 }

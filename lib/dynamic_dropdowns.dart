@@ -10,14 +10,14 @@ class DynamicDropdowns extends StatefulWidget {
   final int maxDropdownCount;
 
   const DynamicDropdowns({
-    super.key,
+    Key? key,
     required this.defValues,
     required this.headerText,
     required this.borderColor,
     required this.onChanged,
     this.minDropdownCount = 0,
     this.maxDropdownCount = 6,
-  });
+  }) : super(key: key);
 
   @override
   DynamicDropdownsState createState() => DynamicDropdownsState();
@@ -40,7 +40,7 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
     setState(() {});
   }
 
-  void buildInitialDropdowns() async {
+  Future<void> buildInitialDropdowns() async {
     // check if previous values exist in storage
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -117,23 +117,36 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
                   dropdownCount,
                   (index) => Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: DropdownButton<String>(
-                      value: selectedValues[index],
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedValues[index] = newValue!;
-                          // hand over parameters to parent
-                          String dropdownKey =
-                              '${widget.headerText}_${index + 1}';
-                          widget.onChanged(dropdownKey, newValue);
-                        });
-                      },
-                      items: widget.defValues
-                          .map((value) => DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              ))
-                          .toList(),
+                    child: Row(
+                      children: [
+                        Text(
+                          '#${index + 1}',
+                          style: TextStyle(
+                            color: widget.borderColor,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        DropdownButton<String>(
+                          value: selectedValues[index],
+                          onChanged: (newValue) {
+                            setState(() {
+                              selectedValues[index] = newValue!;
+                              // hand over parameters to parent
+                              String dropdownKey =
+                                  '${widget.headerText}_${index + 1}';
+                              widget.onChanged(dropdownKey, newValue);
+                            });
+                          },
+                          items: widget.defValues
+                              .map(
+                                (value) => DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ],
                     ),
                   ),
                 ),
