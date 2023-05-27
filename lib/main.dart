@@ -339,8 +339,12 @@ class _NameFormState extends State<NameForm> {
   List<Map<String, dynamic>> inputFields = [];
   List<Map<String, dynamic>> dynamicFields = [];
   List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
-  Map<String, double> _radarChartData = {}; // after weighting etc.
+  Map<String, double> _radarChartData =
+      {}; // after weighting etc. to display in graph
+  Map<String, dynamic> _radarChartDataListsReduced =
+      {}; // after reading raw scores and calculating means/sums
   Map<String, dynamic> _radarChartDataFull = {};
+
   final Map<String, String> _radarDataToGroup = {
     'Rohstoffe': 'Bereitstellend',
     'Ertragssteigerung': 'Bereitstellend',
@@ -605,22 +609,6 @@ class _NameFormState extends State<NameForm> {
   }
 
   void resetRadarChartData() {
-    _radarChartData = {
-      'Rohstoffe': 0,
-      'Ertragssteigerung': 0,
-      'Klimaschutz': 0,
-      'Wasserschutz': 0,
-      'Bodenschutz': 0,
-      'Nähr- & Schadstoffkreisläufe': 0,
-      'Bestäubung': 0,
-      'Schädlings- & Krankheitskontrolle': 0,
-      'Nahrungsquelle': 0,
-      'Korridor': 0,
-      'Fortpflanzungs- & Ruhestätte': 0,
-      'Erholung & Tourismus': 0,
-      'Kulturerbe': 0,
-    };
-
     _radarChartDataFull = {
       'Rohstoffe': {},
       'Ertragssteigerung': {},
@@ -636,6 +624,8 @@ class _NameFormState extends State<NameForm> {
       'Erholung & Tourismus': {},
       'Kulturerbe': {},
     };
+
+    _radarChartDataListsReduced = {};
   }
 
   Future<void> updateRadarChartData() async {
@@ -645,7 +635,7 @@ class _NameFormState extends State<NameForm> {
 
     // iterate over static fields, get values for each group based on _radarDataToGroup
     for (var inputField in inputFields) {
-      for (String group in _radarChartData.keys) {
+      for (String group in _radarChartDataFull.keys) {
         if (inputField["type"] == "dropdown" &&
             inputField["selectedValue"] != "" &&
             inputField.containsKey("valueMap") &&
@@ -660,7 +650,7 @@ class _NameFormState extends State<NameForm> {
 
     // iterate over dynamic fields, collect values via shared prefs
     for (var dynamicField in dynamicFields) {
-      for (String group in _radarChartData.keys) {
+      for (String group in _radarChartDataFull.keys) {
         if (dynamicField.containsKey("valueMap") &&
             dynamicField["valueMap"].containsKey(group)) {
           int maxDropdownCount = 6;
@@ -670,6 +660,7 @@ class _NameFormState extends State<NameForm> {
 
           // iterate over nested dropdowns
           double scoreSum = 0;
+          List<double> nestedScores = [];
           for (int i = 1; i <= maxDropdownCount; i++) {
             // get stored value from shared prefs, if existent
             String? selectedValue =
@@ -679,30 +670,76 @@ class _NameFormState extends State<NameForm> {
             double? dropdownScore =
                 dynamicField["valueMap"][group][dropdownValueIndex]?.toDouble();
             if (dropdownScore != null) {
+              nestedScores.add(dropdownScore);
               // sum up values
               scoreSum += dropdownScore;
             }
           }
 
           // write to map
-          _radarChartDataFull[group][dynamicField["headerText"]] = scoreSum;
+          _radarChartDataFull[group][dynamicField["headerText"]] = nestedScores;
         }
       }
     }
 
-    // here starts the fun .. weighting, means etc.
+    // write to _radarChartDataListsReduced, based on the name of the lists, calculate mean or sum
+    for (var fullData in _radarChartDataFull.entries) {
+      String group = fullData.key;
+      if (!_radarChartDataListsReduced.containsKey(group)) {
+        _radarChartDataListsReduced[group] = {};
+      }
+      for (var score in fullData.value.entries) {
+        String scoreKey = score.key;
+        var scoreValue = score.value;
+        if (scoreValue is List) {
+          // calculate sum of list values
+          double scoreSum = 0;
+          for (double singleScore in scoreValue) {
+            scoreSum = scoreSum + singleScore;
+          }
 
-    // rohstoffe
-    double rohstoffeSum = _radarChartDataFull["Rohstoffe"]
-        .values
-        .reduce((previous, current) => previous + current);
-    _radarChartData["Rohstoffe"] = max(min(rohstoffeSum, 5), 1);
+          // in case of Nachbarflächen, calculate mean of list values
+          if (scoreKey == "Nachbarflächen") {
+            scoreSum = scoreSum / scoreValue.length;
+            if (scoreSum.isNaN) {
+              scoreSum = 0;
+            }
+          }
+          _radarChartDataListsReduced[group][scoreKey] = scoreSum;
+        } else {
+          // append without modification
+          _radarChartDataListsReduced[group][scoreKey] = scoreValue;
+        }
+      }
+    }
 
-    // TODO: continue for all groups
+    double rohstoffeSum =
+        _radarChartDataListsReduced["Rohstoffe"].values.reduce((v, e) => v + e);
+    rohstoffeSum = max(min(rohstoffeSum, 5), 1);
+
+    var ertragsData = _radarChartDataListsReduced["Ertragssteigerung"];
+    double ertragssteigerungSum = ertragsData["Nachbarflächen"] > 0
+        ? 1
+        : ertragsData.values.reduce((v, e) => v + e) / ertragsData.length;
+
+    _radarChartData = {
+      'Rohstoffe': rohstoffeSum,
+      'Ertragssteigerung': ertragssteigerungSum,
+      'Klimaschutz': 0,
+      'Wasserschutz': 0,
+      'Bodenschutz': 0,
+      'Nähr- & Schadstoffkreisläufe': 0,
+      'Bestäubung': 0,
+      'Schädlings- & Krankheitskontrolle': 0,
+      'Nahrungsquelle': 0,
+      'Korridor': 0,
+      'Fortpflanzungs- & Ruhestätte': 0,
+      'Erholung & Tourismus': 0,
+      'Kulturerbe': 0,
+    };
 
     // idk if i need this
-    setState(() {
-    });
+    setState(() {});
   }
 
   @override
