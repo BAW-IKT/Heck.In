@@ -514,6 +514,7 @@ List<Map<String, dynamic>> createFormFields() {
         'Nahrungsquelle': [null, 1, 2, 3, 4, 5],
         'Fortpflanzungs- & Ruhestätte': [null, 1, 2, 3, 4, 5],
         'Erholung & Tourismus': [null, 1, 2, 3, 4, 5],
+        'Schädlings- & Krankheitskontrolle': [null, 1, 2, 3, 4, 5],
       },
       'validator': (value) =>
           generateValidator(value, 'Anzahl Gehölzarten', false),

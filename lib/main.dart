@@ -15,6 +15,7 @@ import 'utils_geo.dart' as geo;
 import 'utils_db.dart' as db;
 import 'snackbar.dart';
 import 'radar_chart.dart';
+import 'dart:math';
 
 void main() => runApp(const HedgeProfilerApp());
 
@@ -338,7 +339,8 @@ class _NameFormState extends State<NameForm> {
   List<Map<String, dynamic>> inputFields = [];
   List<Map<String, dynamic>> dynamicFields = [];
   List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
-  Map<String, double> _radarChartData = {};
+  Map<String, double> _radarChartData = {}; // after weighting etc.
+  Map<String, dynamic> _radarChartDataFull = {};
   final Map<String, String> _radarDataToGroup = {
     'Rohstoffe': 'Bereitstellend',
     'Ertragssteigerung': 'Bereitstellend',
@@ -618,32 +620,88 @@ class _NameFormState extends State<NameForm> {
       'Erholung & Tourismus': 0,
       'Kulturerbe': 0,
     };
+
+    _radarChartDataFull = {
+      'Rohstoffe': {},
+      'Ertragssteigerung': {},
+      'Klimaschutz': {},
+      'Wasserschutz': {},
+      'Bodenschutz': {},
+      'Nähr- & Schadstoffkreisläufe': {},
+      'Bestäubung': {},
+      'Schädlings- & Krankheitskontrolle': {},
+      'Nahrungsquelle': {},
+      'Korridor': {},
+      'Fortpflanzungs- & Ruhestätte': {},
+      'Erholung & Tourismus': {},
+      'Kulturerbe': {},
+    };
   }
 
-  void updateRadarChartData() async {
+  Future<void> updateRadarChartData() async {
     resetRadarChartData();
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
     // iterate over static fields, get values for each group based on _radarDataToGroup
     for (var inputField in inputFields) {
       for (String group in _radarChartData.keys) {
-        if (inputField["type"] == "dropdown"
-            && inputField["selectedValue"] != ""
-            && inputField.containsKey("valueMap")
-            && inputField["valueMap"].containsKey(group)) {
-          int dropdownValueIndex = inputField["values"].indexOf(inputField["selectedValue"]);
+        if (inputField["type"] == "dropdown" &&
+            inputField["selectedValue"] != "" &&
+            inputField.containsKey("valueMap") &&
+            inputField["valueMap"].containsKey(group)) {
+          int dropdownValueIndex =
+              inputField["values"].indexOf(inputField["selectedValue"]);
           var dropdownScore = inputField["valueMap"][group][dropdownValueIndex];
-          _radarChartData[group] = _radarChartData[group]! + dropdownScore;
+          _radarChartDataFull[group][inputField["label"]] = dropdownScore;
         }
       }
     }
 
-    // TODO: add dynamic fields
+    // iterate over dynamic fields, collect values via shared prefs
+    for (var dynamicField in dynamicFields) {
+      for (String group in _radarChartData.keys) {
+        if (dynamicField.containsKey("valueMap") &&
+            dynamicField["valueMap"].containsKey(group)) {
+          int maxDropdownCount = 6;
+          if (dynamicField.containsKey("maxDropdownCount")) {
+            maxDropdownCount = dynamicField["maxDropdownCount"];
+          }
 
-    // TODO: consider sums, means, ..
+          // iterate over nested dropdowns
+          double scoreSum = 0;
+          for (int i = 1; i <= maxDropdownCount; i++) {
+            // get stored value from shared prefs, if existent
+            String? selectedValue =
+                prefs.getString(dynamicField["headerText"] + "_$i");
+            int dropdownValueIndex =
+                dynamicField["defValues"].indexOf(selectedValue ?? '');
+            double? dropdownScore =
+                dynamicField["valueMap"][group][dropdownValueIndex]?.toDouble();
+            if (dropdownScore != null) {
+              // sum up values
+              scoreSum += dropdownScore;
+            }
+          }
 
-    // TODO: create extra map with single values like in 'Details'
+          // write to map
+          _radarChartDataFull[group][dynamicField["headerText"]] = scoreSum;
+        }
+      }
+    }
+
+    // here starts the fun .. weighting, means etc.
+
+    // rohstoffe
+    double rohstoffeSum = _radarChartDataFull["Rohstoffe"]
+        .values
+        .reduce((previous, current) => previous + current);
+    _radarChartData["Rohstoffe"] = max(min(rohstoffeSum, 5), 1);
+
+    // TODO: continue for all groups
+
+    // idk if i need this
     setState(() {
-      // _radarChartData["Rohstoffe"] = 4;
     });
   }
 
@@ -805,11 +863,19 @@ class _NameFormState extends State<NameForm> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              updateRadarChartData();
-              return RadarChartDialog(
-                data: _radarChartData,
-                dataToGroup: _radarDataToGroup,
-                groupColors: _radarGroupColors,
+              return FutureBuilder(
+                future: updateRadarChartData(),
+                builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return RadarChartDialog(
+                      data: _radarChartData,
+                      dataToGroup: _radarDataToGroup,
+                      groupColors: _radarGroupColors,
+                    );
+                  } else {
+                    return const CircularProgressIndicator(); // or any other loading indicator
+                  }
+                },
               );
             },
           );
