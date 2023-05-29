@@ -637,13 +637,17 @@ class _NameFormState extends State<NameForm> {
     for (var inputField in inputFields) {
       for (String group in _radarChartDataFull.keys) {
         if (inputField["type"] == "dropdown" &&
-            inputField["selectedValue"] != "" &&
             inputField.containsKey("valueMap") &&
             inputField["valueMap"].containsKey(group)) {
-          int dropdownValueIndex =
-              inputField["values"].indexOf(inputField["selectedValue"]);
-          var dropdownScore = inputField["valueMap"][group][dropdownValueIndex];
-          _radarChartDataFull[group][inputField["label"]] = dropdownScore;
+          if (inputField["selectedValue"] == "") {
+            _radarChartDataFull[group][inputField["label"]] = 0;
+          } else {
+            int dropdownValueIndex =
+                inputField["values"].indexOf(inputField["selectedValue"]);
+            var dropdownScore =
+                inputField["valueMap"][group][dropdownValueIndex];
+            _radarChartDataFull[group][inputField["label"]] = dropdownScore;
+          }
         }
       }
     }
@@ -659,7 +663,7 @@ class _NameFormState extends State<NameForm> {
           }
 
           // iterate over nested dropdowns
-          double scoreSum = 0;
+          // double scoreSum = 0;
           List<double> nestedScores = [];
           for (int i = 1; i <= maxDropdownCount; i++) {
             // get stored value from shared prefs, if existent
@@ -672,7 +676,7 @@ class _NameFormState extends State<NameForm> {
             if (dropdownScore != null) {
               nestedScores.add(dropdownScore);
               // sum up values
-              scoreSum += dropdownScore;
+              // scoreSum += dropdownScore;
             }
           }
 
@@ -713,33 +717,208 @@ class _NameFormState extends State<NameForm> {
       }
     }
 
-    double rohstoffeSum =
-        _radarChartDataListsReduced["Rohstoffe"].values.reduce((v, e) => v + e);
+    // rohstoffe - min 1, max 5, sum of values
+    double rohstoffeSum = getGroupSum("Rohstoffe");
     rohstoffeSum = max(min(rohstoffeSum, 5), 1);
 
-    var ertragsData = _radarChartDataListsReduced["Ertragssteigerung"];
-    double ertragssteigerungSum = ertragsData["Nachbarflächen"] > 0
-        ? 1
-        : ertragsData.values.reduce((v, e) => v + e) / ertragsData.length;
+    // ertragssteigerung - if nachbarflächen > 0 = 1, else rounded mean
+    double ertragNachbarValue = getItem("Ertragssteigerung", "Nachbarflächen");
+    double ertragssteigerungSum = ertragNachbarValue > 0 ? getFixedGroupAverage("Ertragssteigerung", 4) : 1;
+
+    // klimaschutz
+    double klimaschutzSum = getGroupAverage("Klimaschutz");
+
+    // wasserschutz
+    List<double> wasserschutzHangValues = getList("Wasserschutz", ["Position zum Hang", "Hangneigung"]);
+    double wasserschutzHangSum = wasserschutzHangValues.reduce(min);
+    List<double> wasserschutzFlaecheValues = getList("Wasserschutz", ["Heckendichte", "Breite"]);
+    double wasserschutzFlaecheSum = wasserschutzFlaecheValues.reduce(max);
+    List<double> wasserschutzSumValues = getList("Wasserschutz", ["horizontale Schichtung", "Saumbreite", "nutzbare Feldkapazität"]);
+    wasserschutzSumValues.addAll([wasserschutzHangSum, wasserschutzFlaecheSum]);
+    double wasserschutzSum = getFixedAverage(wasserschutzSumValues, 4);
+
+    // bodenschutz
+    List<double> bodenschutzHangValues = getList("Bodenschutz", ["Position zum Hang", "Hangneigung"]);
+    double bodenschutzHangSum = bodenschutzHangValues.reduce(min);
+    List<double> bodenschutzLageValues = getList("Bodenschutz", ["Ausrichtung Himmelsrichtung", "Heckendichte", "klimatische Wasserbilanz"]);
+    bodenschutzLageValues.add(bodenschutzHangSum);
+    double bodenschutzLageSum = bodenschutzLageValues.reduce(max);
+    List<double> bodenschutzSumValues = getList("Bodenschutz", ["Lücken","Höhe","Breite"]);
+    bodenschutzSumValues.add(bodenschutzLageSum);
+    double bodenschutzSum = getAverage(bodenschutzSumValues);
+
+    // nähr- & schadstoffkreisläufe
+    List<double> naehrstoffHangValues = getList("Nähr- & Schadstoffkreisläufe", ["Position zum Hang", "Hangneigung"]);
+    double naehrstoffHangSum = naehrstoffHangValues.reduce(min);
+    List<double> naehrstoffSumValues = getList("Nähr- & Schadstoffkreisläufe", ["nutzbare Feldkapazität","Totholz","Breite","Sonderform","Nachbarflächen"]);
+    naehrstoffSumValues.add(naehrstoffHangSum);
+    double naehrstoffSum = getFixedAverage(naehrstoffSumValues, 5);
+
+    // bestäubung
+    List<double> bestaeubungStrukturValues = getList("Bestäubung", ["Totholz", "Alterszusammensetzung", "Sonderform"]);
+    bestaeubungStrukturValues.add(getProduct("Bestäubung", ["Saumart", "Saumbreite"]));
+    double bestaebungStrukturSum = getFixedAverage(bestaeubungStrukturValues, 4, round: false);
+    List<double> bestaeubungLageValues = getList("Bestäubung", ["Nachbarflächen", "Netzwerk", "Heckendichte"]);
+    double bestaeubungLageSum = getSum(bestaeubungLageValues) / 2;
+    List<double> bestaeubungPflanzenValues = getList("Bestäubung", ["Anzahl Gehölzarten", "Dominanzen", "Neophyten"]);
+    double bestaeubungPflanzenSum = getAverage(bestaeubungPflanzenValues);
+    List<double> bestaeubungNutzungValues = getList("Bestäubung", ["Nutzungsspuren", "Management"]);
+    double bestaeubungNutzungSum = getSum(bestaeubungNutzungValues);
+    double bestaeubungSum = getSum([bestaebungStrukturSum, bestaeubungLageSum, bestaeubungPflanzenSum, bestaeubungNutzungSum]);
+    bestaeubungSum = bestaeubungSum / 3;
+    bestaeubungSum = bestaeubungSum.roundToDouble();
+
+    // schädlungs- & krankheitskontrolle
+    List<double> schaedlingStrukturValues = getList("Schädlings- & Krankheitskontrolle", ["horizontale Schichtung", "Strukturvielfalt", "Sonderform", "Lücken"]);
+    schaedlingStrukturValues.add(getProduct("Schädlings- & Krankheitskontrolle", ["Saumart", "Saumbreite"]));
+    double schaedlingStrukturSum = getSum(schaedlingStrukturValues) / 3;
+    schaedlingStrukturSum = min(5, schaedlingStrukturSum);
+    List<double> schaedlingLageValues = getList("Schädlings- & Krankheitskontrolle", ["Ausrichtung Himmelsrichtung"]);
+    schaedlingLageValues.add(getItem("Schädlings- & Krankheitskontrolle", "Heckendichte", multiplicator: 2));
+    double schaedlingLageSum = getSum(schaedlingLageValues) / 3;
+    schaedlingLageSum = min(5, schaedlingLageSum);
+    List<double> schaedlingPflanzenValues = getList("Schädlings- & Krankheitskontrolle", ["Baumanteil", "Neophyten"]);
+    schaedlingPflanzenValues.add(getItem("Schädlings- & Krankheitskontrolle", "Anzahl Gehölzarten", multiplicator: 2));
+    double schaedlingPflanzenSum = getSum(schaedlingPflanzenValues) / 3;
+    schaedlingPflanzenSum = min(5, schaedlingPflanzenSum);
+    double schaedlingSum = getAverage([schaedlingStrukturSum, schaedlingStrukturSum, schaedlingLageSum, schaedlingPflanzenSum]);
+
+    // Nahrungsquelle
+    double nahrungsquelleStrukturSum = getProduct("Nahrungsquelle", ["Saumart", "Saumbreite"]);
+    nahrungsquelleStrukturSum += getItem("Nahrungsquelle", "Totholz");
+    nahrungsquelleStrukturSum = nahrungsquelleStrukturSum / 2;
+    double nahrungsquellePflanzenSum = getAverage(getList("Nahrungsquelle", ["Neophyten", "Dominanzen", "Anzahl Gehölzarten"]), round: false);
+    double nahrungsquelleSum = getAverage([nahrungsquelleStrukturSum, nahrungsquellePflanzenSum, nahrungsquellePflanzenSum]);
+
+    // Korridor
+    double korridorStrukturSum = getAverage(getList("Korridor", ["Lücken", "Höhe", "Breite"]), round: false);
+    double korridorLageSum = getSum(getList("Korridor", ["Heckendichte","in Wildtierkorridor","Netzwerk"])) / 2;
+    double korridorSum = getAverage([korridorStrukturSum, korridorLageSum, korridorLageSum]);
+
+    // Fortpflanzungs- und Ruhestätte
+    List<double> fortpflanzungsStukturValues = getList("Fortpflanzungs- & Ruhestätte", ["Sonderform","Alterszusammensetzung","Totholz","Strukturvielfalt","vertikale Schichtung","horizontale Schichtung", "Höhe", "Breite"]);
+    fortpflanzungsStukturValues.add(getProduct("Fortpflanzungs- & Ruhestätte", ["Saumart", "Saumbreite"]));
+    double fortpflanzungsStrukturSum = getSum(fortpflanzungsStukturValues) / 6;
+    double fortpflanzungsLageSum = getSum(getList("Fortpflanzungs- & Ruhestätte", ["Heckendichte", "Nachbarflächen"]));
+    double fortpflanzungsPflanzenSum = getAverage(getList("Fortpflanzungs- & Ruhestätte", ["Anzahl Gehölzarten", "Dominanzen"]), round: false);
+    double fortpflanzungsSum = getAverage([fortpflanzungsStrukturSum, fortpflanzungsStrukturSum, fortpflanzungsLageSum, fortpflanzungsPflanzenSum]);
+
+    // Erholung
+    double erholungLandschaftSum = getSum(getList("Erholung & Tourismus", ["Schutzgebiet","Heckendichte","Alterszusammensetzung","Anzahl Gehölzarten"]));
+    erholungLandschaftSum += getProduct("Erholung & Tourismus", ["Saumart", "Saumbreite"]);
+    erholungLandschaftSum = erholungLandschaftSum / 4;
+    double erholungMenschlichSum = getSum(getList("Erholung & Tourismus", ["Bevölkerungsdichte","Erschließung","Zusatzstrukturen"]));
+    erholungMenschlichSum = min(erholungMenschlichSum / 2, 5);
+    double erholungErschliessungVal = getItem("Erholung & Tourismus", "Erschließung");
+    double erholungSum = erholungErschliessungVal == 1 ? 1 : getAverage([erholungMenschlichSum, erholungLandschaftSum]);
+
+    // Kulturerbe
+    double kulturerbeSum = getSum(getList("Kulturerbe", ["Naturdenkmal", "traditionelle Heckenregion", "Franziszeischer Kataster", "Netzwerk", "Neophyten", "Zusatzstrukturen", "Sonderform"]));
+    kulturerbeSum += getItem("Kulturerbe", "Franziszeischer Kataster");
+    kulturerbeSum = kulturerbeSum / 5;
+    kulturerbeSum = min(kulturerbeSum, 5).roundToDouble();
 
     _radarChartData = {
       'Rohstoffe': rohstoffeSum,
       'Ertragssteigerung': ertragssteigerungSum,
-      'Klimaschutz': 0,
-      'Wasserschutz': 0,
-      'Bodenschutz': 0,
-      'Nähr- & Schadstoffkreisläufe': 0,
-      'Bestäubung': 0,
-      'Schädlings- & Krankheitskontrolle': 0,
-      'Nahrungsquelle': 0,
-      'Korridor': 0,
-      'Fortpflanzungs- & Ruhestätte': 0,
-      'Erholung & Tourismus': 0,
-      'Kulturerbe': 0,
+      'Klimaschutz': klimaschutzSum,
+      'Wasserschutz': wasserschutzSum,
+      'Bodenschutz': bodenschutzSum,
+      'Nähr- & Schadstoffkreisläufe': naehrstoffSum,
+      'Bestäubung': bestaeubungSum,
+      'Schädlings- & Krankheitskontrolle': schaedlingSum,
+      'Nahrungsquelle': nahrungsquelleSum,
+      'Korridor': korridorSum,
+      'Fortpflanzungs- & Ruhestätte': fortpflanzungsSum,
+      'Erholung & Tourismus': erholungSum,
+      'Kulturerbe': kulturerbeSum,
     };
+
+    print('k');
 
     // idk if i need this
     setState(() {});
+  }
+
+  /// maps a Map<String, double> to List<double>
+  List<double> mapToListOfDoubles(var map) {
+    List<double> values = [];
+    for (var elem in map.values) {
+      values.add(elem.toDouble());
+    }
+    return values;
+  }
+
+  /// returns sum for a list of doubles
+  double getSum(List<double> values, {bool round = true}) {
+    double sum = values.reduce((v, e) => (v + e));
+    if (!round) {
+      return sum;
+    }
+    return sum.roundToDouble();
+  }
+
+  /// returns sum for all values of a group
+  double getGroupSum(String group) {
+    return getSum(mapToListOfDoubles(_radarChartDataListsReduced[group]));
+  }
+
+  /// returns average for a list of doubles
+  double getAverage(List<double> values, {bool round = true}) {
+    double average = values.reduce((v, e) => (v + e)) / values.length;
+    if (!round) {
+      return average;
+    }
+    return average.roundToDouble();
+  }
+
+  /// returns average for all values of a group
+  double getGroupAverage(String group, {bool round = true}) {
+    return getAverage(mapToListOfDoubles(_radarChartDataListsReduced[group]), round: round);
+  }
+
+  /// returns sum divided by divisor for a list of doubles
+  double getFixedAverage(List<double> values, int divisor, {bool round = true}) {
+    double fixedAverage = values.reduce((v, e) => (v + e)) / divisor;
+    if (!round) {
+      return fixedAverage;
+    }
+    return fixedAverage.roundToDouble();
+  }
+
+  /// returns sum divided by divisor for all values of a group
+  double getFixedGroupAverage(String group, int divisor, {bool round = true}) {
+    return getFixedAverage(mapToListOfDoubles(_radarChartDataListsReduced[group]), divisor, round: round);
+  }
+
+  /// returns a list of doubles from group and parameters
+  List<double> getList(String group, List<String> parameters) {
+    List<double> values = [];
+    for (var entry in _radarChartDataListsReduced[group].entries) {
+      if (parameters.contains(entry.key)) {
+        values.add(entry.value.toDouble());
+      }
+    }
+    return values;
+  }
+
+  /// Returns a single item from the map, allows multiplications
+  double getItem(String group, String parameter, {multiplicator: 1}) {
+    for (var entry in _radarChartDataListsReduced[group].entries) {
+      if (entry.key == parameter) {
+        return entry.value.toDouble() * multiplicator;
+      }
+    }
+    return 0.0;
+  }
+
+  double getProduct(String group, List<String> parameters) {
+    List<double> productValues = getList(group, parameters);
+    if (productValues.isEmpty) {
+      return 0.0;
+    }
+    return productValues.fold(
+        1.0, (previousValue, element) => previousValue * element);
   }
 
   @override
