@@ -65,6 +65,9 @@
 8. create database
 9. check https://firebase.google.com/docs/firestore/quickstart?authuser=0 for how to init
 
+### Build APK
+```flutter build apk```
+
 # Toubleshooting
 ### Could not identify launch activity
 If an error *Could not identify launch activity* or similar appears, make sure to add a `package="com.example.hedge_profiler"` to the `<mainfest>` tag in `android/app/src/main/AndroidManifest.xml`:

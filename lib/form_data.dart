@@ -2,9 +2,68 @@ import 'package:flutter/material.dart';
 
 String? generateValidator(String? value, String label, bool required) {
   if (required && (value == null || value.isEmpty)) {
-    return '$label eingeben!';
+    return 'Enter $label!';
   }
   return null;
+}
+
+/// structure: simple_name : {"EN: "english name readable", "DE": "german name readable"}
+Map<String, Map<String, String>> localeMap = {
+  "hecken_name": {"EN": "Hedge name", "DE": "Heckenname"},
+  "general": {"EN": "General", "DE": "General"},
+  "gutachter": {"EN": "Reviewer", "DE": "Gutachter"},
+  "hecken_laenge": {"EN": "Length [m]", "DE": "Länge [m]"},
+  "himmelsrichtung": {"EN": "Compass direction", "DE": "Ausrichtung Himmelsrichtung"},
+  "schutzgebiet": {"EN": "Protected area", "DE": "Schutzgebiet"},
+  "naturdenkmal": {"EN": "Natural monument", "DE": "Naturdenkmal"},
+  "hecken_dichte": {"EN": "Hedge density", "DE": "Heckendichte"},
+  "klimatische_wasserbilanz": {"EN": "climatic water balance", "DE": "klimatische Wasserbilanz"},
+  "bevoelkerungs_dichte": {"EN": "population density", "DE": "Bevölkerungsdichte"},
+  "in_wildtierkorridor": {"EN": "in wildlife corridor", "DE": "in Wildtierkorridor"},
+  "traditionelle_heckenregion": {"EN": "traditional hedge region", "DE": "traditionelle Heckenregion"},
+  "franziszeischer_kataster": {"EN": "French cadastre", "DE": "Franziszeischer Kataster"},
+  "nutzbare_feldkapazitaet": {"EN": "usable field capacity", "DE": "nutzbare Feldkapazität"},
+  "humusbilanz": {"EN": "Humus balance", "DE": "Humusbilanz"},
+  "hang_position": {"EN": "position to the slope", "DE": "Position zum Hang"},
+  "hang_neigung": {"EN": "Slope gradient", "DE": "Hangneigung"},
+  "netzwerk": {"EN": "Network", "DE": "Netzwerk"},
+  "erschliessung": {"EN": "Access", "DE": "Erschließung"},
+  "horizontale_schichtung": {"EN": "horizontal layering", "DE": "horizontale Schichtung"},
+  "vertikale_schichtung": {"EN": "vertical layering", "DE": "vertikale Schichtung"},
+  "strukturvielfalt": {"EN": "structural diversity", "DE": "Strukturvielfalt"},
+  "luecken": {"EN": "Gaps", "DE": "Lücken"},
+  "totholz": {"EN": "deadwood", "DE": "Totholz"},
+  "alterszusammensetzung": {"EN": "Age composition", "DE": "Alterszusammensetzung"},
+  "saum_art": {"EN": "hem type", "DE": "Saumart"},
+  "saum_breite": {"EN": "Hem width", "DE": "Saumbreite"},
+  "hecken_hoehe": {"EN": "Height", "DE": "Höhe"},
+  "hecken_breite": {"EN": "Width", "DE": "Breite"},
+  "baumanteil": {"EN": "Tree proportion", "DE": "Baumanteil"},
+  "anzahl_gehoelz_arten": {"EN": "Number of wood species", "DE": "Anzahl Gehölzarten"},
+  "dominanzen": {"EN": "Dominances", "DE": "Dominanzen"},
+  "neophyten": {"EN": "Neophytes", "DE": "Neophyten"},
+  "anmerkungen": {"EN": "Notes", "DE": "Anmerkungen"},
+  "nachbarflaechen": {"EN": "Neighboring areas", "DE": "Nachbarflächen"},
+  "nutzungsspuren": {"EN": "Traces of use", "DE": "Nutzungsspuren"},
+  "zusatzstrukturen": {"EN": "Additional structures", "DE": "Zusatzstrukturen"},
+  "management": {"EN": "Management", "DE": "Management"},
+  "sonderform": {"EN": "Special form", "DE": "Sonderform"},
+};
+
+Map<String, String> getLocaleToOriginal(String locale) {
+  Map<String, String> map = {};
+  for (MapEntry<String, Map<String, String>> entry in localeMap.entries) {
+    map[entry.value[locale]!] = entry.key;
+  }
+  return map;
+}
+
+Map<String, String> getOriginalToLocale(String locale) {
+  Map<String, String> map = {};
+  for (MapEntry<String, Map<String, String>> entry in localeMap.entries) {
+    map[entry.key] = entry.value[locale]!;
+  }
+  return map;
 }
 
 /// This function defines the data for static inputs (text, number or dropdown)
