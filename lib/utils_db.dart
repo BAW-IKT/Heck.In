@@ -51,7 +51,7 @@ Future<void> writeDocument(
       String imageName = path.basename(image.path);
       // saves images into folder images/2023-05-07/NAME
       Reference imageRef = FirebaseStorage.instance.ref().child(
-          'images/${timestamp.toString().split(" ")[0]}/${formData["Heckenname"]}/$imageName');
+          'images/${timestamp.toString().split(" ")[0]}/${formData["hecken_name"]}/$imageName');
       await imageRef.putFile(image);
       String downloadUrl = await imageRef.getDownloadURL();
       downloadUrls.add(downloadUrl);

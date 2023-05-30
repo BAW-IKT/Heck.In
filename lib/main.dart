@@ -702,8 +702,8 @@ class _NameFormState extends State<NameForm> {
             scoreSum = scoreSum + singleScore;
           }
 
-          // in case of Nachbarflächen, calculate mean of list values
-          if (scoreKey == "Nachbarflächen") {
+          // in case of nachbar_flaechen, calculate mean of list values
+          if (scoreKey == "nachbar_flaechen") {
             scoreSum = scoreSum / scoreValue.length;
             if (scoreSum.isNaN) {
               scoreSum = 0;
@@ -722,99 +722,99 @@ class _NameFormState extends State<NameForm> {
     rohstoffeSum = max(min(rohstoffeSum, 5), 1);
 
     // ertragssteigerung - if nachbarflächen > 0 = 1, else rounded mean
-    double ertragNachbarValue = getItem("Ertragssteigerung", "Nachbarflächen");
+    double ertragNachbarValue = getItem("Ertragssteigerung", "nachbar_flaechen");
     double ertragssteigerungSum = ertragNachbarValue > 0 ? getFixedGroupAverage("Ertragssteigerung", 4) : 1;
 
     // klimaschutz
     double klimaschutzSum = getGroupAverage("Klimaschutz");
 
     // wasserschutz
-    List<double> wasserschutzHangValues = getList("Wasserschutz", ["Position zum Hang", "Hangneigung"]);
+    List<double> wasserschutzHangValues = getList("Wasserschutz", ["hang_position", "hang_neigung"]);
     double wasserschutzHangSum = wasserschutzHangValues.reduce(min);
-    List<double> wasserschutzFlaecheValues = getList("Wasserschutz", ["Heckendichte", "Breite"]);
+    List<double> wasserschutzFlaecheValues = getList("Wasserschutz", ["hecken_dichte", "hecken_breite"]);
     double wasserschutzFlaecheSum = wasserschutzFlaecheValues.reduce(max);
-    List<double> wasserschutzSumValues = getList("Wasserschutz", ["horizontale Schichtung", "Saumbreite", "nutzbare Feldkapazität"]);
+    List<double> wasserschutzSumValues = getList("Wasserschutz", ["horizontale_schichtung", "saum_breite", "nutzbare_feldkapazitaet"]);
     wasserschutzSumValues.addAll([wasserschutzHangSum, wasserschutzFlaecheSum]);
     double wasserschutzSum = getFixedAverage(wasserschutzSumValues, 4);
 
     // bodenschutz
-    List<double> bodenschutzHangValues = getList("Bodenschutz", ["Position zum Hang", "Hangneigung"]);
+    List<double> bodenschutzHangValues = getList("Bodenschutz", ["hang_position", "hang_neigung"]);
     double bodenschutzHangSum = bodenschutzHangValues.reduce(min);
-    List<double> bodenschutzLageValues = getList("Bodenschutz", ["Ausrichtung Himmelsrichtung", "Heckendichte", "klimatische Wasserbilanz"]);
+    List<double> bodenschutzLageValues = getList("Bodenschutz", ["himmelsrichtung", "hecken_dichte", "klimatische_wasserbilanz"]);
     bodenschutzLageValues.add(bodenschutzHangSum);
     double bodenschutzLageSum = bodenschutzLageValues.reduce(max);
-    List<double> bodenschutzSumValues = getList("Bodenschutz", ["Lücken","Höhe","Breite"]);
+    List<double> bodenschutzSumValues = getList("Bodenschutz", ["luecken","hecken_hoehe","hecken_breite"]);
     bodenschutzSumValues.add(bodenschutzLageSum);
     double bodenschutzSum = getAverage(bodenschutzSumValues);
 
     // nähr- & schadstoffkreisläufe
-    List<double> naehrstoffHangValues = getList("Nähr- & Schadstoffkreisläufe", ["Position zum Hang", "Hangneigung"]);
+    List<double> naehrstoffHangValues = getList("Nähr- & Schadstoffkreisläufe", ["hang_position", "hang_neigung"]);
     double naehrstoffHangSum = naehrstoffHangValues.reduce(min);
-    List<double> naehrstoffSumValues = getList("Nähr- & Schadstoffkreisläufe", ["nutzbare Feldkapazität","Totholz","Breite","Sonderform","Nachbarflächen"]);
+    List<double> naehrstoffSumValues = getList("Nähr- & Schadstoffkreisläufe", ["nutzbare_feldkapazitaet","totholz","hecken_breite","sonder_form","nachbar_flaechen"]);
     naehrstoffSumValues.add(naehrstoffHangSum);
     double naehrstoffSum = getFixedAverage(naehrstoffSumValues, 5);
 
     // bestäubung
-    List<double> bestaeubungStrukturValues = getList("Bestäubung", ["Totholz", "Alterszusammensetzung", "Sonderform"]);
-    bestaeubungStrukturValues.add(getProduct("Bestäubung", ["Saumart", "Saumbreite"]));
+    List<double> bestaeubungStrukturValues = getList("Bestäubung", ["totholz", "alterszusammensetzung", "sonder_form"]);
+    bestaeubungStrukturValues.add(getProduct("Bestäubung", ["saum_art", "saum_breite"]));
     double bestaebungStrukturSum = getFixedAverage(bestaeubungStrukturValues, 4, round: false);
-    List<double> bestaeubungLageValues = getList("Bestäubung", ["Nachbarflächen", "Netzwerk", "Heckendichte"]);
+    List<double> bestaeubungLageValues = getList("Bestäubung", ["nachbar_flaechen", "netzwerk", "hecken_dichte"]);
     double bestaeubungLageSum = getSum(bestaeubungLageValues) / 2;
-    List<double> bestaeubungPflanzenValues = getList("Bestäubung", ["Anzahl Gehölzarten", "Dominanzen", "Neophyten"]);
+    List<double> bestaeubungPflanzenValues = getList("Bestäubung", ["anzahl_gehoelz_arten", "dominanzen", "neophyten"]);
     double bestaeubungPflanzenSum = getAverage(bestaeubungPflanzenValues);
-    List<double> bestaeubungNutzungValues = getList("Bestäubung", ["Nutzungsspuren", "Management"]);
+    List<double> bestaeubungNutzungValues = getList("Bestäubung", ["nutzungs_spuren", "management"]);
     double bestaeubungNutzungSum = getSum(bestaeubungNutzungValues);
     double bestaeubungSum = getSum([bestaebungStrukturSum, bestaeubungLageSum, bestaeubungPflanzenSum, bestaeubungNutzungSum]);
     bestaeubungSum = bestaeubungSum / 3;
     bestaeubungSum = bestaeubungSum.roundToDouble();
 
     // schädlungs- & krankheitskontrolle
-    List<double> schaedlingStrukturValues = getList("Schädlings- & Krankheitskontrolle", ["horizontale Schichtung", "Strukturvielfalt", "Sonderform", "Lücken"]);
-    schaedlingStrukturValues.add(getProduct("Schädlings- & Krankheitskontrolle", ["Saumart", "Saumbreite"]));
+    List<double> schaedlingStrukturValues = getList("Schädlings- & Krankheitskontrolle", ["horizontale_schichtung", "strukturvielfalt", "sonder_form", "luecken"]);
+    schaedlingStrukturValues.add(getProduct("Schädlings- & Krankheitskontrolle", ["saum_art", "saum_breite"]));
     double schaedlingStrukturSum = getSum(schaedlingStrukturValues) / 3;
     schaedlingStrukturSum = min(5, schaedlingStrukturSum);
-    List<double> schaedlingLageValues = getList("Schädlings- & Krankheitskontrolle", ["Ausrichtung Himmelsrichtung"]);
-    schaedlingLageValues.add(getItem("Schädlings- & Krankheitskontrolle", "Heckendichte", multiplicator: 2));
+    List<double> schaedlingLageValues = getList("Schädlings- & Krankheitskontrolle", ["himmelsrichtung"]);
+    schaedlingLageValues.add(getItem("Schädlings- & Krankheitskontrolle", "hecken_dichte", multiplicator: 2));
     double schaedlingLageSum = getSum(schaedlingLageValues) / 3;
     schaedlingLageSum = min(5, schaedlingLageSum);
-    List<double> schaedlingPflanzenValues = getList("Schädlings- & Krankheitskontrolle", ["Baumanteil", "Neophyten"]);
-    schaedlingPflanzenValues.add(getItem("Schädlings- & Krankheitskontrolle", "Anzahl Gehölzarten", multiplicator: 2));
+    List<double> schaedlingPflanzenValues = getList("Schädlings- & Krankheitskontrolle", ["baumanteil", "neophyten"]);
+    schaedlingPflanzenValues.add(getItem("Schädlings- & Krankheitskontrolle", "anzahl_gehoelz_arten", multiplicator: 2));
     double schaedlingPflanzenSum = getSum(schaedlingPflanzenValues) / 3;
     schaedlingPflanzenSum = min(5, schaedlingPflanzenSum);
     double schaedlingSum = getAverage([schaedlingStrukturSum, schaedlingStrukturSum, schaedlingLageSum, schaedlingPflanzenSum]);
 
     // Nahrungsquelle
-    double nahrungsquelleStrukturSum = getProduct("Nahrungsquelle", ["Saumart", "Saumbreite"]);
-    nahrungsquelleStrukturSum += getItem("Nahrungsquelle", "Totholz");
+    double nahrungsquelleStrukturSum = getProduct("Nahrungsquelle", ["saum_art", "saum_breite"]);
+    nahrungsquelleStrukturSum += getItem("Nahrungsquelle", "totholz");
     nahrungsquelleStrukturSum = nahrungsquelleStrukturSum / 2;
-    double nahrungsquellePflanzenSum = getAverage(getList("Nahrungsquelle", ["Neophyten", "Dominanzen", "Anzahl Gehölzarten"]), round: false);
+    double nahrungsquellePflanzenSum = getAverage(getList("Nahrungsquelle", ["neophyten", "dominanzen", "anzahl_gehoelz_arten"]), round: false);
     double nahrungsquelleSum = getAverage([nahrungsquelleStrukturSum, nahrungsquellePflanzenSum, nahrungsquellePflanzenSum]);
 
     // Korridor
-    double korridorStrukturSum = getAverage(getList("Korridor", ["Lücken", "Höhe", "Breite"]), round: false);
-    double korridorLageSum = getSum(getList("Korridor", ["Heckendichte","in Wildtierkorridor","Netzwerk"])) / 2;
+    double korridorStrukturSum = getAverage(getList("Korridor", ["luecken", "hecken_hoehe", "hecken_breite"]), round: false);
+    double korridorLageSum = getSum(getList("Korridor", ["hecken_dichte","in_wildtierkorridor","netzwerk"])) / 2;
     double korridorSum = getAverage([korridorStrukturSum, korridorLageSum, korridorLageSum]);
 
     // Fortpflanzungs- und Ruhestätte
-    List<double> fortpflanzungsStukturValues = getList("Fortpflanzungs- & Ruhestätte", ["Sonderform","Alterszusammensetzung","Totholz","Strukturvielfalt","vertikale Schichtung","horizontale Schichtung", "Höhe", "Breite"]);
-    fortpflanzungsStukturValues.add(getProduct("Fortpflanzungs- & Ruhestätte", ["Saumart", "Saumbreite"]));
+    List<double> fortpflanzungsStukturValues = getList("Fortpflanzungs- & Ruhestätte", ["sonder_form","alterszusammensetzung","totholz","strukturvielfalt","vertikale_schichtung","horizontale_schichtung", "hecken_hoehe", "hecken_breite"]);
+    fortpflanzungsStukturValues.add(getProduct("Fortpflanzungs- & Ruhestätte", ["saum_art", "saum_breite"]));
     double fortpflanzungsStrukturSum = getSum(fortpflanzungsStukturValues) / 6;
-    double fortpflanzungsLageSum = getSum(getList("Fortpflanzungs- & Ruhestätte", ["Heckendichte", "Nachbarflächen"]));
-    double fortpflanzungsPflanzenSum = getAverage(getList("Fortpflanzungs- & Ruhestätte", ["Anzahl Gehölzarten", "Dominanzen"]), round: false);
+    double fortpflanzungsLageSum = getSum(getList("Fortpflanzungs- & Ruhestätte", ["hecken_dichte", "nachbar_flaechen"]));
+    double fortpflanzungsPflanzenSum = getAverage(getList("Fortpflanzungs- & Ruhestätte", ["anzahl_gehoelz_arten", "dominanzen"]), round: false);
     double fortpflanzungsSum = getAverage([fortpflanzungsStrukturSum, fortpflanzungsStrukturSum, fortpflanzungsLageSum, fortpflanzungsPflanzenSum]);
 
     // Erholung
-    double erholungLandschaftSum = getSum(getList("Erholung & Tourismus", ["Schutzgebiet","Heckendichte","Alterszusammensetzung","Anzahl Gehölzarten"]));
-    erholungLandschaftSum += getProduct("Erholung & Tourismus", ["Saumart", "Saumbreite"]);
+    double erholungLandschaftSum = getSum(getList("Erholung & Tourismus", ["schutzgebiet","hecken_dichte","alterszusammensetzung","anzahl_gehoelz_arten"]));
+    erholungLandschaftSum += getProduct("Erholung & Tourismus", ["saum_art", "saum_breite"]);
     erholungLandschaftSum = erholungLandschaftSum / 4;
-    double erholungMenschlichSum = getSum(getList("Erholung & Tourismus", ["Bevölkerungsdichte","Erschließung","Zusatzstrukturen"]));
+    double erholungMenschlichSum = getSum(getList("Erholung & Tourismus", ["bevoelkerungs_dichte","erschliessung","zusatz_strukturen"]));
     erholungMenschlichSum = min(erholungMenschlichSum / 2, 5);
-    double erholungErschliessungVal = getItem("Erholung & Tourismus", "Erschließung");
+    double erholungErschliessungVal = getItem("Erholung & Tourismus", "erschliessung");
     double erholungSum = erholungErschliessungVal == 1 ? 1 : getAverage([erholungMenschlichSum, erholungLandschaftSum]);
 
     // Kulturerbe
-    double kulturerbeSum = getSum(getList("Kulturerbe", ["Naturdenkmal", "traditionelle Heckenregion", "Franziszeischer Kataster", "Netzwerk", "Neophyten", "Zusatzstrukturen", "Sonderform"]));
-    kulturerbeSum += getItem("Kulturerbe", "Franziszeischer Kataster");
+    double kulturerbeSum = getSum(getList("Kulturerbe", ["naturdenkmal", "traditionelle_heckenregion", "franziszeischer_kataster", "netzwerk", "neophyten", "zusatz_strukturen", "sonder_form"]));
+    kulturerbeSum += getItem("Kulturerbe", "franziszeischer_kataster");
     kulturerbeSum = kulturerbeSum / 5;
     kulturerbeSum = min(kulturerbeSum, 5).roundToDouble();
 
