@@ -208,9 +208,9 @@ Expanded _createDropdownInput(var field, String currentLocale,
         items: dropdownItems,
         onChanged: (value) async {
           onChanged(field["label"], value.toString());
-          setState(() {
-            field['selectedValue'] = value;
-          });
+          // setState(() {
+          //   field['selectedValue'] = value;
+          // });
 
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString(field['label'], value.toString());

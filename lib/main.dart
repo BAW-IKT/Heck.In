@@ -177,7 +177,7 @@ Page resource error:
   @override
   Widget build(BuildContext context) {
     /// loads a page
-    void _loadPage(BuildContext context, String url) async {
+    void loadPage(BuildContext context, String url) async {
       // prevent loading of page if page was already loaded before
       String stem = RegExp("http.*(com|at)").firstMatch(url)?.group(0) ?? '';
       if (_currentUrlStem != stem && stem != '') {
@@ -217,8 +217,9 @@ Page resource error:
     if (_isLoading) {
       return const Scaffold(
           body: Center(
-        child: CircularProgressIndicator(),
-      ));
+            child: CircularProgressIndicator(),
+          ),
+      );
     } else {
       return Scaffold(
         appBar: AppBar(
@@ -236,7 +237,6 @@ Page resource error:
                         color: Color.fromRGBO(0, 96, 205, 1),
                       ),
                       child: Column(
-                        // mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Row(children: [
@@ -332,7 +332,7 @@ Page resource error:
                         setState(() {
                           _showNameForm = false;
                         });
-                        _loadPage(context, 'https://maps.arcanum.com/');
+                        loadPage(context, 'https://maps.arcanum.com/');
                         Navigator.pop(context);
                       },
                     ),
@@ -344,7 +344,7 @@ Page resource error:
                         setState(() {
                           _showNameForm = false;
                         });
-                        _loadPage(context, 'https://bodenkarte.at/');
+                        loadPage(context, 'https://bodenkarte.at/');
                         Navigator.pop(context);
                       },
                     ),
@@ -407,13 +407,18 @@ class NameFormState extends State<NameForm> {
   bool _isSaving = false;
   List<Map<String, dynamic>> inputFields = [];
   List<Map<String, dynamic>> dynamicFields = [];
-  List<Map<String, dynamic>> sections = [];
+  List<Map<String, dynamic>> sections = getSections();
   List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
   Map<String, double> _radarChartData =
       {}; // after weighting etc. to display in graph
   Map<String, dynamic> _radarChartDataListsReduced =
       {}; // after reading raw scores and calculating means/sums
   Map<String, dynamic> _radarChartDataFull = {};
+
+  int _selectedIndex = 0;
+  int _selectedIndexCheck = 0;
+  bool _triggeredByMenu = false;
+  Map<String, bool> menuStatus = {};
 
   final Map<String, String> _radarDataToGroup = {
     'Rohstoffe': 'Bereitstellend',
@@ -459,8 +464,6 @@ class NameFormState extends State<NameForm> {
 
   Future<void> initializeForm() async {
     await refreshCurrentLocale();
-
-    sections = getSections();
     inputFields = createFormFields();
     dynamicFields = createDynamicFormFields();
 
@@ -473,6 +476,10 @@ class NameFormState extends State<NameForm> {
 
     menuItems =
         sections.map((s) => s["label$currentLocale"].toString()).toList();
+
+    for (var menu in sections) {
+      menuStatus[menu["label"]] = false;
+    }
 
     _populateStaticInputFields();
     _checkPermissions();
@@ -512,6 +519,7 @@ class NameFormState extends State<NameForm> {
 
   /// action triggered by static widgets onChanged events
   void onStaticWidgetChanged(String widgetLabel, String widgetValue) async {
+    // inputFields[widgetLabel]["selectedValue"] = widgetValue;
     print("$widgetLabel $widgetValue");
   }
 
@@ -1126,6 +1134,9 @@ class NameFormState extends State<NameForm> {
   Future<String> refreshCurrentLocale() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? locale = prefs.getString("locale");
+    localeMap.initialize(inputFields, dynamicFields, sections);
+    localeToOriginal = localeMap.getLocaleToOriginal(currentLocale);
+    originalToLocale = localeMap.getOriginalToLocale(currentLocale);
     return locale ?? "EN";
   }
 
@@ -1137,6 +1148,12 @@ class NameFormState extends State<NameForm> {
 
   @override
   Widget build(BuildContext context) {
+    if (_selectedIndex != _selectedIndexCheck || _triggeredByMenu) {
+      _selectedIndexCheck = _selectedIndex;
+      _triggeredByMenu = false;
+      return _buildReducedForm();
+    }
+
     return FutureBuilder<String>(
       future: refreshCurrentLocale(),
       builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
@@ -1145,12 +1162,99 @@ class NameFormState extends State<NameForm> {
           case ConnectionState.active:
           case ConnectionState.waiting:
             return const Center(child: CircularProgressIndicator());
+            print('loading');
           default:
             currentLocale = snapshot.data.toString();
-            return _buildForm();
+            return _buildReducedForm();
         }
       },
     );
+  }
+
+  Widget _buildReducedForm() {
+    // Determine amount of columns based on screen width and orientation
+    final mediaQueryData = MediaQuery.of(context);
+    final columns = determineRequiredColumns(mediaQueryData);
+    final dynamicColumns =
+        determineRequiredColumnsDynamicDropdowns(mediaQueryData);
+
+return Scaffold(
+  body: Material(
+    child: Form(
+      key: widget.formKey,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IndexedStack(
+                  index: _selectedIndex,
+                  children: [
+                    buildMenuPage("general", columns, dynamicColumns),
+                    buildMenuPage("gis", columns, dynamicColumns),
+                    buildMenuPage("gelaende", columns, dynamicColumns),
+                    buildMenuPage("anmerkungen", columns, dynamicColumns),
+                    buildMenuPage("images", columns, dynamicColumns),
+                  ],
+                ),
+                // Text("something: $_selectedIndex $currentLocale"),
+              ],
+            ),
+          ),
+            const VerticalDivider(thickness: 1, width: 1),
+            NavigationRail(
+              selectedIndex: _selectedIndex,
+              groupAlignment: -1.0,
+              onDestinationSelected: (int index) {
+                _triggeredByMenu = true;
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              labelType: NavigationRailLabelType.selected,
+              destinations: [
+                NavigationRailDestination(
+                    icon: Icon(Icons.favorite_border,
+                        color: menuStatus["general"] == true
+                            ? Colors.green
+                            : Colors.orange),
+                    selectedIcon: Icon(Icons.favorite,
+                        color: menuStatus["general"] == true
+                            ? Colors.green
+                            : Colors.orange),
+                    label: Text("general")),
+                NavigationRailDestination(
+                    icon: Icon(Icons.favorite_border),
+                    selectedIcon: Icon(Icons.favorite),
+                    label: Text("Second")),
+                NavigationRailDestination(
+                    icon: Icon(Icons.favorite_border),
+                    selectedIcon: Icon(Icons.favorite),
+                    label: Text("Third")),
+              ],
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget buildMenuPage(String section, var columns, var dynamicColumns) {
+    return Column(children: [
+      createHeader(originalToLocale[section]!),
+      buildFormFieldGrid(
+          inputFields, section, setState, currentLocale,
+          onWidgetChanged: onStaticWidgetChanged, columns: columns),
+      buildDynamicFormFieldGrid(
+        children: dynamicFields,
+        section: section,
+        dropdownKeys: _dropdownsKeys,
+        onDropdownChanged: onDynamicDropdownsChanged,
+        currentLocale: currentLocale,
+        columns: dynamicColumns,
+      ),
+    ]);
   }
 
   Widget _buildForm() {
