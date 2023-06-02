@@ -56,18 +56,18 @@ Future<String> updateLocation() async {
     _checkLocationPermissions();
 
     // set last position as fallback
-    _setLastPosWithFallback(prefs);
+    setLastPosWithFallback(prefs);
 
     // set current position
     _setCurrentPos(prefs);
   } catch (e) {
-    _setLastPosWithFallback(prefs);
+    setLastPosWithFallback(prefs);
     return e.toString();
   }
   return '';
 }
 
-void _setLastPosWithFallback(SharedPreferences prefs) async {
+void setLastPosWithFallback(SharedPreferences prefs) async {
   Position? lastPos =
       await Geolocator.getLastKnownPosition(forceAndroidLocationManager: true);
   if (lastPos != null) {
@@ -81,6 +81,11 @@ void _setLastPosWithFallback(SharedPreferences prefs) async {
     prefs.setString("geoLastChange", "n/a");
   }
 }
+
+// void getLastPosWithFallback() async {
+//   SharedPreferences prefs = await SharedPreferences.getInstance();
+//   _setLastPosWithFallback(prefs);
+// }
 
 void _setCurrentPos(SharedPreferences prefs) async {
   Position currPos = await Geolocator.getCurrentPosition(

@@ -64,17 +64,40 @@ class WebViewPage extends StatefulWidget {
 class _WebViewPageState extends State<WebViewPage> {
   var loadingPercentage = 0;
   late final WebViewController _controller;
+
   bool _showNameForm = true;
-  final NameForm _nameForm = const NameForm();
+  final GlobalKey<NameFormState> _nameFormKey = GlobalKey<NameFormState>();
+
   String _currentUrlStem = '';
   String _geoLastChange = 'never updated';
   String _geoLastKnown = 'no location available';
   String _geoOrDatabaseWarning = 'not initialized';
+  String systemLocale = Platform.localeName.startsWith("de") ? "DE" : "EN";
+  String currentLocale = "EN";
   bool _darkMode = true;
 
   /// refreshes geo coordinates and updates variables for menu accordingly
-  _updateLocationWrapper() async {
+  _updateLocationAndLocales() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // initially set locale
+    if (!prefs.containsKey("locale")) {
+      prefs.setString("locale", systemLocale);
+    }
+
+    // load last stored locale
+    currentLocale = prefs.getString("locale")!;
+
+    // set to last known pos
+    geo.setLastPosWithFallback(prefs);
+    setState(() {
+      _geoLastChange = prefs.getString("geoLastChange")?.split(".")[0] ?? 'n/a';
+      String lat = prefs.getString("latitude") ?? "n/a";
+      String lon = prefs.getString("longitude") ?? "n/a";
+      _geoLastKnown = "lat: $lat\nlon: $lon";
+    });
+
+    // wait for refresh of coords
     String? warning = await geo.updateLocation();
     setState(() {
       _geoOrDatabaseWarning = warning;
@@ -100,7 +123,7 @@ class _WebViewPageState extends State<WebViewPage> {
   void initState() {
     super.initState();
 
-    _updateLocationWrapper();
+    _updateLocationAndLocales();
     _initDatabase();
 
     final WebViewController controller = WebViewController()
@@ -161,7 +184,7 @@ Page resource error:
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
-                children: <Widget>[
+                children: [
                   DrawerHeader(
                     decoration: const BoxDecoration(
                       color: Color.fromRGBO(0, 96, 205, 1),
@@ -177,8 +200,24 @@ Page resource error:
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                           IconButton(
-                            onPressed: _updateLocationWrapper,
-                            icon: const Icon(Icons.refresh),
+                            icon: const Icon(Icons.work_history_outlined),
+                            // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
+                            onPressed: () async {
+                              // toggle and update locale
+                              SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              if (prefs.getString("locale") == "EN") {
+                                prefs.setString("locale", "DE");
+                                currentLocale = "DE";
+                              } else {
+                                prefs.setString("locale", "EN");
+                                currentLocale = "EN";
+                              }
+
+                              // rebuild form
+                              setState(() {});
+                              // _nameFormKey.currentState?.rebuildForm();
+                            },
                           ),
                           IconButton(
                             icon: _darkMode
@@ -199,9 +238,20 @@ Page resource error:
                             },
                           )
                         ]),
-                        const Text('Last known location',
-                            style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.bold)),
+                        Row(
+                          children: [
+                            const Text('Last known location',
+                                style: TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.bold)),
+                            IconButton(
+                              onPressed: _updateLocationAndLocales,
+                              icon: const Icon(
+                                Icons.refresh,
+                                size: 20,
+                              ),
+                            ),
+                          ],
+                        ),
                         Text(_geoLastKnown,
                             style: const TextStyle(
                                 fontSize: 10, fontStyle: FontStyle.italic)),
@@ -277,7 +327,7 @@ Page resource error:
               child: Container(
                 color: Colors.black.withOpacity(0.5),
                 child: Center(
-                  child: _nameForm,
+                  child: NameForm(formKey: _nameFormKey),
                 ),
               ),
             ),
@@ -295,7 +345,7 @@ Page resource error:
 
       // update geo info
       // _updateLocation();
-      _updateLocationWrapper();
+      _updateLocationAndLocales();
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       var latitude = prefs.getString("latitude");
@@ -325,15 +375,19 @@ Page resource error:
 }
 
 class NameForm extends StatefulWidget {
-  const NameForm({Key? key}) : super(key: key);
+  final GlobalKey<NameFormState> formKey;
+
+  const NameForm({Key? key, required this.formKey}) : super(key: key);
 
   @override
-  State<NameForm> createState() => _NameFormState();
+  State<NameForm> createState() => NameFormState();
 }
 
 /// form page
-class _NameFormState extends State<NameForm> {
-  final _formKey = GlobalKey<FormState>();
+class NameFormState extends State<NameForm> {
+  // final _formKey = GlobalKey<FormState>();
+  GlobalKey<NameFormState> get _formKey => widget.formKey;
+
   List<File> _selectedImages = [];
   bool _isSaving = false;
   List<Map<String, dynamic>> inputFields = [];
@@ -367,6 +421,11 @@ class _NameFormState extends State<NameForm> {
     'Kulturell': Colors.orange,
   };
 
+  late String currentLocale;
+  LocaleMap localeMap = LocaleMap();
+  Map<String, String> localeToOriginal = {};
+  Map<String, String> originalToLocale = {};
+
   @override
   void dispose() {
     super.dispose();
@@ -375,14 +434,32 @@ class _NameFormState extends State<NameForm> {
   @override
   void initState() {
     super.initState();
+    initializeForm();
+  }
+
+  Future<void> initializeForm() async {
+    await refreshCurrentLocale();
+
     inputFields = createFormFields();
     dynamicFields = createDynamicFormFields();
+
+    localeMap.initialize(inputFields, dynamicFields);
+    localeToOriginal = localeMap.getLocaleToOriginal(currentLocale);
+    originalToLocale = localeMap.getOriginalToLocale(currentLocale);
+
     _dropdownsKeys = List.generate(
         dynamicFields.length, (_) => GlobalKey<DynamicDropdownsState>());
+
     _populateStaticInputFields();
     _checkPermissions();
     _getLostImageData();
     _loadPersistedImages();
+  }
+
+  void rebuildForm() {
+    setState(() {
+      print('k');
+    });
   }
 
   /// populate input fields on page init;
@@ -404,12 +481,14 @@ class _NameFormState extends State<NameForm> {
   void onDynamicDropdownsChanged(
       String dropdownKey, String dropdownValue) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    String? originalDropdownKey = localeToOriginal[dropdownKey];
     // in case dropdown gets removed, remove key/val from preferences
-    if (dropdownValue == "" && sharedPreferences.get(dropdownKey) != null) {
-      sharedPreferences.remove(dropdownKey);
+    if (dropdownValue == "" &&
+        sharedPreferences.get(originalDropdownKey!) != null) {
+      sharedPreferences.remove(originalDropdownKey);
     } else {
       // otherwise, add/update preferences with dropdown values
-      sharedPreferences.setString(dropdownKey, dropdownValue);
+      sharedPreferences.setString(originalDropdownKey!, dropdownValue);
     }
   }
 
@@ -722,98 +801,194 @@ class _NameFormState extends State<NameForm> {
     rohstoffeSum = max(min(rohstoffeSum, 5), 1);
 
     // ertragssteigerung - if nachbarflächen > 0 = 1, else rounded mean
-    double ertragNachbarValue = getItem("Ertragssteigerung", "nachbar_flaechen");
-    double ertragssteigerungSum = ertragNachbarValue > 0 ? getFixedGroupAverage("Ertragssteigerung", 4) : 1;
+    double ertragNachbarValue =
+        getItem("Ertragssteigerung", "nachbar_flaechen");
+    double ertragssteigerungSum = ertragNachbarValue > 0
+        ? getFixedGroupAverage("Ertragssteigerung", 4)
+        : 1;
 
     // klimaschutz
     double klimaschutzSum = getGroupAverage("Klimaschutz");
 
     // wasserschutz
-    List<double> wasserschutzHangValues = getList("Wasserschutz", ["hang_position", "hang_neigung"]);
+    List<double> wasserschutzHangValues =
+        getList("Wasserschutz", ["hang_position", "hang_neigung"]);
     double wasserschutzHangSum = wasserschutzHangValues.reduce(min);
-    List<double> wasserschutzFlaecheValues = getList("Wasserschutz", ["hecken_dichte", "hecken_breite"]);
+    List<double> wasserschutzFlaecheValues =
+        getList("Wasserschutz", ["hecken_dichte", "hecken_breite"]);
     double wasserschutzFlaecheSum = wasserschutzFlaecheValues.reduce(max);
-    List<double> wasserschutzSumValues = getList("Wasserschutz", ["horizontale_schichtung", "saum_breite", "nutzbare_feldkapazitaet"]);
+    List<double> wasserschutzSumValues = getList("Wasserschutz",
+        ["horizontale_schichtung", "saum_breite", "nutzbare_feldkapazitaet"]);
     wasserschutzSumValues.addAll([wasserschutzHangSum, wasserschutzFlaecheSum]);
     double wasserschutzSum = getFixedAverage(wasserschutzSumValues, 4);
 
     // bodenschutz
-    List<double> bodenschutzHangValues = getList("Bodenschutz", ["hang_position", "hang_neigung"]);
+    List<double> bodenschutzHangValues =
+        getList("Bodenschutz", ["hang_position", "hang_neigung"]);
     double bodenschutzHangSum = bodenschutzHangValues.reduce(min);
-    List<double> bodenschutzLageValues = getList("Bodenschutz", ["himmelsrichtung", "hecken_dichte", "klimatische_wasserbilanz"]);
+    List<double> bodenschutzLageValues = getList("Bodenschutz",
+        ["himmelsrichtung", "hecken_dichte", "klimatische_wasserbilanz"]);
     bodenschutzLageValues.add(bodenschutzHangSum);
     double bodenschutzLageSum = bodenschutzLageValues.reduce(max);
-    List<double> bodenschutzSumValues = getList("Bodenschutz", ["luecken","hecken_hoehe","hecken_breite"]);
+    List<double> bodenschutzSumValues =
+        getList("Bodenschutz", ["luecken", "hecken_hoehe", "hecken_breite"]);
     bodenschutzSumValues.add(bodenschutzLageSum);
     double bodenschutzSum = getAverage(bodenschutzSumValues);
 
     // nähr- & schadstoffkreisläufe
-    List<double> naehrstoffHangValues = getList("Nähr- & Schadstoffkreisläufe", ["hang_position", "hang_neigung"]);
+    List<double> naehrstoffHangValues = getList(
+        "Nähr- & Schadstoffkreisläufe", ["hang_position", "hang_neigung"]);
     double naehrstoffHangSum = naehrstoffHangValues.reduce(min);
-    List<double> naehrstoffSumValues = getList("Nähr- & Schadstoffkreisläufe", ["nutzbare_feldkapazitaet","totholz","hecken_breite","sonder_form","nachbar_flaechen"]);
+    List<double> naehrstoffSumValues = getList("Nähr- & Schadstoffkreisläufe", [
+      "nutzbare_feldkapazitaet",
+      "totholz",
+      "hecken_breite",
+      "sonder_form",
+      "nachbar_flaechen"
+    ]);
     naehrstoffSumValues.add(naehrstoffHangSum);
     double naehrstoffSum = getFixedAverage(naehrstoffSumValues, 5);
 
     // bestäubung
-    List<double> bestaeubungStrukturValues = getList("Bestäubung", ["totholz", "alterszusammensetzung", "sonder_form"]);
-    bestaeubungStrukturValues.add(getProduct("Bestäubung", ["saum_art", "saum_breite"]));
-    double bestaebungStrukturSum = getFixedAverage(bestaeubungStrukturValues, 4, round: false);
-    List<double> bestaeubungLageValues = getList("Bestäubung", ["nachbar_flaechen", "netzwerk", "hecken_dichte"]);
+    List<double> bestaeubungStrukturValues = getList(
+        "Bestäubung", ["totholz", "alterszusammensetzung", "sonder_form"]);
+    bestaeubungStrukturValues
+        .add(getProduct("Bestäubung", ["saum_art", "saum_breite"]));
+    double bestaebungStrukturSum =
+        getFixedAverage(bestaeubungStrukturValues, 4, round: false);
+    List<double> bestaeubungLageValues = getList(
+        "Bestäubung", ["nachbar_flaechen", "netzwerk", "hecken_dichte"]);
     double bestaeubungLageSum = getSum(bestaeubungLageValues) / 2;
-    List<double> bestaeubungPflanzenValues = getList("Bestäubung", ["anzahl_gehoelz_arten", "dominanzen", "neophyten"]);
+    List<double> bestaeubungPflanzenValues = getList(
+        "Bestäubung", ["anzahl_gehoelz_arten", "dominanzen", "neophyten"]);
     double bestaeubungPflanzenSum = getAverage(bestaeubungPflanzenValues);
-    List<double> bestaeubungNutzungValues = getList("Bestäubung", ["nutzungs_spuren", "management"]);
+    List<double> bestaeubungNutzungValues =
+        getList("Bestäubung", ["nutzungs_spuren", "management"]);
     double bestaeubungNutzungSum = getSum(bestaeubungNutzungValues);
-    double bestaeubungSum = getSum([bestaebungStrukturSum, bestaeubungLageSum, bestaeubungPflanzenSum, bestaeubungNutzungSum]);
+    double bestaeubungSum = getSum([
+      bestaebungStrukturSum,
+      bestaeubungLageSum,
+      bestaeubungPflanzenSum,
+      bestaeubungNutzungSum
+    ]);
     bestaeubungSum = bestaeubungSum / 3;
     bestaeubungSum = bestaeubungSum.roundToDouble();
 
     // schädlungs- & krankheitskontrolle
-    List<double> schaedlingStrukturValues = getList("Schädlings- & Krankheitskontrolle", ["horizontale_schichtung", "strukturvielfalt", "sonder_form", "luecken"]);
-    schaedlingStrukturValues.add(getProduct("Schädlings- & Krankheitskontrolle", ["saum_art", "saum_breite"]));
+    List<double> schaedlingStrukturValues = getList(
+        "Schädlings- & Krankheitskontrolle", [
+      "horizontale_schichtung",
+      "strukturvielfalt",
+      "sonder_form",
+      "luecken"
+    ]);
+    schaedlingStrukturValues.add(getProduct(
+        "Schädlings- & Krankheitskontrolle", ["saum_art", "saum_breite"]));
     double schaedlingStrukturSum = getSum(schaedlingStrukturValues) / 3;
     schaedlingStrukturSum = min(5, schaedlingStrukturSum);
-    List<double> schaedlingLageValues = getList("Schädlings- & Krankheitskontrolle", ["himmelsrichtung"]);
-    schaedlingLageValues.add(getItem("Schädlings- & Krankheitskontrolle", "hecken_dichte", multiplicator: 2));
+    List<double> schaedlingLageValues =
+        getList("Schädlings- & Krankheitskontrolle", ["himmelsrichtung"]);
+    schaedlingLageValues.add(getItem(
+        "Schädlings- & Krankheitskontrolle", "hecken_dichte",
+        multiplicator: 2));
     double schaedlingLageSum = getSum(schaedlingLageValues) / 3;
     schaedlingLageSum = min(5, schaedlingLageSum);
-    List<double> schaedlingPflanzenValues = getList("Schädlings- & Krankheitskontrolle", ["baumanteil", "neophyten"]);
-    schaedlingPflanzenValues.add(getItem("Schädlings- & Krankheitskontrolle", "anzahl_gehoelz_arten", multiplicator: 2));
+    List<double> schaedlingPflanzenValues = getList(
+        "Schädlings- & Krankheitskontrolle", ["baumanteil", "neophyten"]);
+    schaedlingPflanzenValues.add(getItem(
+        "Schädlings- & Krankheitskontrolle", "anzahl_gehoelz_arten",
+        multiplicator: 2));
     double schaedlingPflanzenSum = getSum(schaedlingPflanzenValues) / 3;
     schaedlingPflanzenSum = min(5, schaedlingPflanzenSum);
-    double schaedlingSum = getAverage([schaedlingStrukturSum, schaedlingStrukturSum, schaedlingLageSum, schaedlingPflanzenSum]);
+    double schaedlingSum = getAverage([
+      schaedlingStrukturSum,
+      schaedlingStrukturSum,
+      schaedlingLageSum,
+      schaedlingPflanzenSum
+    ]);
 
     // Nahrungsquelle
-    double nahrungsquelleStrukturSum = getProduct("Nahrungsquelle", ["saum_art", "saum_breite"]);
+    double nahrungsquelleStrukturSum =
+        getProduct("Nahrungsquelle", ["saum_art", "saum_breite"]);
     nahrungsquelleStrukturSum += getItem("Nahrungsquelle", "totholz");
     nahrungsquelleStrukturSum = nahrungsquelleStrukturSum / 2;
-    double nahrungsquellePflanzenSum = getAverage(getList("Nahrungsquelle", ["neophyten", "dominanzen", "anzahl_gehoelz_arten"]), round: false);
-    double nahrungsquelleSum = getAverage([nahrungsquelleStrukturSum, nahrungsquellePflanzenSum, nahrungsquellePflanzenSum]);
+    double nahrungsquellePflanzenSum = getAverage(
+        getList("Nahrungsquelle",
+            ["neophyten", "dominanzen", "anzahl_gehoelz_arten"]),
+        round: false);
+    double nahrungsquelleSum = getAverage([
+      nahrungsquelleStrukturSum,
+      nahrungsquellePflanzenSum,
+      nahrungsquellePflanzenSum
+    ]);
 
     // Korridor
-    double korridorStrukturSum = getAverage(getList("Korridor", ["luecken", "hecken_hoehe", "hecken_breite"]), round: false);
-    double korridorLageSum = getSum(getList("Korridor", ["hecken_dichte","in_wildtierkorridor","netzwerk"])) / 2;
-    double korridorSum = getAverage([korridorStrukturSum, korridorLageSum, korridorLageSum]);
+    double korridorStrukturSum = getAverage(
+        getList("Korridor", ["luecken", "hecken_hoehe", "hecken_breite"]),
+        round: false);
+    double korridorLageSum = getSum(getList(
+            "Korridor", ["hecken_dichte", "in_wildtierkorridor", "netzwerk"])) /
+        2;
+    double korridorSum =
+        getAverage([korridorStrukturSum, korridorLageSum, korridorLageSum]);
 
     // Fortpflanzungs- und Ruhestätte
-    List<double> fortpflanzungsStukturValues = getList("Fortpflanzungs- & Ruhestätte", ["sonder_form","alterszusammensetzung","totholz","strukturvielfalt","vertikale_schichtung","horizontale_schichtung", "hecken_hoehe", "hecken_breite"]);
-    fortpflanzungsStukturValues.add(getProduct("Fortpflanzungs- & Ruhestätte", ["saum_art", "saum_breite"]));
+    List<double> fortpflanzungsStukturValues =
+        getList("Fortpflanzungs- & Ruhestätte", [
+      "sonder_form",
+      "alterszusammensetzung",
+      "totholz",
+      "strukturvielfalt",
+      "vertikale_schichtung",
+      "horizontale_schichtung",
+      "hecken_hoehe",
+      "hecken_breite"
+    ]);
+    fortpflanzungsStukturValues.add(getProduct(
+        "Fortpflanzungs- & Ruhestätte", ["saum_art", "saum_breite"]));
     double fortpflanzungsStrukturSum = getSum(fortpflanzungsStukturValues) / 6;
-    double fortpflanzungsLageSum = getSum(getList("Fortpflanzungs- & Ruhestätte", ["hecken_dichte", "nachbar_flaechen"]));
-    double fortpflanzungsPflanzenSum = getAverage(getList("Fortpflanzungs- & Ruhestätte", ["anzahl_gehoelz_arten", "dominanzen"]), round: false);
-    double fortpflanzungsSum = getAverage([fortpflanzungsStrukturSum, fortpflanzungsStrukturSum, fortpflanzungsLageSum, fortpflanzungsPflanzenSum]);
+    double fortpflanzungsLageSum = getSum(getList(
+        "Fortpflanzungs- & Ruhestätte", ["hecken_dichte", "nachbar_flaechen"]));
+    double fortpflanzungsPflanzenSum = getAverage(
+        getList("Fortpflanzungs- & Ruhestätte",
+            ["anzahl_gehoelz_arten", "dominanzen"]),
+        round: false);
+    double fortpflanzungsSum = getAverage([
+      fortpflanzungsStrukturSum,
+      fortpflanzungsStrukturSum,
+      fortpflanzungsLageSum,
+      fortpflanzungsPflanzenSum
+    ]);
 
     // Erholung
-    double erholungLandschaftSum = getSum(getList("Erholung & Tourismus", ["schutzgebiet","hecken_dichte","alterszusammensetzung","anzahl_gehoelz_arten"]));
-    erholungLandschaftSum += getProduct("Erholung & Tourismus", ["saum_art", "saum_breite"]);
+    double erholungLandschaftSum = getSum(getList("Erholung & Tourismus", [
+      "schutzgebiet",
+      "hecken_dichte",
+      "alterszusammensetzung",
+      "anzahl_gehoelz_arten"
+    ]));
+    erholungLandschaftSum +=
+        getProduct("Erholung & Tourismus", ["saum_art", "saum_breite"]);
     erholungLandschaftSum = erholungLandschaftSum / 4;
-    double erholungMenschlichSum = getSum(getList("Erholung & Tourismus", ["bevoelkerungs_dichte","erschliessung","zusatz_strukturen"]));
+    double erholungMenschlichSum = getSum(getList("Erholung & Tourismus",
+        ["bevoelkerungs_dichte", "erschliessung", "zusatz_strukturen"]));
     erholungMenschlichSum = min(erholungMenschlichSum / 2, 5);
-    double erholungErschliessungVal = getItem("Erholung & Tourismus", "erschliessung");
-    double erholungSum = erholungErschliessungVal == 1 ? 1 : getAverage([erholungMenschlichSum, erholungLandschaftSum]);
+    double erholungErschliessungVal =
+        getItem("Erholung & Tourismus", "erschliessung");
+    double erholungSum = erholungErschliessungVal == 1
+        ? 1
+        : getAverage([erholungMenschlichSum, erholungLandschaftSum]);
 
     // Kulturerbe
-    double kulturerbeSum = getSum(getList("Kulturerbe", ["naturdenkmal", "traditionelle_heckenregion", "franziszeischer_kataster", "netzwerk", "neophyten", "zusatz_strukturen", "sonder_form"]));
+    double kulturerbeSum = getSum(getList("Kulturerbe", [
+      "naturdenkmal",
+      "traditionelle_heckenregion",
+      "franziszeischer_kataster",
+      "netzwerk",
+      "neophyten",
+      "zusatz_strukturen",
+      "sonder_form"
+    ]));
     kulturerbeSum += getItem("Kulturerbe", "franziszeischer_kataster");
     kulturerbeSum = kulturerbeSum / 5;
     kulturerbeSum = min(kulturerbeSum, 5).roundToDouble();
@@ -874,11 +1049,13 @@ class _NameFormState extends State<NameForm> {
 
   /// returns average for all values of a group
   double getGroupAverage(String group, {bool round = true}) {
-    return getAverage(mapToListOfDoubles(_radarChartDataListsReduced[group]), round: round);
+    return getAverage(mapToListOfDoubles(_radarChartDataListsReduced[group]),
+        round: round);
   }
 
   /// returns sum divided by divisor for a list of doubles
-  double getFixedAverage(List<double> values, int divisor, {bool round = true}) {
+  double getFixedAverage(List<double> values, int divisor,
+      {bool round = true}) {
     double fixedAverage = values.reduce((v, e) => (v + e)) / divisor;
     if (!round) {
       return fixedAverage;
@@ -888,7 +1065,9 @@ class _NameFormState extends State<NameForm> {
 
   /// returns sum divided by divisor for all values of a group
   double getFixedGroupAverage(String group, int divisor, {bool round = true}) {
-    return getFixedAverage(mapToListOfDoubles(_radarChartDataListsReduced[group]), divisor, round: round);
+    return getFixedAverage(
+        mapToListOfDoubles(_radarChartDataListsReduced[group]), divisor,
+        round: round);
   }
 
   /// returns a list of doubles from group and parameters
@@ -921,183 +1100,214 @@ class _NameFormState extends State<NameForm> {
         1.0, (previousValue, element) => previousValue * element);
   }
 
+  Future<void> refreshCurrentLocale() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? locale = prefs.getString("locale");
+    setState(() {
+      currentLocale = locale ?? "EN";
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Determine amount of columns based on screen width and orientation
-    final mediaQueryData = MediaQuery.of(context);
-    final columns = determineRequiredColumns(mediaQueryData);
-    final dynamicColumns =
-        determineRequiredColumnsDynamicDropdowns(mediaQueryData);
+    return FutureBuilder<void>(
+      future: refreshCurrentLocale(),
+      builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          showSnackbar(context, "Switched locale to $currentLocale");
+        }
 
-    return Scaffold(
-      body: Material(
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  buildFormFieldGrid(inputFields, 'General', setState,
-                      columns: columns),
-                  buildDynamicFormFieldGrid(
-                    children: dynamicFields,
-                    section: 'General',
-                    dropdownKeys: _dropdownsKeys,
-                    onDropdownChanged: onDynamicDropdownsChanged,
-                    columns: dynamicColumns,
-                  ),
-                  const Divider(),
-                  createHeader("GIS"),
-                  buildFormFieldGrid(inputFields, 'GIS', setState,
-                      columns: columns),
-                  buildDynamicFormFieldGrid(
-                      children: dynamicFields,
-                      section: 'GIS',
-                      dropdownKeys: _dropdownsKeys,
-                      onDropdownChanged: onDynamicDropdownsChanged,
-                      columns: dynamicColumns),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  createHeader("Gelände"),
-                  buildFormFieldGrid(inputFields, "Gelände", setState,
-                      columns: columns),
-                  buildDynamicFormFieldGrid(
-                      children: dynamicFields,
-                      section: 'Gelände',
-                      dropdownKeys: _dropdownsKeys,
-                      onDropdownChanged: onDynamicDropdownsChanged,
-                      columns: dynamicColumns),
-                  const Divider(),
-                  createHeader("Anmerkungen"),
-                  buildFormFieldGrid(inputFields, "Anmerkungen", setState,
-                      columns: columns),
-                  buildDynamicFormFieldGrid(
-                      children: dynamicFields,
-                      section: 'Anmerkungen',
-                      dropdownKeys: _dropdownsKeys,
-                      onDropdownChanged: onDynamicDropdownsChanged,
-                      columns: dynamicColumns),
-                  const Divider(),
-                  createHeader("Images"),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _selectedImages.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                    ),
-                    itemBuilder: (BuildContext context, int index) {
-                      return Stack(
-                        children: [
-                          Image.file(_selectedImages[index], fit: BoxFit.cover),
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: -5,
-                                  blurRadius: 10,
+        // Determine amount of columns based on screen width and orientation
+        final mediaQueryData = MediaQuery.of(context);
+        final columns = determineRequiredColumns(mediaQueryData);
+        final dynamicColumns =
+            determineRequiredColumnsDynamicDropdowns(mediaQueryData);
+
+        return Scaffold(
+          body: Material(
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      createHeader(currentLocale),
+                      buildFormFieldGrid(
+                          inputFields, 'General', setState, currentLocale,
+                          columns: columns),
+                      buildDynamicFormFieldGrid(
+                        children: dynamicFields,
+                        section: 'General',
+                        dropdownKeys: _dropdownsKeys,
+                        onDropdownChanged: onDynamicDropdownsChanged,
+                        currentLocale: currentLocale,
+                        columns: dynamicColumns,
+                      ),
+                      const Divider(),
+                      createHeader("GIS"),
+                      buildFormFieldGrid(
+                          inputFields, 'GIS', setState, currentLocale,
+                          columns: columns),
+                      buildDynamicFormFieldGrid(
+                          children: dynamicFields,
+                          section: 'GIS',
+                          dropdownKeys: _dropdownsKeys,
+                          onDropdownChanged: onDynamicDropdownsChanged,
+                          currentLocale: currentLocale,
+                          columns: dynamicColumns),
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      createHeader("Gelände"),
+                      buildFormFieldGrid(
+                          inputFields, "Gelände", setState, currentLocale,
+                          columns: columns),
+                      buildDynamicFormFieldGrid(
+                          children: dynamicFields,
+                          section: 'Gelände',
+                          dropdownKeys: _dropdownsKeys,
+                          onDropdownChanged: onDynamicDropdownsChanged,
+                          currentLocale: currentLocale,
+                          columns: dynamicColumns),
+                      const Divider(),
+                      createHeader("Anmerkungen"),
+                      buildFormFieldGrid(
+                          inputFields, "Anmerkungen", setState, currentLocale,
+                          columns: columns),
+                      buildDynamicFormFieldGrid(
+                          children: dynamicFields,
+                          section: 'Anmerkungen',
+                          dropdownKeys: _dropdownsKeys,
+                          onDropdownChanged: onDynamicDropdownsChanged,
+                          currentLocale: currentLocale,
+                          columns: dynamicColumns),
+                      const Divider(),
+                      createHeader("Images"),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _selectedImages.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemBuilder: (BuildContext context, int index) {
+                          return Stack(
+                            children: [
+                              Image.file(_selectedImages[index],
+                                  fit: BoxFit.cover),
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.5),
+                                      spreadRadius: -5,
+                                      blurRadius: 10,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Icons.highlight_remove,
-                                  color: Colors.red),
-                              onPressed: () => _removeImage(index),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                                child: IconButton(
+                                  icon: const Icon(Icons.highlight_remove,
+                                      color: Colors.red),
+                                  onPressed: () => _removeImage(index),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            OutlinedButton(
-              onPressed: () {
-                _showClearDialog();
-              },
-              child: Text(
-                'Clear',
-                style: TextStyle(
-                    fontSize: 16, color: Theme.of(context).colorScheme.error),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.photo_library, size: 32),
-              onPressed: () => _addImage(ImageSource.gallery),
-              // onPressed: () => showSnackbar(context, "fredl", success: false),
-            ),
-            IconButton(
-              icon: const Icon(Icons.add_a_photo, size: 32),
-              onPressed: () => _addImage(ImageSource.camera),
-            ),
-            Stack(
+          bottomNavigationBar: BottomAppBar(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                FilledButton(
+                OutlinedButton(
                   onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-                      _saveFormData();
-                    }
+                    _showClearDialog();
                   },
-                  child: const Text(
-                    'Submit',
+                  child: Text(
+                    'Clear',
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.error),
                   ),
                 ),
-                if (_isSaving)
-                  Positioned.fill(
-                    child: Center(
-                      child: CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.inversePrimary),
+                IconButton(
+                  icon: const Icon(Icons.photo_library, size: 32),
+                  onPressed: () => _addImage(ImageSource.gallery),
+                  // onPressed: () => showSnackbar(context, "fredl", success: false),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_a_photo, size: 32),
+                  onPressed: () => _addImage(ImageSource.camera),
+                ),
+                Stack(
+                  children: [
+                    FilledButton(
+                      onPressed: () {
+                        _saveFormData();
+                        // if (_formKey.currentState!.validate()) {
+                        //   _formKey.currentState!.save();
+                        //   _saveFormData();
+                        // }
+                      },
+                      child: const Text(
+                        'Submit',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
-                  ),
+                    if (_isSaving)
+                      Positioned.fill(
+                        child: Center(
+                          child: CircularProgressIndicator(
+                              color:
+                                  Theme.of(context).colorScheme.inversePrimary),
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return FutureBuilder(
-                future: updateRadarChartData(),
-                builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return RadarChartDialog(
-                      data: _radarChartData,
-                      dataToGroup: _radarDataToGroup,
-                      groupColors: _radarGroupColors,
-                    );
-                  } else {
-                    return const CircularProgressIndicator(); // or any other loading indicator
-                  }
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return FutureBuilder(
+                    future: updateRadarChartData(),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<void> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        return RadarChartDialog(
+                          data: _radarChartData,
+                          dataToGroup: _radarDataToGroup,
+                          groupColors: _radarGroupColors,
+                        );
+                      } else {
+                        return const CircularProgressIndicator(); // or any other loading indicator
+                      }
+                    },
+                  );
                 },
               );
             },
-          );
-        },
-        child: const Icon(Icons.analytics_outlined),
-      ),
+            child: const Icon(Icons.analytics_outlined),
+          ),
+        );
+      },
     );
   }
 }

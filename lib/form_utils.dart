@@ -7,6 +7,7 @@ Column buildDynamicFormFieldGrid({
   required String section,
   required List<GlobalKey<DynamicDropdownsState>> dropdownKeys,
   required void Function(String, String) onDropdownChanged,
+  required String currentLocale,
   int columns = 3,
   int minDropdownCount = 0,
   int maxDropdownCount = 6,
@@ -51,14 +52,9 @@ Column buildDynamicFormFieldGrid({
   return Column(children: rows);
 }
 
-
-
-Column buildFormFieldGrid(
-  List<Map<String, dynamic>> inputFields,
-  String sectionToBuild,
-  Function setState,
-  {columns = 3}
-) {
+Column buildFormFieldGrid(List<Map<String, dynamic>> inputFields,
+    String sectionToBuild, Function setState, String currentLocale,
+    {columns = 3}) {
   List<Widget> rows = [];
   List<Widget> rowChildren = [];
 
@@ -70,7 +66,8 @@ Column buildFormFieldGrid(
     if (field['type'] == 'text') {
       rowChildren.add(_createTextInput(field, borderColor: borderColor));
     } else if (field['type'] == 'dropdown') {
-      rowChildren.add(_createDropdownInput(field, setState, borderColor: borderColor));
+      rowChildren
+          .add(_createDropdownInput(field, setState, borderColor: borderColor));
     } else if (field['type'] == 'number') {
       rowChildren.add(_createNumberInput(field, borderColor: borderColor));
     }
@@ -87,7 +84,6 @@ Column buildFormFieldGrid(
 
   return Column(children: rows);
 }
-
 
 int determineRequiredColumnsDynamicDropdowns(var mediaQueryData) {
   final screenWidth = mediaQueryData.size.width;
@@ -114,7 +110,6 @@ int determineRequiredColumns(var mediaQueryData) {
   }
   return columns;
 }
-
 
 Expanded _createTextInput(var field, {Color? borderColor}) {
   return Expanded(
@@ -170,7 +165,7 @@ Expanded _createDropdownInput(var field, Function setState,
     {Color? borderColor}) {
   var dropdownItems = field['values'].map<DropdownMenuItem<String>>((value) {
     double dynamicTextSize = 12;
-    if  (value.toString().length > 16) {
+    if (value.toString().length > 16) {
       dynamicTextSize = 10;
     }
     if (value.toString().length > 24) {
@@ -217,7 +212,6 @@ Expanded _createDropdownInput(var field, Function setState,
   );
 }
 
-
 Center createHeader(String headerText, {double fontSize = 24}) {
   return Center(
       child: Text(
@@ -257,51 +251,39 @@ class ConfirmationDialog extends StatelessWidget {
   }
 }
 
-// class DropdownButtonExample extends StatefulWidget {
-//   final Map<String, dynamic> field;
-//
-//   const DropdownButtonExample({Key? key, required this.field}) : super(key: key);
-//
-//   @override
-//   State<DropdownButtonExample> createState() => _DropdownButtonExampleState();
-// }
-//
-// class _DropdownButtonExampleState extends State<DropdownButtonExample> {
-//
-//   List<String> list = [];
-//   String dropdownValue = "";
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     list = widget.field['values'];
-//     dropdownValue = list.first;
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//
-//     return DropdownButton<String>(
-//       value: dropdownValue,
-//       icon: const Icon(Icons.arrow_downward),
-//       elevation: 16,
-//       style: const TextStyle(color: Colors.deepPurple),
-//       underline: Container(
-//         height: 2,
-//         color: Colors.deepPurpleAccent,
-//       ),
-//       onChanged: (String? value) {
-//         // This is called when the user selects an item.
-//         setState(() {
-//           dropdownValue = value!;
-//         });
-//       },
-//       items: list.map<DropdownMenuItem<String>>((String value) {
-//         return DropdownMenuItem<String>(
-//           value: value,
-//           child: AutoSizeText(value),
-//         );
-//       }).toList(),
-//     );
-//   }
-// }
+class LocaleMap {
+  List<Map<String, dynamic>> formFields = [];
+  List<Map<String, dynamic>> dynamicFormFields = [];
+
+  void initialize(List<Map<String, dynamic>> formFields,
+      List<Map<String, dynamic>> dynamicFormFields) {
+    this.formFields = formFields;
+    this.dynamicFormFields = dynamicFormFields;
+  }
+
+  Map<String, String> getLocaleToOriginal(String locale) {
+    Map<String, String> map = {};
+
+    for (Map<String, dynamic> field in formFields) {
+      map[field["label$locale"]] = field["label"];
+    }
+    for (Map<String, dynamic> dynField in dynamicFormFields) {
+      map[dynField["headerText$locale"]] = dynField["headerText"];
+    }
+
+    return map;
+  }
+
+  Map<String, String> getOriginalToLocale(String locale) {
+    Map<String, String> map = {};
+
+    for (Map<String, dynamic> field in formFields) {
+      map[field["label"]] = field["label$locale"];
+    }
+    for (Map<String, dynamic> dynField in dynamicFormFields) {
+      map[dynField["headerText"]] = dynField["headerText$locale"];
+    }
+
+    return map;
+  }
+}

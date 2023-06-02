@@ -7,65 +7,6 @@ String? generateValidator(String? value, String label, bool required) {
   return null;
 }
 
-/// structure: simple_name : {"EN: "english name readable", "DE": "german name readable"}
-Map<String, Map<String, String>> localeMap = {
-  "hecken_name": {"EN": "Hedge name", "DE": "Hecken Name"},
-  "hecken_ort": {"EN": "Place", "DE": "Ort"},
-  "gutachter": {"EN": "Reviewer", "DE": "Gutachter"},
-  "hecken_laenge": {"EN": "Length [m]", "DE": "Länge [m]"},
-  "himmelsrichtung": {"EN": "Compass direction", "DE": "Ausrichtung Himmelsrichtung"},
-  "schutzgebiet": {"EN": "Protected area", "DE": "Schutzgebiet"},
-  "naturdenkmal": {"EN": "Natural monument", "DE": "Naturdenkmal"},
-  "hecken_dichte": {"EN": "Hedge density", "DE": "Heckendichte"},
-  "klimatische_wasserbilanz": {"EN": "climatic water balance", "DE": "klimatische Wasserbilanz"},
-  "bevoelkerungs_dichte": {"EN": "population density", "DE": "Bevölkerungsdichte"},
-  "in_wildtierkorridor": {"EN": "in wildlife corridor", "DE": "in Wildtierkorridor"},
-  "traditionelle_heckenregion": {"EN": "traditional hedge region", "DE": "traditionelle Heckenregion"},
-  "franziszeischer_kataster": {"EN": "French cadastre", "DE": "Franziszeischer Kataster"},
-  "nutzbare_feldkapazitaet": {"EN": "usable field capacity", "DE": "nutzbare Feldkapazität"},
-  "humusbilanz": {"EN": "Humus balance", "DE": "Humusbilanz"},
-  "hang_position": {"EN": "position to the slope", "DE": "Position zum Hang"},
-  "hang_neigung": {"EN": "Slope gradient", "DE": "Hangneigung"},
-  "netzwerk": {"EN": "Network", "DE": "Netzwerk"},
-  "erschliessung": {"EN": "Access", "DE": "Erschließung"},
-  "horizontale_schichtung": {"EN": "horizontal layering", "DE": "horizontale Schichtung"},
-  "vertikale_schichtung": {"EN": "vertical layering", "DE": "vertikale Schichtung"},
-  "strukturvielfalt": {"EN": "structural diversity", "DE": "Strukturvielfalt"},
-  "luecken": {"EN": "Gaps", "DE": "Lücken"},
-  "totholz": {"EN": "deadwood", "DE": "Totholz"},
-  "alterszusammensetzung": {"EN": "Age composition", "DE": "Alterszusammensetzung"},
-  "saum_art": {"EN": "hem type", "DE": "Saumart"},
-  "saum_breite": {"EN": "Hem width", "DE": "Saumbreite"},
-  "hecken_hoehe": {"EN": "Height", "DE": "Höhe"},
-  "hecken_breite": {"EN": "Width", "DE": "Breite"},
-  "baumanteil": {"EN": "Tree proportion", "DE": "Baumanteil"},
-  "anzahl_gehoelz_arten": {"EN": "Number of wood species", "DE": "Anzahl Gehölzarten"},
-  "dominanzen": {"EN": "Dominances", "DE": "Dominanzen"},
-  "neophyten": {"EN": "Neophytes", "DE": "Neophyten"},
-  "anmerkungen_kommentare": {"EN": "Notes", "DE": "Anmerkungen"},
-  "nachbar_flaechen": {"EN": "Neighboring areas", "DE": "Nachbarflächen"},
-  "nutzungs_spuren": {"EN": "Traces of use", "DE": "Nutzungsspuren"},
-  "zusatz_strukturen": {"EN": "Additional structures", "DE": "Zusatzstrukturen"},
-  "management": {"EN": "Management", "DE": "Management"},
-  "sonder_form": {"EN": "Special form", "DE": "Sonderform"},
-};
-
-Map<String, String> getLocaleToOriginal(String locale) {
-  Map<String, String> map = {};
-  for (MapEntry<String, Map<String, String>> entry in localeMap.entries) {
-    map[entry.value[locale]!] = entry.key;
-  }
-  return map;
-}
-
-Map<String, String> getOriginalToLocale(String locale) {
-  Map<String, String> map = {};
-  for (MapEntry<String, Map<String, String>> entry in localeMap.entries) {
-    map[entry.key] = entry.value[locale]!;
-  }
-  return map;
-}
-
 /// This function defines the data for static inputs (text, number or dropdown)
 /// labels must be unique across all static & dynamic widgets!
 /// example usage to create widgets:
@@ -91,6 +32,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'text',
       'label': 'hecken_name',
+      "labelEN": "Hedge name",
+      "labelDE": "Hecken Name",
       'section': 'General',
       'borderColor': Colors.deepOrange,
       'controller': TextEditingController(),
@@ -99,6 +42,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'text',
       'label': 'hecken_ort',
+      "labelEN": "Place",
+      "labelDE": "Ort",
       'section': 'General',
       'borderColor': Colors.deepOrange,
       'controller': TextEditingController(),
@@ -107,6 +52,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'text',
       'label': 'gutachter',
+      "labelEN": "Reviewer",
+      "labelDE": "Gutachter",
       'section': 'General',
       'borderColor': Colors.deepOrange,
       'controller': TextEditingController(),
@@ -117,6 +64,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'number',
       'label': 'hecken_laenge',
+      "labelEN": "Length [m]",
+      "labelDE": "Länge [m]",
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'controller': TextEditingController(),
@@ -126,6 +75,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'himmelsrichtung',
+      "labelEN": "Compass direction",
+      "labelDE": "Ausrichtung Himmelsrichtung",
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': ['', 'S-N', 'SO-NW', 'W-O', 'SW-NO'],
@@ -140,6 +91,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'schutzgebiet',
+      "labelEN": "Protected area",
+      "labelDE": "Schutzgebiet",
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': ['', 'Schutzgebiet', 'Kein Schutzgebiet'],
@@ -151,6 +104,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'naturdenkmal',
+      "labelEN": "Natural monument",
+      "labelDE": "Naturdenkmal",
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': [
@@ -166,6 +121,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'hecken_dichte',
+      "labelEN": "Hedge density",
+      "labelDE": "Heckendichte",
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': [
@@ -191,6 +148,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'klimatische_wasserbilanz',
+      "labelEN": "climatic water balance",
+      "labelDE": "klimatische Wasserbilanz",
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': [
@@ -211,6 +170,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'bevoelkerungs_dichte',
+      "labelEN": "population density",
+      "labelDE": "Bevölkerungsdichte",
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': ['', '0-15', '16-30', '31-75', '76-200', '>200'],
@@ -223,6 +184,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'in_wildtierkorridor',
+      "labelEN": "in wildlife corridor",
+      "labelDE": "in Wildtierkorridor",
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': ['', 'ja', 'nein'],
@@ -235,6 +198,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'traditionelle_heckenregion',
+      "labelEN": "traditional hedge region",
+      "labelDE": "traditionelle Heckenregion",
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': ['', 'Heckenregion', 'Keine Heckenregion'],
@@ -247,6 +212,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'franziszeischer_kataster',
+      "labelEN": "French cadastre",
+      "labelDE": "Franziszeischer Kataster",
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': ['', 'Im Kataster erkennbar', 'Nicht im Kataster erkennbar'],
@@ -259,6 +226,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'nutzbare_feldkapazitaet',
+      "labelEN": "usable field capacity",
+      "labelDE": "nutzbare Feldkapazität",
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': [
@@ -278,6 +247,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'humusbilanz',
+      "labelEN": "Humus balance",
+      "labelDE": "Humusbilanz",
       'section': 'GIS',
       'borderColor': Colors.indigo,
       'values': [
@@ -295,6 +266,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'hang_position',
+      "labelEN": "position to the slope",
+      "labelDE": "Position zum Hang",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': [
@@ -317,6 +290,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'hang_neigung',
+      "labelEN": "Slope gradient",
+      "labelDE": "Hangneigung",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': [
@@ -337,6 +312,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'netzwerk',
+      "labelEN": "Network",
+      "labelDE": "Netzwerk",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': [
@@ -356,6 +333,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'erschliessung',
+      "labelEN": "Access",
+      "labelDE": "Erschließung",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': ['', 'Weg an/in Hecke', 'Sichtbeziehung zu Hecke', 'Kein Weg'],
@@ -367,6 +346,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'horizontale_schichtung',
+      "labelEN": "horizontal layering",
+      "labelDE": "horizontale Schichtung",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': [
@@ -387,6 +368,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'vertikale_schichtung',
+      "labelEN": "vertical layering",
+      "labelDE": "vertikale Schichtung",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': ['', 'nur Kernzone', 'nur Mantelzone', 'Kern- und Mantelzone'],
@@ -399,6 +382,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'strukturvielfalt',
+      "labelEN": "structural diversity",
+      "labelDE": "Strukturvielfalt",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': [
@@ -417,6 +402,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'luecken',
+      "labelEN": "Gaps",
+      "labelDE": "Lücken",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': [
@@ -438,6 +425,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'totholz',
+      "labelEN": "deadwood",
+      "labelDE": "Totholz",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': [
@@ -460,6 +449,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'alterszusammensetzung',
+      "labelEN": "Age composition",
+      "labelDE": "Alterszusammensetzung",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': [
@@ -482,6 +473,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'saum_art',
+      "labelEN": "hem type",
+      "labelDE": "Saumart",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': ['', 'Saum', 'Mähstreifen', 'Grünland', 'nichts davon'],
@@ -498,6 +491,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'saum_breite',
+      "labelEN": "Hem width",
+      "labelDE": "Saumbreite",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': ['', 'kein Saum', '< 2 m', '2-3 m', '3-4 m', '> 4 m'],
@@ -515,6 +510,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'hecken_hoehe',
+      "labelEN": "Height",
+      "labelDE": "Höhe",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': ['', '<2 m', '2-5 m', '5-10 m', '10-15 m', '>15 m'],
@@ -530,6 +527,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'hecken_breite',
+      "labelEN": "Width",
+      "labelDE": "Breite",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': ['', '<2 m', '2-4 m', '4-6 m', '6-8 m', '8-12 m'],
@@ -546,6 +545,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'baumanteil',
+      "labelEN": "Tree proportion",
+      "labelDE": "Baumanteil",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': ['', '0', '1-2/ 100m', '3-9/ 100m', '10-20/ 100m', '>20/ 100m'],
@@ -558,6 +559,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'anzahl_gehoelz_arten',
+      "labelEN": "Number of wood species",
+      "labelDE": "Anzahl Gehölzarten",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': [
@@ -581,6 +584,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'dominanzen',
+      "labelEN": "Dominances",
+      "labelDE": "Dominanzen",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': ['', '(quasi) keine', 'leichte Dominanz', 'starke Dominanz'],
@@ -594,6 +599,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'dropdown',
       'label': 'neophyten',
+      "labelEN": "Neophytes",
+      "labelDE": "Neophyten",
       'section': 'Gelände',
       'borderColor': Colors.green,
       'values': ['', '>50%', '25-50%', '10-25%', '5-10%', '0-5%'],
@@ -609,6 +616,8 @@ List<Map<String, dynamic>> createFormFields() {
     {
       'type': 'text',
       'label': 'anmerkungen_kommentare',
+      "labelEN": "Notes",
+      "labelDE": "Anmerkungen",
       'section': 'Anmerkungen',
       'borderColor': Colors.amber,
       'controller': TextEditingController(),
@@ -635,6 +644,8 @@ List<Map<String, dynamic>> createDynamicFormFields() {
     // Gelände fields
     {
       'headerText': 'nachbar_flaechen',
+      "headerTextEN": "Neighboring areas",
+      "headerTextDE": "Nachbarflächen",
       'borderColor': Colors.greenAccent,
       'defValues': const [
         '',
@@ -655,6 +666,8 @@ List<Map<String, dynamic>> createDynamicFormFields() {
     },
     {
       'headerText': 'nutzungs_spuren',
+      "headerTextEN": "Traces of use",
+      "headerTextDE": "Nutzungsspuren",
       'borderColor': Colors.greenAccent,
       'defValues': const [
         '',
@@ -674,6 +687,8 @@ List<Map<String, dynamic>> createDynamicFormFields() {
     },
     {
       'headerText': 'zusatz_strukturen',
+      "headerTextEN": "Additional structures",
+      "headerTextDE": "Zusatzstrukturen",
       'borderColor': Colors.greenAccent,
       'defValues': const [
         '',
@@ -693,6 +708,8 @@ List<Map<String, dynamic>> createDynamicFormFields() {
     },
     {
       'headerText': 'management',
+      "headerTextEN": "Management",
+      "headerTextDE": "Management",
       'borderColor': Colors.greenAccent,
       'defValues': const [
         '',
@@ -712,6 +729,8 @@ List<Map<String, dynamic>> createDynamicFormFields() {
     },
     {
       'headerText': 'sonder_form',
+      "headerTextEN": "Special form",
+      "headerTextDE": "Sonderform",
       'borderColor': Colors.greenAccent,
       'defValues': const [
         '',
