@@ -11,7 +11,7 @@ import 'form_data.dart';
 import 'firebase_options.dart';
 import 'dart:io';
 import 'form_utils.dart';
-import 'utils_geo.dart' as geo;
+import 'utils_geo_v2.dart' as geo;
 import 'utils_db.dart' as db;
 import 'snackbar.dart';
 import 'radar_chart.dart';
@@ -75,38 +75,7 @@ class _WebViewPageState extends State<WebViewPage> {
   String systemLocale = Platform.localeName.startsWith("de") ? "DE" : "EN";
   String currentLocale = "EN";
   bool _darkMode = true;
-
-  /// refreshes geo coordinates and updates variables for menu accordingly
-  _updateLocationAndLocales() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    // initially set locale
-    if (!prefs.containsKey("locale")) {
-      prefs.setString("locale", systemLocale);
-    }
-
-    // load last stored locale
-    currentLocale = prefs.getString("locale")!;
-
-    // set to last known pos
-    geo.setLastPosWithFallback(prefs);
-    setState(() {
-      _geoLastChange = prefs.getString("geoLastChange")?.split(".")[0] ?? 'n/a';
-      String lat = prefs.getString("latitude") ?? "n/a";
-      String lon = prefs.getString("longitude") ?? "n/a";
-      _geoLastKnown = "lat: $lat\nlon: $lon";
-    });
-
-    // wait for refresh of coords
-    String? warning = await geo.updateLocation();
-    setState(() {
-      _geoOrDatabaseWarning = warning;
-      _geoLastChange = prefs.getString("geoLastChange")?.split(".")[0] ?? 'n/a';
-      String lat = prefs.getString("latitude") ?? "n/a";
-      String lon = prefs.getString("longitude") ?? "n/a";
-      _geoLastKnown = "lat: $lat\nlon: $lon";
-    });
-  }
+  bool _isLoading = true;
 
   /// initializes the firebase app
   _initDatabase() async {
@@ -170,206 +139,253 @@ Page resource error:
     _controller = controller;
   }
 
+  /// refreshes geo coordinates and updates variables for menu accordingly
+  _updateLocationAndLocales() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // initially set locale
+    if (!prefs.containsKey("locale")) {
+      prefs.setString("locale", systemLocale);
+    }
+
+    // load last stored locale
+    currentLocale = prefs.getString("locale")!;
+
+    // set to last known pos
+    await geo.getLastKnownLocation();
+    setState(() {
+      _geoLastChange = prefs.getString("geoLastChange")?.split(".")[0] ?? 'n/a';
+      String lat = prefs.getString("latitude") ?? "n/a";
+      String lon = prefs.getString("longitude") ?? "n/a";
+      _geoLastKnown = "lat: $lat\nlon: $lon";
+      _isLoading = false;
+    });
+
+    // wait for refresh of coords
+    await geo.updateLocation();
+    setState(() {
+      // _geoOrDatabaseWarning = warning;
+      _geoLastChange = prefs.getString("geoLastChange")?.split(".")[0] ?? 'n/a';
+      String lat = prefs.getString("latitude") ?? "n/a";
+      String lon = prefs.getString("longitude") ?? "n/a";
+      _geoLastKnown = "lat: $lat\nlon: $lon";
+    });
+  }
+
   /// scaffold of app with menu drawer and WebViewWidget as body
   /// NameForm is stacked on top and controlled with _showNameForm
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hedge Profiler'),
-      ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  DrawerHeader(
-                    decoration: const BoxDecoration(
-                      color: Color.fromRGBO(0, 96, 205, 1),
-                    ),
-                    child: Column(
-                      // mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(children: [
-                          const Text(
-                            'Hedge Profiler',
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.work_history_outlined),
-                            // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
-                            onPressed: () async {
-                              // toggle and update locale
-                              SharedPreferences prefs =
-                                  await SharedPreferences.getInstance();
-                              if (prefs.getString("locale") == "EN") {
-                                prefs.setString("locale", "DE");
-                                currentLocale = "DE";
-                              } else {
-                                prefs.setString("locale", "EN");
-                                currentLocale = "EN";
-                              }
 
-                              // rebuild form
-                              setState(() {});
-                              // _nameFormKey.currentState?.rebuildForm();
-                            },
-                          ),
-                          IconButton(
-                            icon: _darkMode
-                                ? const Icon(Icons.light_mode)
-                                : const Icon(Icons.dark_mode),
-                            // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
-                            onPressed: () {
-                              setState(() {
-                                _darkMode = !_darkMode;
-                                if (_darkMode) {
-                                  HedgeProfilerApp.of(context)
-                                      .changeTheme(ThemeMode.dark);
-                                } else {
-                                  HedgeProfilerApp.of(context)
-                                      .changeTheme(ThemeMode.light);
-                                }
-                              });
-                            },
-                          )
-                        ]),
-                        Row(
-                          children: [
-                            const Text('Last known location',
-                                style: TextStyle(
-                                    fontSize: 12, fontWeight: FontWeight.bold)),
-                            IconButton(
-                              onPressed: _updateLocationAndLocales,
-                              icon: const Icon(
-                                Icons.refresh,
-                                size: 20,
-                              ),
+    /// loads a page
+    void _loadPage(BuildContext context, String url) async {
+      // prevent loading of page if page was already loaded before
+      String stem = RegExp("http.*(com|at)").firstMatch(url)?.group(0) ?? '';
+      if (_currentUrlStem != stem && stem != '') {
+        _currentUrlStem = stem;
+
+        // update geo info
+        // _updateLocation();
+        _updateLocationAndLocales();
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        var latitude = prefs.getString("latitude");
+        var longitude = prefs.getString("longitude");
+        var zoom =
+            "15"; // change location zoom depending on whether location can be loaded
+
+        if (latitude == "16.3389" || longitude == "48.1970") {
+          zoom = "10";
+        }
+
+        // re-build boden karte URL with updated coords
+        if (url.startsWith("https://bodenkarte.at")) {
+          url =
+          "https://bodenkarte.at/#/center/$longitude,$latitude/zoom/$zoom";
+        }
+
+        if (url.startsWith("https://maps.arcanum.com/")) {
+          String stem = "https://maps.arcanum.com/en/map";
+          String map = "europe-19century-secondsurvey";
+          url = "$stem/$map/?lon=$longitude&lat=$latitude&zoom=$zoom";
+        }
+
+        // load page via controller
+        _controller.loadRequest(Uri.parse(url));
+      }
+    }
+
+    if (_isLoading) {
+      return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          )
+      );
+    } else {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Hedge Profiler'),
+        ),
+        drawer: Drawer(
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    DrawerHeader(
+                      decoration: const BoxDecoration(
+                        color: Color.fromRGBO(0, 96, 205, 1),
+                      ),
+                      child: Column(
+                        // mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(children: [
+                            const Text(
+                              'Hedge Profiler',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
-                          ],
-                        ),
-                        Text(_geoLastKnown,
-                            style: const TextStyle(
-                                fontSize: 10, fontStyle: FontStyle.italic)),
-                        Text(_geoLastChange,
-                            style: const TextStyle(
-                                fontSize: 10, fontStyle: FontStyle.italic)),
-                        Text(_geoOrDatabaseWarning,
-                            style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.deepOrange,
-                                fontWeight: FontWeight.bold)),
-                      ],
+                            IconButton(
+                              icon: const Icon(Icons.work_history_outlined),
+                              // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
+                              onPressed: () async {
+                                // toggle and update locale
+                                SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+                                if (prefs.getString("locale") == "EN") {
+                                  prefs.setString("locale", "DE");
+                                  currentLocale = "DE";
+                                } else {
+                                  prefs.setString("locale", "EN");
+                                  currentLocale = "EN";
+                                }
+
+                                // rebuild form
+                                setState(() {});
+                                // _nameFormKey.currentState?.rebuildForm();
+                              },
+                            ),
+                            IconButton(
+                              icon: _darkMode
+                                  ? const Icon(Icons.light_mode)
+                                  : const Icon(Icons.dark_mode),
+                              // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
+                              onPressed: () {
+                                setState(() {
+                                  _darkMode = !_darkMode;
+                                  if (_darkMode) {
+                                    HedgeProfilerApp.of(context)
+                                        .changeTheme(ThemeMode.dark);
+                                  } else {
+                                    HedgeProfilerApp.of(context)
+                                        .changeTheme(ThemeMode.light);
+                                  }
+                                });
+                              },
+                            )
+                          ]),
+                          Row(
+                            children: [
+                              const Text('Last known location',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold)),
+                              IconButton(
+                                onPressed: _updateLocationAndLocales,
+                                icon: const Icon(
+                                  Icons.refresh,
+                                  size: 20,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(_geoLastKnown,
+                              style: const TextStyle(
+                                  fontSize: 10, fontStyle: FontStyle.italic)),
+                          Text(_geoLastChange,
+                              style: const TextStyle(
+                                  fontSize: 10, fontStyle: FontStyle.italic)),
+                          Text(_geoOrDatabaseWarning,
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.deepOrange,
+                                  fontWeight: FontWeight.bold)),
+                        ],
+                      ),
                     ),
+                    ListTile(
+                      leading: const Icon(
+                          Icons.eco_rounded, color: Colors.green),
+                      title: const Text('Rate Hedge'),
+                      onTap: () {
+                        setState(() {
+                          _showNameForm = true;
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(
+                          Icons.map_outlined, color: Colors.red),
+                      title: const Text('Arcanum'),
+                      onTap: () {
+                        setState(() {
+                          _showNameForm = false;
+                        });
+                        _loadPage(context, 'https://maps.arcanum.com/');
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(
+                          Icons.map_outlined, color: Colors.blue),
+                      title: const Text('Bodenkarte'),
+                      onTap: () {
+                        setState(() {
+                          _showNameForm = false;
+                        });
+                        _loadPage(context, 'https://bodenkarte.at/');
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                children: [
+                  Image.asset(
+                    'data/lsw_logo.png',
+                    fit: BoxFit.contain,
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.eco_rounded, color: Colors.green),
-                    title: const Text('Rate Hedge'),
-                    onTap: () {
-                      setState(() {
-                        _showNameForm = true;
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.map_outlined, color: Colors.red),
-                    title: const Text('Arcanum'),
-                    onTap: () {
-                      setState(() {
-                        _showNameForm = false;
-                      });
-                      _loadPage(context, 'https://maps.arcanum.com/');
-                      Navigator.pop(context);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.map_outlined, color: Colors.blue),
-                    title: const Text('Bodenkarte'),
-                    onTap: () {
-                      setState(() {
-                        _showNameForm = false;
-                      });
-                      _loadPage(context, 'https://bodenkarte.at/');
-                      Navigator.pop(context);
-                    },
-                  ),
+                  const SizedBox(height: 30)
                 ],
               ),
-            ),
-            Column(
-              children: [
-                Image.asset(
-                  'data/lsw_logo.png',
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 30)
-              ],
-            ),
-          ],
-        ),
-      ),
-      body: Stack(
-        children: [
-          WebViewWidget(
-            controller: _controller,
+            ],
           ),
-          if (loadingPercentage < 100)
-            LinearProgressIndicator(
-              value: loadingPercentage / 100.0,
+        ),
+        body: Stack(
+          children: [
+            WebViewWidget(
+              controller: _controller,
             ),
-          if (_showNameForm)
-            Positioned.fill(
-              child: Container(
-                color: Colors.black.withOpacity(0.5),
-                child: Center(
-                  child: NameForm(formKey: _nameFormKey),
+            if (loadingPercentage < 100)
+              LinearProgressIndicator(
+                value: loadingPercentage / 100.0,
+              ),
+            if (_showNameForm)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.5),
+                  child: Center(
+                    child: NameForm(formKey: _nameFormKey),
+                  ),
                 ),
               ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  /// loads a page
-  void _loadPage(BuildContext context, String url) async {
-    // prevent loading of page if page was already loaded before
-    String stem = RegExp("http.*(com|at)").firstMatch(url)?.group(0) ?? '';
-    if (_currentUrlStem != stem && stem != '') {
-      _currentUrlStem = stem;
-
-      // update geo info
-      // _updateLocation();
-      _updateLocationAndLocales();
-
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      var latitude = prefs.getString("latitude");
-      var longitude = prefs.getString("longitude");
-      var zoom =
-          "15"; // change location zoom depending on whether location can be loaded
-
-      if (latitude == "16.3389" || longitude == "48.1970") {
-        zoom = "10";
-      }
-
-      // re-build boden karte URL with updated coords
-      if (url.startsWith("https://bodenkarte.at")) {
-        url = "https://bodenkarte.at/#/center/$longitude,$latitude/zoom/$zoom";
-      }
-
-      if (url.startsWith("https://maps.arcanum.com/")) {
-        String stem = "https://maps.arcanum.com/en/map";
-        String map = "europe-19century-secondsurvey";
-        url = "$stem/$map/?lon=$longitude&lat=$latitude&zoom=$zoom";
-      }
-
-      // load page via controller
-      _controller.loadRequest(Uri.parse(url));
+          ],
+        ),
+      );
     }
   }
 }
@@ -421,7 +437,7 @@ class NameFormState extends State<NameForm> {
     'Kulturell': Colors.orange,
   };
 
-  late String currentLocale;
+  late String currentLocale = '';
   LocaleMap localeMap = LocaleMap();
   Map<String, String> localeToOriginal = {};
   Map<String, String> originalToLocale = {};

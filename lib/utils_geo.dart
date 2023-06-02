@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Check if location services are available
-void _checkLocationPermissions() async {
+Future<void> _checkLocationPermissions() async {
   bool serviceEnabled;
   LocationPermission permission;
 
@@ -53,21 +53,22 @@ Future<String> updateLocation() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   try {
     // check permissions
-    _checkLocationPermissions();
+    await _checkLocationPermissions();
 
     // set last position as fallback
-    setLastPosWithFallback(prefs);
+    await setLastPosWithFallback(prefs);
 
     // set current position
     _setCurrentPos(prefs);
   } catch (e) {
-    setLastPosWithFallback(prefs);
+    await setLastPosWithFallback(prefs);
     return e.toString();
   }
   return '';
 }
 
-void setLastPosWithFallback(SharedPreferences prefs) async {
+Future<void> setLastPosWithFallback(SharedPreferences prefs) async {
+  _checkLocationPermissions();
   Position? lastPos =
       await Geolocator.getLastKnownPosition(forceAndroidLocationManager: true);
   if (lastPos != null) {
