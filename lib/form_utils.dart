@@ -262,11 +262,14 @@ class ConfirmationDialog extends StatelessWidget {
 class LocaleMap {
   List<Map<String, dynamic>> formFields = [];
   List<Map<String, dynamic>> dynamicFormFields = [];
+  List<Map<String, dynamic>> sections = [];
 
   void initialize(List<Map<String, dynamic>> formFields,
-      List<Map<String, dynamic>> dynamicFormFields) {
+      List<Map<String, dynamic>> dynamicFormFields,
+      List<Map<String, dynamic>> sections) {
     this.formFields = formFields;
     this.dynamicFormFields = dynamicFormFields;
+    this.sections = sections;
   }
 
   Map<String, String> getLocaleToOriginal(String locale) {
@@ -277,6 +280,10 @@ class LocaleMap {
     }
     for (Map<String, dynamic> dynField in dynamicFormFields) {
       map[dynField["headerText$locale"]] = dynField["headerText"];
+    }
+
+    for (Map<String, dynamic> sec in sections) {
+      map[sec["label$locale"]] = sec["label"];
     }
 
     return map;
@@ -290,6 +297,9 @@ class LocaleMap {
     }
     for (Map<String, dynamic> dynField in dynamicFormFields) {
       map[dynField["headerText"]] = dynField["headerText$locale"];
+    }
+    for (Map<String, dynamic> sec in sections) {
+      map[sec["label"]] = sec["label$locale"];
     }
 
     return map;

@@ -442,6 +442,10 @@ class NameFormState extends State<NameForm> {
   Map<String, String> localeToOriginal = {};
   Map<String, String> originalToLocale = {};
 
+  // top menu stuff
+  String selectedMenuItem = "";
+  List<String> menuItems = [];
+
   @override
   void dispose() {
     super.dispose();
@@ -460,12 +464,14 @@ class NameFormState extends State<NameForm> {
     inputFields = createFormFields();
     dynamicFields = createDynamicFormFields();
 
-    localeMap.initialize(inputFields, dynamicFields);
+    localeMap.initialize(inputFields, dynamicFields, sections);
     localeToOriginal = localeMap.getLocaleToOriginal(currentLocale);
     originalToLocale = localeMap.getOriginalToLocale(currentLocale);
 
     _dropdownsKeys = List.generate(
         dynamicFields.length, (_) => GlobalKey<DynamicDropdownsState>());
+
+    menuItems = sections.map((s) => s["label$currentLocale"].toString()).toList();
 
     _populateStaticInputFields();
     _checkPermissions();
@@ -1124,14 +1130,20 @@ class NameFormState extends State<NameForm> {
     });
   }
 
+  void _onMenuItemSelected(String item) {
+    setState(() {
+      selectedMenuItem = localeToOriginal[item]!;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<void>(
       future: refreshCurrentLocale(),
       builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          showSnackbar(context, "Switched locale to $currentLocale");
-        }
+        // if (snapshot.connectionState == ConnectionState.done) {
+        //   showSnackbar(context, "Switched locale to $currentLocale");
+        // }
 
         // Determine amount of columns based on screen width and orientation
         final mediaQueryData = MediaQuery.of(context);
@@ -1149,7 +1161,7 @@ class NameFormState extends State<NameForm> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      createHeader(currentLocale),
+                      createHeader(originalToLocale["general"]!),
                       buildFormFieldGrid(
                           inputFields, 'general', setState, currentLocale,
                           onWidgetChanged: onStaticWidgetChanged,
@@ -1163,7 +1175,7 @@ class NameFormState extends State<NameForm> {
                         columns: dynamicColumns,
                       ),
                       const Divider(),
-                      createHeader("gis"),
+                      createHeader(originalToLocale["gis"]!),
                       buildFormFieldGrid(
                           inputFields, 'gis', setState, currentLocale,
                           onWidgetChanged: onStaticWidgetChanged,
@@ -1177,7 +1189,7 @@ class NameFormState extends State<NameForm> {
                           columns: dynamicColumns),
                       const SizedBox(height: 16),
                       const Divider(),
-                      createHeader("gelaende"),
+                      createHeader(originalToLocale["gelaende"]!),
                       buildFormFieldGrid(
                           inputFields, "gelaende", setState, currentLocale,
                           onWidgetChanged: onStaticWidgetChanged,
@@ -1190,7 +1202,7 @@ class NameFormState extends State<NameForm> {
                           currentLocale: currentLocale,
                           columns: dynamicColumns),
                       const Divider(),
-                      createHeader("anmerkungen"),
+                      createHeader(originalToLocale["anmerkungen"]!),
                       buildFormFieldGrid(
                           inputFields, "anmerkungen", setState, currentLocale,
                           onWidgetChanged: onStaticWidgetChanged,
@@ -1203,7 +1215,7 @@ class NameFormState extends State<NameForm> {
                           currentLocale: currentLocale,
                           columns: dynamicColumns),
                       const Divider(),
-                      createHeader("Images"),
+                      createHeader(originalToLocale["images"]!),
                       GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),

@@ -6,7 +6,12 @@ List<Map<String, dynamic>> getSections() {
     {"label": "gis", "labelEN": "IDKGIS", "labelDE": "GISGAG"},
     {"label": "gelaende", "labelEN": "Surface", "labelDE": "Gelände"},
     {"label": "anmerkungen", "labelEN": "Comments", "labelDE": "Anmerkungen"},
+    {"label": "images", "labelEN": "Images", "labelDE": "Bilder"},
   ];
+}
+
+List<String> getSectionsFromLocale(String locale) {
+  return getSections().map((section) => section["label$locale"].toString()).toList();
 }
 
 /// This function defines the data for static inputs (text, number or dropdown)
