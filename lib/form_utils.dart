@@ -26,7 +26,7 @@ Column buildDynamicFormFieldGrid({
             child: DynamicDropdowns(
               key: dropdownKeys[index],
               defValues: child['defValues'],
-              headerText: child['headerText'],
+              headerText: child['headerText$currentLocale'],
               borderColor: child['borderColor'],
               onChanged: onDropdownChanged,
               minDropdownCount: child['minDropdownCount'] ?? minDropdownCount,
@@ -54,7 +54,7 @@ Column buildDynamicFormFieldGrid({
 
 Column buildFormFieldGrid(List<Map<String, dynamic>> inputFields,
     String sectionToBuild, Function setState, String currentLocale,
-    {columns = 3}) {
+    {columns = 3, required void Function(String, String) onWidgetChanged}) {
   List<Widget> rows = [];
   List<Widget> rowChildren = [];
 
@@ -64,12 +64,15 @@ Column buildFormFieldGrid(List<Map<String, dynamic>> inputFields,
     }
     Color? borderColor = field['borderColor'];
     if (field['type'] == 'text') {
-      rowChildren.add(_createTextInput(field, borderColor: borderColor));
+      rowChildren.add(_createTextInput(field, currentLocale, onWidgetChanged,
+          borderColor: borderColor));
     } else if (field['type'] == 'dropdown') {
-      rowChildren
-          .add(_createDropdownInput(field, setState, borderColor: borderColor));
+      rowChildren.add(_createDropdownInput(
+          field, currentLocale, setState, onWidgetChanged,
+          borderColor: borderColor));
     } else if (field['type'] == 'number') {
-      rowChildren.add(_createNumberInput(field, borderColor: borderColor));
+      rowChildren.add(_createNumberInput(field, currentLocale, onWidgetChanged,
+          borderColor: borderColor));
     }
 
     if (rowChildren.length == columns) {
@@ -111,7 +114,9 @@ int determineRequiredColumns(var mediaQueryData) {
   return columns;
 }
 
-Expanded _createTextInput(var field, {Color? borderColor}) {
+Expanded _createTextInput(
+    var field, String currentLocale, Function(String, String) onChanged,
+    {Color? borderColor}) {
   return Expanded(
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -123,11 +128,11 @@ Expanded _createTextInput(var field, {Color? borderColor}) {
                 ? BorderSide(color: borderColor)
                 : const BorderSide(),
           ),
-          labelText: field['label'],
+          labelText: field['label$currentLocale'],
         ),
         keyboardType: TextInputType.text,
-        validator: field['validator'],
         onChanged: (value) async {
+          onChanged(field["label"], value);
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString(field['label'], value);
         },
@@ -136,7 +141,9 @@ Expanded _createTextInput(var field, {Color? borderColor}) {
   );
 }
 
-Expanded _createNumberInput(var field, {Color? borderColor}) {
+Expanded _createNumberInput(
+    var field, String currentLocale, Function(String, String) onChanged,
+    {Color? borderColor}) {
   return Expanded(
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -148,11 +155,11 @@ Expanded _createNumberInput(var field, {Color? borderColor}) {
                 ? BorderSide(color: borderColor)
                 : const BorderSide(),
           ),
-          labelText: field['label'],
+          labelText: field['label$currentLocale'],
         ),
         keyboardType: TextInputType.number,
-        validator: field['validator'],
         onChanged: (value) async {
+          onChanged(field["label"], value);
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString(field['label'], value);
         },
@@ -161,7 +168,8 @@ Expanded _createNumberInput(var field, {Color? borderColor}) {
   );
 }
 
-Expanded _createDropdownInput(var field, Function setState,
+Expanded _createDropdownInput(var field, String currentLocale,
+    Function setState, Function(String, String) onChanged,
     {Color? borderColor}) {
   var dropdownItems = field['values'].map<DropdownMenuItem<String>>((value) {
     double dynamicTextSize = 12;
@@ -192,13 +200,14 @@ Expanded _createDropdownInput(var field, Function setState,
                 ? BorderSide(color: borderColor)
                 : const BorderSide(),
           ),
-          labelText: field['label'],
+          labelText: field['label$currentLocale'],
           labelStyle: TextStyle(
-            fontSize: field['label'].length > 24 ? 14 : 16,
+            fontSize: field['label$currentLocale'].length > 24 ? 14 : 16,
           ),
         ),
         items: dropdownItems,
         onChanged: (value) async {
+          onChanged(field["label"], value.toString());
           setState(() {
             field['selectedValue'] = value;
           });
@@ -206,7 +215,6 @@ Expanded _createDropdownInput(var field, Function setState,
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString(field['label'], value.toString());
         },
-        validator: field['validator'],
       ),
     ),
   );

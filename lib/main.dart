@@ -176,7 +176,6 @@ Page resource error:
   /// NameForm is stacked on top and controlled with _showNameForm
   @override
   Widget build(BuildContext context) {
-
     /// loads a page
     void _loadPage(BuildContext context, String url) async {
       // prevent loading of page if page was already loaded before
@@ -201,7 +200,7 @@ Page resource error:
         // re-build boden karte URL with updated coords
         if (url.startsWith("https://bodenkarte.at")) {
           url =
-          "https://bodenkarte.at/#/center/$longitude,$latitude/zoom/$zoom";
+              "https://bodenkarte.at/#/center/$longitude,$latitude/zoom/$zoom";
         }
 
         if (url.startsWith("https://maps.arcanum.com/")) {
@@ -218,9 +217,8 @@ Page resource error:
     if (_isLoading) {
       return const Scaffold(
           body: Center(
-            child: CircularProgressIndicator(),
-          )
-      );
+        child: CircularProgressIndicator(),
+      ));
     } else {
       return Scaffold(
         appBar: AppBar(
@@ -253,7 +251,7 @@ Page resource error:
                               onPressed: () async {
                                 // toggle and update locale
                                 SharedPreferences prefs =
-                                await SharedPreferences.getInstance();
+                                    await SharedPreferences.getInstance();
                                 if (prefs.getString("locale") == "EN") {
                                   prefs.setString("locale", "DE");
                                   currentLocale = "DE";
@@ -316,8 +314,8 @@ Page resource error:
                       ),
                     ),
                     ListTile(
-                      leading: const Icon(
-                          Icons.eco_rounded, color: Colors.green),
+                      leading:
+                          const Icon(Icons.eco_rounded, color: Colors.green),
                       title: const Text('Rate Hedge'),
                       onTap: () {
                         setState(() {
@@ -327,8 +325,8 @@ Page resource error:
                       },
                     ),
                     ListTile(
-                      leading: const Icon(
-                          Icons.map_outlined, color: Colors.red),
+                      leading:
+                          const Icon(Icons.map_outlined, color: Colors.red),
                       title: const Text('Arcanum'),
                       onTap: () {
                         setState(() {
@@ -339,8 +337,8 @@ Page resource error:
                       },
                     ),
                     ListTile(
-                      leading: const Icon(
-                          Icons.map_outlined, color: Colors.blue),
+                      leading:
+                          const Icon(Icons.map_outlined, color: Colors.blue),
                       title: const Text('Bodenkarte'),
                       onTap: () {
                         setState(() {
@@ -402,12 +400,14 @@ class NameForm extends StatefulWidget {
 /// form page
 class NameFormState extends State<NameForm> {
   // final _formKey = GlobalKey<FormState>();
-  GlobalKey<NameFormState> get _formKey => widget.formKey;
+  // GlobalKey<NameFormState> get _formKey => widget.formKey;
+  // final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   List<File> _selectedImages = [];
   bool _isSaving = false;
   List<Map<String, dynamic>> inputFields = [];
   List<Map<String, dynamic>> dynamicFields = [];
+  List<Map<String, dynamic>> sections = [];
   List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
   Map<String, double> _radarChartData =
       {}; // after weighting etc. to display in graph
@@ -456,6 +456,7 @@ class NameFormState extends State<NameForm> {
   Future<void> initializeForm() async {
     await refreshCurrentLocale();
 
+    sections = getSections();
     inputFields = createFormFields();
     dynamicFields = createDynamicFormFields();
 
@@ -470,12 +471,6 @@ class NameFormState extends State<NameForm> {
     _checkPermissions();
     _getLostImageData();
     _loadPersistedImages();
-  }
-
-  void rebuildForm() {
-    setState(() {
-      print('k');
-    });
   }
 
   /// populate input fields on page init;
@@ -506,6 +501,11 @@ class NameFormState extends State<NameForm> {
       // otherwise, add/update preferences with dropdown values
       sharedPreferences.setString(originalDropdownKey!, dropdownValue);
     }
+  }
+
+  /// action triggered by static widgets onChanged events
+  void onStaticWidgetChanged(String widgetLabel, String widgetValue) async {
+    print("$widgetLabel $widgetValue");
   }
 
   /// action for Clear button
@@ -1142,7 +1142,7 @@ class NameFormState extends State<NameForm> {
         return Scaffold(
           body: Material(
             child: Form(
-              key: _formKey,
+              key: widget.formKey,
               child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1151,49 +1151,53 @@ class NameFormState extends State<NameForm> {
                     children: [
                       createHeader(currentLocale),
                       buildFormFieldGrid(
-                          inputFields, 'General', setState, currentLocale,
+                          inputFields, 'general', setState, currentLocale,
+                          onWidgetChanged: onStaticWidgetChanged,
                           columns: columns),
                       buildDynamicFormFieldGrid(
                         children: dynamicFields,
-                        section: 'General',
+                        section: 'general',
                         dropdownKeys: _dropdownsKeys,
                         onDropdownChanged: onDynamicDropdownsChanged,
                         currentLocale: currentLocale,
                         columns: dynamicColumns,
                       ),
                       const Divider(),
-                      createHeader("GIS"),
+                      createHeader("gis"),
                       buildFormFieldGrid(
-                          inputFields, 'GIS', setState, currentLocale,
+                          inputFields, 'gis', setState, currentLocale,
+                          onWidgetChanged: onStaticWidgetChanged,
                           columns: columns),
                       buildDynamicFormFieldGrid(
                           children: dynamicFields,
-                          section: 'GIS',
+                          section: 'gis',
                           dropdownKeys: _dropdownsKeys,
                           onDropdownChanged: onDynamicDropdownsChanged,
                           currentLocale: currentLocale,
                           columns: dynamicColumns),
                       const SizedBox(height: 16),
                       const Divider(),
-                      createHeader("Gelände"),
+                      createHeader("gelaende"),
                       buildFormFieldGrid(
-                          inputFields, "Gelände", setState, currentLocale,
+                          inputFields, "gelaende", setState, currentLocale,
+                          onWidgetChanged: onStaticWidgetChanged,
                           columns: columns),
                       buildDynamicFormFieldGrid(
                           children: dynamicFields,
-                          section: 'Gelände',
+                          section: 'gelaende',
                           dropdownKeys: _dropdownsKeys,
                           onDropdownChanged: onDynamicDropdownsChanged,
                           currentLocale: currentLocale,
                           columns: dynamicColumns),
                       const Divider(),
-                      createHeader("Anmerkungen"),
+                      createHeader("anmerkungen"),
                       buildFormFieldGrid(
-                          inputFields, "Anmerkungen", setState, currentLocale,
+                          inputFields, "anmerkungen", setState, currentLocale,
+                          onWidgetChanged: onStaticWidgetChanged,
                           columns: columns),
                       buildDynamicFormFieldGrid(
                           children: dynamicFields,
-                          section: 'Anmerkungen',
+                          section: 'anmerkungen',
                           dropdownKeys: _dropdownsKeys,
                           onDropdownChanged: onDynamicDropdownsChanged,
                           currentLocale: currentLocale,
