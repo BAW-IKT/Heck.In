@@ -62,7 +62,7 @@ class WebViewPage extends StatefulWidget {
 
 /// main page, instantiates WebView controller and NameForm (displayed as overlay)
 class _WebViewPageState extends State<WebViewPage> {
-  var loadingPercentage = 0;
+  ValueNotifier<double> _loadingPercentage = ValueNotifier<double>(0.0);
   late final WebViewController _controller;
 
   bool _showNameForm = true;
@@ -101,34 +101,27 @@ class _WebViewPageState extends State<WebViewPage> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
-            setState(() {
-              loadingPercentage = 0;
-            });
-            debugPrint('Page started loading: $url');
+            _loadingPercentage.value = 0;
+            // debugPrint('Page started loading: $url');
           },
           onProgress: (int progress) {
-            setState(() {
-              loadingPercentage = progress;
-            });
-            debugPrint('WebView is loading (progress: $progress%)');
+            _loadingPercentage.value = progress.toDouble();
+            // debugPrint('WebView is loading (progress: $progress%)');
           },
           onPageFinished: (String url) {
-            setState(() {
-              loadingPercentage = 100;
-            });
-            debugPrint('Page finished loading: $url');
+            _loadingPercentage.value = 100;
+            // debugPrint('Page finished loading: $url');
           },
           onWebResourceError: (WebResourceError error) {
-            setState(() {
-              loadingPercentage = 0;
-            });
-            debugPrint('''
-Page resource error:
-  code: ${error.errorCode}
-  description: ${error.description}
-  errorType: ${error.errorType}
-  isForMainFrame: ${error.isForMainFrame}
-          ''');
+            _loadingPercentage.value = 0;
+//             debugPrint('''
+// Page resource error:
+//   code: ${error.errorCode}
+//   description: ${error.description}
+//   errorType: ${error.errorType}
+//   isForMainFrame: ${error.isForMainFrame}
+//           ''');
+            showSnackbar(context, error.description.toString());
           },
           onNavigationRequest: (NavigationRequest request) {
             return NavigationDecision.navigate;
@@ -247,8 +240,10 @@ Page resource error:
                             ),
                             IconButton(
                               icon: currentLocale == "EN"
-                                  ? const Icon(Icons.language, color: Colors.green)
-                                  : const Icon(Icons.language, color: Colors.orange),
+                                  ? const Icon(Icons.language,
+                                      color: Colors.green)
+                                  : const Icon(Icons.language,
+                                      color: Colors.orange),
                               // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
                               onPressed: () async {
                                 // toggle and update locale
@@ -370,10 +365,16 @@ Page resource error:
             WebViewWidget(
               controller: _controller,
             ),
-            if (loadingPercentage < 100)
-              LinearProgressIndicator(
-                value: loadingPercentage / 100.0,
-              ),
+            ValueListenableBuilder<double>(
+              valueListenable: _loadingPercentage,
+              builder: (context, value, child) {
+                return value < 100
+                    ? LinearProgressIndicator(
+                        value: value / 100.0,
+                      )
+                    : SizedBox.shrink();
+              },
+            ),
             if (_showNameForm)
               Positioned.fill(
                 child: Container(
@@ -1196,21 +1197,23 @@ class NameFormState extends State<NameForm> {
           key: widget.formKey,
           child: Row(children: [
             Expanded(
-              child: SingleChildScrollView(child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IndexedStack(
-                    index: _selectedIndex,
-                    children: [
-                      buildMenuPage("general", columns, dynamicColumns),
-                      buildMenuPage("gis", columns, dynamicColumns),
-                      buildMenuPage("gelaende", columns, dynamicColumns),
-                      buildImagePage("images"),
-                    ],
-                  ),
-                  // Text("something: $_selectedIndex $currentLocale"),
-                ],
-              ),),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IndexedStack(
+                      index: _selectedIndex,
+                      children: [
+                        buildMenuPage("general", columns, dynamicColumns),
+                        buildMenuPage("gis", columns, dynamicColumns),
+                        buildMenuPage("gelaende", columns, dynamicColumns),
+                        buildImagePage("images"),
+                      ],
+                    ),
+                    // Text("something: $_selectedIndex $currentLocale"),
+                  ],
+                ),
+              ),
             ),
             const VerticalDivider(thickness: 1, width: 1),
             SingleChildScrollView(
@@ -1399,8 +1402,7 @@ class NameFormState extends State<NameForm> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   createHeader(originalToLocale["general"]!),
-                  buildFormFieldGrid(
-                      inputFields, 'general', currentLocale,
+                  buildFormFieldGrid(inputFields, 'general', currentLocale,
                       onWidgetChanged: onStaticWidgetChanged, columns: columns),
                   buildDynamicFormFieldGrid(
                     children: dynamicFields,
@@ -1412,8 +1414,7 @@ class NameFormState extends State<NameForm> {
                   ),
                   const Divider(),
                   createHeader(originalToLocale["gis"]!),
-                  buildFormFieldGrid(
-                      inputFields, 'gis', currentLocale,
+                  buildFormFieldGrid(inputFields, 'gis', currentLocale,
                       onWidgetChanged: onStaticWidgetChanged, columns: columns),
                   buildDynamicFormFieldGrid(
                       children: dynamicFields,
@@ -1425,8 +1426,7 @@ class NameFormState extends State<NameForm> {
                   const SizedBox(height: 16),
                   const Divider(),
                   createHeader(originalToLocale["gelaende"]!),
-                  buildFormFieldGrid(
-                      inputFields, "gelaende", currentLocale,
+                  buildFormFieldGrid(inputFields, "gelaende", currentLocale,
                       onWidgetChanged: onStaticWidgetChanged, columns: columns),
                   buildDynamicFormFieldGrid(
                       children: dynamicFields,
@@ -1437,8 +1437,7 @@ class NameFormState extends State<NameForm> {
                       columns: dynamicColumns),
                   const Divider(),
                   createHeader(originalToLocale["anmerkungen"]!),
-                  buildFormFieldGrid(
-                      inputFields, "anmerkungen", currentLocale,
+                  buildFormFieldGrid(inputFields, "anmerkungen", currentLocale,
                       onWidgetChanged: onStaticWidgetChanged, columns: columns),
                   buildDynamicFormFieldGrid(
                       children: dynamicFields,
