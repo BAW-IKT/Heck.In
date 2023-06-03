@@ -627,11 +627,11 @@ List<Map<String, dynamic>> createDynamicFormFields() {
       'borderColor': Colors.greenAccent,
       'defValues': const [
         '',
-        'Siedlung/Straße',
-        'Grünland ext.',
-        'Grünland int.',
-        'Acker',
-        'unbefestigter Weg',
+        'keine ersichtlich',
+        'Bienenstöcke',
+        'Obst',
+        'gelagerte Holzstapel',
+        'andere Nutzung',
         'Brache'
       ],
       'valueMap': {

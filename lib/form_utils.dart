@@ -2,6 +2,19 @@ import 'package:flutter/material.dart';
 import 'dynamic_dropdowns.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+Map<String, Color> getColorMap() {
+  return {
+    "Blue": const Color.fromRGBO(0, 96, 205, 1),
+    "Green": const Color.fromRGBO(0, 176, 0, 1),
+    "Orange": const Color.fromRGBO(255, 153, 0, 1),
+    "Red": const Color.fromRGBO(255, 51, 51, 1),
+    "Yellow": const Color.fromRGBO(255, 209, 0, 1),
+    "Purple": const Color.fromRGBO(123, 31, 162, 1),
+    "Teal": const Color.fromRGBO(0, 150, 136, 1),
+    "Coral": const Color.fromRGBO(255, 109, 94, 1),
+  };
+}
+
 Column buildDynamicFormFieldGrid({
   required List<Map<String, dynamic>> children,
   required String section,
@@ -164,8 +177,8 @@ Expanded _createNumberInput(
   );
 }
 
-Expanded _createDropdownInput(var field, String currentLocale,
-    Function(String, String) onChanged,
+Expanded _createDropdownInput(
+    var field, String currentLocale, Function(String, String) onChanged,
     {Color? borderColor}) {
   var dropdownItems = field['values'].map<DropdownMenuItem<String>>((value) {
     double dynamicTextSize = 12;
@@ -254,7 +267,8 @@ class LocaleMap {
   List<Map<String, dynamic>> dynamicFormFields = [];
   List<Map<String, dynamic>> sections = [];
 
-  void initialize(List<Map<String, dynamic>> formFields,
+  void initialize(
+      List<Map<String, dynamic>> formFields,
       List<Map<String, dynamic>> dynamicFormFields,
       List<Map<String, dynamic>> sections) {
     this.formFields = formFields;
