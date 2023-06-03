@@ -216,9 +216,9 @@ Page resource error:
 
     if (_isLoading) {
       return const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     } else {
       return Scaffold(
@@ -246,7 +246,9 @@ Page resource error:
                                   fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.work_history_outlined),
+                              icon: currentLocale == "EN"
+                                  ? const Icon(Icons.language, color: Colors.green)
+                                  : const Icon(Icons.language, color: Colors.orange),
                               // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
                               onPressed: () async {
                                 // toggle and update locale
@@ -404,7 +406,9 @@ class NameFormState extends State<NameForm> {
   // final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   List<File> _selectedImages = [];
-  bool _isSaving = false;
+
+  // bool _isSaving = false;
+  ValueNotifier<bool> _isSaving = ValueNotifier<bool>(false);
   List<Map<String, dynamic>> inputFields = [];
   List<Map<String, dynamic>> dynamicFields = [];
   List<Map<String, dynamic>> sections = getSections();
@@ -520,6 +524,11 @@ class NameFormState extends State<NameForm> {
   /// action triggered by static widgets onChanged events
   void onStaticWidgetChanged(String widgetLabel, String widgetValue) async {
     // inputFields[widgetLabel]["selectedValue"] = widgetValue;
+    // write to shared preferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(widgetLabel, widgetValue);
+
+    // validate all widgets of that section are checked
     print("$widgetLabel $widgetValue");
   }
 
@@ -556,7 +565,7 @@ class NameFormState extends State<NameForm> {
   /// get form and image data and persist to database
   void _saveFormData() async {
     // clear validation warnings
-    setState(() {});
+    // setState(() {});
 
     // re-map preferences (contains all input fields)
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -566,15 +575,11 @@ class NameFormState extends State<NameForm> {
     }
 
     // start loading indicator
-    setState(() {
-      _isSaving = true;
-    });
+    _isSaving.value = true;
 
     // write to the database, show snackbar with result, stop loading indicator
     db.writeDocument(dataMap, _selectedImages, (success, message) {
-      setState(() {
-        _isSaving = false;
-      });
+      _isSaving.value = false;
       showSnackbar(context, message, success: success);
     });
   }
@@ -1165,6 +1170,8 @@ class NameFormState extends State<NameForm> {
             print('loading');
           default:
             currentLocale = snapshot.data.toString();
+            localeToOriginal = localeMap.getLocaleToOriginal(currentLocale);
+            originalToLocale = localeMap.getOriginalToLocale(currentLocale);
             return _buildReducedForm();
         }
       },
@@ -1178,61 +1185,138 @@ class NameFormState extends State<NameForm> {
     final dynamicColumns =
         determineRequiredColumnsDynamicDropdowns(mediaQueryData);
 
-return Scaffold(
-  body: Material(
-    child: Form(
-      key: widget.formKey,
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IndexedStack(
-                  index: _selectedIndex,
-                  children: [
-                    buildMenuPage("general", columns, dynamicColumns),
-                    buildMenuPage("gis", columns, dynamicColumns),
-                    buildMenuPage("gelaende", columns, dynamicColumns),
-                    buildMenuPage("anmerkungen", columns, dynamicColumns),
-                    buildMenuPage("images", columns, dynamicColumns),
-                  ],
-                ),
-                // Text("something: $_selectedIndex $currentLocale"),
-              ],
+    Map<String, String> sectionToLocale = {};
+    for (var sec in sections) {
+      sectionToLocale[sec["label"]] = sec["label$currentLocale"];
+    }
+
+    return Scaffold(
+      body: Material(
+        child: Form(
+          key: widget.formKey,
+          child: Row(children: [
+            Expanded(
+              child: SingleChildScrollView(child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IndexedStack(
+                    index: _selectedIndex,
+                    children: [
+                      buildMenuPage("general", columns, dynamicColumns),
+                      buildMenuPage("gis", columns, dynamicColumns),
+                      buildMenuPage("gelaende", columns, dynamicColumns),
+                      buildImagePage("images"),
+                    ],
+                  ),
+                  // Text("something: $_selectedIndex $currentLocale"),
+                ],
+              ),),
             ),
-          ),
             const VerticalDivider(thickness: 1, width: 1),
-            NavigationRail(
-              selectedIndex: _selectedIndex,
-              groupAlignment: -1.0,
-              onDestinationSelected: (int index) {
-                _triggeredByMenu = true;
-                setState(() {
-                  _selectedIndex = index;
-                });
-              },
-              labelType: NavigationRailLabelType.selected,
-              destinations: [
-                NavigationRailDestination(
-                    icon: Icon(Icons.favorite_border,
-                        color: menuStatus["general"] == true
-                            ? Colors.green
-                            : Colors.orange),
-                    selectedIcon: Icon(Icons.favorite,
-                        color: menuStatus["general"] == true
-                            ? Colors.green
-                            : Colors.orange),
-                    label: Text("general")),
-                NavigationRailDestination(
-                    icon: Icon(Icons.favorite_border),
-                    selectedIcon: Icon(Icons.favorite),
-                    label: Text("Second")),
-                NavigationRailDestination(
-                    icon: Icon(Icons.favorite_border),
-                    selectedIcon: Icon(Icons.favorite),
-                    label: Text("Third")),
-              ],
+            SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                    minHeight: MediaQuery.of(context).size.height - 120),
+                child: IntrinsicHeight(
+                  child: NavigationRail(
+                    selectedIndex: _selectedIndex,
+                    groupAlignment: -1.0,
+                    onDestinationSelected: (int index) {
+                      _triggeredByMenu = true;
+                      setState(() {
+                        _selectedIndex = index;
+                      });
+                    },
+                    labelType: NavigationRailLabelType.selected,
+                    destinations: [
+                      NavigationRailDestination(
+                          icon: Icon(Icons.favorite_border,
+                              color: menuStatus["general"] == true
+                                  ? Colors.green
+                                  : Colors.orange),
+                          selectedIcon: Icon(Icons.favorite,
+                              color: menuStatus["general"] == true
+                                  ? Colors.green
+                                  : Colors.orange),
+                          label: Text(sectionToLocale["general"]!)),
+                      NavigationRailDestination(
+                          icon: Icon(Icons.favorite_border,
+                              color: menuStatus["gis"] == true
+                                  ? Colors.green
+                                  : Colors.orange),
+                          selectedIcon: Icon(Icons.favorite,
+                              color: menuStatus["gis"] == true
+                                  ? Colors.green
+                                  : Colors.orange),
+                          label: Text(sectionToLocale["gis"]!)),
+                      NavigationRailDestination(
+                          icon: Icon(Icons.favorite_border,
+                              color: menuStatus["gelaende"] == true
+                                  ? Colors.green
+                                  : Colors.orange),
+                          selectedIcon: Icon(Icons.favorite,
+                              color: menuStatus["gelaende"] == true
+                                  ? Colors.green
+                                  : Colors.orange),
+                          label: Text(sectionToLocale["gelaende"]!)),
+                      NavigationRailDestination(
+                          icon: Icon(Icons.favorite_border,
+                              color: _selectedImages.isNotEmpty
+                                  ? Colors.green
+                                  : Colors.orange),
+                          selectedIcon: Icon(Icons.favorite,
+                              color: _selectedImages.isNotEmpty
+                                  ? Colors.green
+                                  : Colors.orange),
+                          label: Text(sectionToLocale["images"]!)),
+                    ],
+                    trailing: Column(
+                        // crossAxisAlignment: CrossAxisAlignment.center,
+                        // mainAxisSize: MainAxisSize.max,
+                        // mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          const SizedBox(height: 50),
+                          IconButton(
+                            icon: Icon(Icons.clear,
+                                color: Theme.of(context).colorScheme.error),
+                            onPressed: () => _showClearDialog(),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.photo_library),
+                            onPressed: () => _addImage(ImageSource.gallery),
+                            // onPressed: () => showSnackbar(context, "fredl", success: false),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.add_a_photo),
+                            onPressed: () => _addImage(ImageSource.camera),
+                          ),
+                          Stack(
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.send_and_archive_sharp),
+                                onPressed: () => _saveFormData(),
+                              ),
+                              ValueListenableBuilder<bool>(
+                                valueListenable: _isSaving,
+                                builder: (context, value, child) {
+                                  return value
+                                      ? Positioned.fill(
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .inversePrimary),
+                                          ),
+                                        )
+                                      : SizedBox.shrink();
+                                },
+                              ),
+                            ],
+                          ),
+                        ]),
+                  ),
+                ),
+              ),
             ),
           ]),
         ),
@@ -1243,8 +1327,8 @@ return Scaffold(
   Widget buildMenuPage(String section, var columns, var dynamicColumns) {
     return Column(children: [
       createHeader(originalToLocale[section]!),
-      buildFormFieldGrid(
-          inputFields, section, setState, currentLocale,
+      const Divider(),
+      buildFormFieldGrid(inputFields, section, currentLocale,
           onWidgetChanged: onStaticWidgetChanged, columns: columns),
       buildDynamicFormFieldGrid(
         children: dynamicFields,
@@ -1253,6 +1337,46 @@ return Scaffold(
         onDropdownChanged: onDynamicDropdownsChanged,
         currentLocale: currentLocale,
         columns: dynamicColumns,
+      ),
+    ]);
+  }
+
+  Widget buildImagePage(String section) {
+    return Column(children: [
+      createHeader(originalToLocale[section]!),
+      const Divider(),
+      GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _selectedImages.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+        ),
+        itemBuilder: (BuildContext context, int index) {
+          return Stack(
+            children: [
+              Image.file(_selectedImages[index], fit: BoxFit.cover),
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: -5,
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.highlight_remove, color: Colors.red),
+                  onPressed: () => _removeImage(index),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     ]);
   }
@@ -1276,7 +1400,7 @@ return Scaffold(
                 children: [
                   createHeader(originalToLocale["general"]!),
                   buildFormFieldGrid(
-                      inputFields, 'general', setState, currentLocale,
+                      inputFields, 'general', currentLocale,
                       onWidgetChanged: onStaticWidgetChanged, columns: columns),
                   buildDynamicFormFieldGrid(
                     children: dynamicFields,
@@ -1289,7 +1413,7 @@ return Scaffold(
                   const Divider(),
                   createHeader(originalToLocale["gis"]!),
                   buildFormFieldGrid(
-                      inputFields, 'gis', setState, currentLocale,
+                      inputFields, 'gis', currentLocale,
                       onWidgetChanged: onStaticWidgetChanged, columns: columns),
                   buildDynamicFormFieldGrid(
                       children: dynamicFields,
@@ -1302,7 +1426,7 @@ return Scaffold(
                   const Divider(),
                   createHeader(originalToLocale["gelaende"]!),
                   buildFormFieldGrid(
-                      inputFields, "gelaende", setState, currentLocale,
+                      inputFields, "gelaende", currentLocale,
                       onWidgetChanged: onStaticWidgetChanged, columns: columns),
                   buildDynamicFormFieldGrid(
                       children: dynamicFields,
@@ -1314,7 +1438,7 @@ return Scaffold(
                   const Divider(),
                   createHeader(originalToLocale["anmerkungen"]!),
                   buildFormFieldGrid(
-                      inputFields, "anmerkungen", setState, currentLocale,
+                      inputFields, "anmerkungen", currentLocale,
                       onWidgetChanged: onStaticWidgetChanged, columns: columns),
                   buildDynamicFormFieldGrid(
                       children: dynamicFields,
@@ -1407,13 +1531,13 @@ return Scaffold(
                     ),
                   ),
                 ),
-                if (_isSaving)
-                  Positioned.fill(
-                    child: Center(
-                      child: CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.inversePrimary),
-                    ),
-                  ),
+                // if (_isSaving)
+                //   Positioned.fill(
+                //     child: Center(
+                //       child: CircularProgressIndicator(
+                //           color: Theme.of(context).colorScheme.inversePrimary),
+                //     ),
+                //   ),
               ],
             ),
           ],

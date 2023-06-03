@@ -53,7 +53,7 @@ Column buildDynamicFormFieldGrid({
 }
 
 Column buildFormFieldGrid(List<Map<String, dynamic>> inputFields,
-    String sectionToBuild, Function setState, String currentLocale,
+    String sectionToBuild, String currentLocale,
     {columns = 3, required void Function(String, String) onWidgetChanged}) {
   List<Widget> rows = [];
   List<Widget> rowChildren = [];
@@ -68,7 +68,7 @@ Column buildFormFieldGrid(List<Map<String, dynamic>> inputFields,
           borderColor: borderColor));
     } else if (field['type'] == 'dropdown') {
       rowChildren.add(_createDropdownInput(
-          field, currentLocale, setState, onWidgetChanged,
+          field, currentLocale, onWidgetChanged,
           borderColor: borderColor));
     } else if (field['type'] == 'number') {
       rowChildren.add(_createNumberInput(field, currentLocale, onWidgetChanged,
@@ -131,10 +131,8 @@ Expanded _createTextInput(
           labelText: field['label$currentLocale'],
         ),
         keyboardType: TextInputType.text,
-        onChanged: (value) async {
+        onChanged: (value) {
           onChanged(field["label"], value);
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString(field['label'], value);
         },
       ),
     ),
@@ -158,10 +156,8 @@ Expanded _createNumberInput(
           labelText: field['label$currentLocale'],
         ),
         keyboardType: TextInputType.number,
-        onChanged: (value) async {
+        onChanged: (value) {
           onChanged(field["label"], value);
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString(field['label'], value);
         },
       ),
     ),
@@ -169,7 +165,7 @@ Expanded _createNumberInput(
 }
 
 Expanded _createDropdownInput(var field, String currentLocale,
-    Function setState, Function(String, String) onChanged,
+    Function(String, String) onChanged,
     {Color? borderColor}) {
   var dropdownItems = field['values'].map<DropdownMenuItem<String>>((value) {
     double dynamicTextSize = 12;
@@ -206,14 +202,8 @@ Expanded _createDropdownInput(var field, String currentLocale,
           ),
         ),
         items: dropdownItems,
-        onChanged: (value) async {
+        onChanged: (value) {
           onChanged(field["label"], value.toString());
-          // setState(() {
-          //   field['selectedValue'] = value;
-          // });
-
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString(field['label'], value.toString());
         },
       ),
     ),

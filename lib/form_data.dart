@@ -5,7 +5,6 @@ List<Map<String, dynamic>> getSections() {
     {"label": "general", "labelEN": "General", "labelDE": "Allgemeines"},
     {"label": "gis", "labelEN": "IDKGIS", "labelDE": "GISGAG"},
     {"label": "gelaende", "labelEN": "Surface", "labelDE": "Gelände"},
-    {"label": "anmerkungen", "labelEN": "Comments", "labelDE": "Anmerkungen"},
     {"label": "images", "labelEN": "Images", "labelDE": "Bilder"},
   ];
 }
@@ -61,6 +60,15 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Gutachter",
       'section': 'general',
       'borderColor': Colors.deepOrange,
+      'controller': TextEditingController(),
+    },
+    {
+      'type': 'text',
+      'label': 'anmerkungen_kommentare',
+      "labelEN": "Notes",
+      "labelDE": "anmerkungen",
+      'section': 'general',
+      'borderColor': Colors.amber,
       'controller': TextEditingController(),
     },
     // gis fields
@@ -570,16 +578,6 @@ List<Map<String, dynamic>> createFormFields() {
         'Nahrungsquelle': [null, 1, 2, 3, 4, 5],
         'Kulturerbe': [null, 5, 4, 3, 2, 1]
       },
-    },
-    // anmerkungen
-    {
-      'type': 'text',
-      'label': 'anmerkungen_kommentare',
-      "labelEN": "Notes",
-      "labelDE": "anmerkungen",
-      'section': 'anmerkungen',
-      'borderColor': Colors.amber,
-      'controller': TextEditingController(),
     },
   ];
 }
