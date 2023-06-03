@@ -365,7 +365,7 @@ class _WebViewPageState extends State<WebViewPage> {
                     ? LinearProgressIndicator(
                         value: value / 100.0,
                       )
-                    : SizedBox.shrink();
+                    : const SizedBox.shrink();
               },
             ),
             if (_showNameForm)

@@ -202,7 +202,7 @@ class NameFormState extends State<NameForm> {
             sectionNotifiers["gis"]?.value = false;
             sectionNotifiers["gelaende"]?.value = false;
             Navigator.of(context).pop(true);
-            },
+          },
           onCancel: () => Navigator.of(context).pop(false),
         );
       },
@@ -757,7 +757,14 @@ class NameFormState extends State<NameForm> {
         onPressed: () {
           _isNavigationRailVisible.value = !_isNavigationRailVisible.value;
         },
-        child: const Icon(Icons.menu),
+        child: ValueListenableBuilder<bool>(
+          valueListenable: _isNavigationRailVisible,
+          builder: (context, value, child) {
+            return value
+                ? const Icon(Icons.chevron_right)
+                : const Icon(Icons.menu_open);
+          },
+        ),
       ),
     );
   }
@@ -817,190 +824,5 @@ class NameFormState extends State<NameForm> {
         },
       ),
     ]);
-  }
-
-  Widget _buildForm() {
-    // Determine amount of columns based on screen width and orientation
-    final mediaQueryData = MediaQuery.of(context);
-    final columns = determineRequiredColumns(mediaQueryData);
-    final dynamicColumns =
-        determineRequiredColumnsDynamicDropdowns(mediaQueryData);
-
-    return Scaffold(
-      body: Material(
-        child: Form(
-          key: widget.formKey,
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  createHeader(originalToLocale["general"]!),
-                  buildFormFieldGrid(inputFields, 'general', currentLocale,
-                      onWidgetChanged: onStaticWidgetChanged, columns: columns),
-                  buildDynamicFormFieldGrid(
-                    children: dynamicFields,
-                    section: 'general',
-                    dropdownKeys: _dropdownsKeys,
-                    onDropdownChanged: onDynamicDropdownsChanged,
-                    currentLocale: currentLocale,
-                    columns: dynamicColumns,
-                  ),
-                  const Divider(),
-                  createHeader(originalToLocale["gis"]!),
-                  buildFormFieldGrid(inputFields, 'gis', currentLocale,
-                      onWidgetChanged: onStaticWidgetChanged, columns: columns),
-                  buildDynamicFormFieldGrid(
-                      children: dynamicFields,
-                      section: 'gis',
-                      dropdownKeys: _dropdownsKeys,
-                      onDropdownChanged: onDynamicDropdownsChanged,
-                      currentLocale: currentLocale,
-                      columns: dynamicColumns),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  createHeader(originalToLocale["gelaende"]!),
-                  buildFormFieldGrid(inputFields, "gelaende", currentLocale,
-                      onWidgetChanged: onStaticWidgetChanged, columns: columns),
-                  buildDynamicFormFieldGrid(
-                      children: dynamicFields,
-                      section: 'gelaende',
-                      dropdownKeys: _dropdownsKeys,
-                      onDropdownChanged: onDynamicDropdownsChanged,
-                      currentLocale: currentLocale,
-                      columns: dynamicColumns),
-                  const Divider(),
-                  createHeader(originalToLocale["anmerkungen"]!),
-                  buildFormFieldGrid(inputFields, "anmerkungen", currentLocale,
-                      onWidgetChanged: onStaticWidgetChanged, columns: columns),
-                  buildDynamicFormFieldGrid(
-                      children: dynamicFields,
-                      section: 'anmerkungen',
-                      dropdownKeys: _dropdownsKeys,
-                      onDropdownChanged: onDynamicDropdownsChanged,
-                      currentLocale: currentLocale,
-                      columns: dynamicColumns),
-                  const Divider(),
-                  createHeader(originalToLocale["images"]!),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _selectedImages.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                    ),
-                    itemBuilder: (BuildContext context, int index) {
-                      return Stack(
-                        children: [
-                          Image.file(_selectedImages[index], fit: BoxFit.cover),
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: -5,
-                                  blurRadius: 10,
-                                ),
-                              ],
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Icons.highlight_remove,
-                                  color: Colors.red),
-                              onPressed: () => _removeImage(index),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            OutlinedButton(
-              onPressed: () {
-                _showClearDialog();
-              },
-              child: Text(
-                'Clear',
-                style: TextStyle(
-                    fontSize: 16, color: Theme.of(context).colorScheme.error),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.photo_library, size: 32),
-              onPressed: () => _addImage(ImageSource.gallery),
-              // onPressed: () => showSnackbar(context, "fredl", success: false),
-            ),
-            IconButton(
-              icon: const Icon(Icons.add_a_photo, size: 32),
-              onPressed: () => _addImage(ImageSource.camera),
-            ),
-            Stack(
-              children: [
-                FilledButton(
-                  onPressed: () {
-                    _saveFormData();
-                    // if (_formKey.currentState!.validate()) {
-                    //   _formKey.currentState!.save();
-                    //   _saveFormData();
-                    // }
-                  },
-                  child: const Text(
-                    'Submit',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                // if (_isSaving)
-                //   Positioned.fill(
-                //     child: Center(
-                //       child: CircularProgressIndicator(
-                //           color: Theme.of(context).colorScheme.inversePrimary),
-                //     ),
-                //   ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return FutureBuilder(
-                future: updateRadarChartData(),
-                builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return RadarChartDialog(
-                      data: _radarChartData,
-                      dataToGroup: _radarDataToGroup,
-                      groupColors: _radarGroupColors,
-                    );
-                  } else {
-                    return const CircularProgressIndicator(); // or any other loading indicator
-                  }
-                },
-              );
-            },
-          );
-        },
-        child: const Icon(Icons.analytics_outlined),
-      ),
-    );
   }
 }
