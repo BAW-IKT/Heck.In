@@ -197,7 +197,12 @@ class NameFormState extends State<NameForm> {
       builder: (BuildContext context) {
         return ConfirmationDialog(
           message: 'Are you sure you want to clear the form data?',
-          onConfirm: () => Navigator.of(context).pop(true),
+          onConfirm: () {
+            sectionNotifiers["general"]?.value = false;
+            sectionNotifiers["gis"]?.value = false;
+            sectionNotifiers["gelaende"]?.value = false;
+            Navigator.of(context).pop(true);
+            },
           onCancel: () => Navigator.of(context).pop(false),
         );
       },
