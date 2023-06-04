@@ -149,7 +149,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Ausrichtung Himmelsrichtung",
       'section': 'physical',
       'borderColor': MyColors.blue,
-      'values': ['', 'S-N', 'SO-NW', 'W-O', 'SW-NO'],
+      'values': ['', 's_n', 'so_nw', 'w_o', 'sw_no'],
+      'valuesEN': ['', 'S-N', 'SE-NW', 'W-O', 'SW-NE'],
+      'valuesDE': ['', 'S-N', 'SO-NW', 'W-O', 'SW-NO'],
       'valueMap': {
         "Schädlings- & Krankheitskontrolle": [null, 5, 3, 1, 3],
         "Ertragssteigerung": [null, 5, 3, 1, 3],
@@ -163,7 +165,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Schutzgebiet",
       'section': 'environmental',
       'borderColor': MyColors.blue,
-      'values': ['', 'Schutzgebiet', 'Kein Schutzgebiet'],
+      'values': ['', 'schutzgebiet', 'kein_schutzgebiet'],
+      'valuesEN': ['', 'protected area', 'no protected area'],
+      'valuesDE': ['', 'Schutzgebiet', 'Kein Schutzgebiet'],
       'valueMap': {
         "Erholung & Tourismus": [null, 1, 0],
       },
@@ -175,11 +179,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Naturdenkmal",
       'section': 'environmental',
       'borderColor': MyColors.blue,
-      'values': [
-        '',
-        'Naturdenkmal in/nahe der Hecke',
-        'Kein Naturdenkmal in/nahe der Hecke'
-      ],
+      'values': ['', 'naturdenkmal_in_nahe_hecke', 'kein_naturdenkmal_in_nahe_hecke' ],
+      'valuesEN': ['', 'Natural monument in/near the hedge', 'No natural monument in/near the hedge' ],
+      'valuesDE': ['', 'Naturdenkmal in/nahe der Hecke', 'Kein Naturdenkmal in/nahe der Hecke' ],
       'valueMap': {
         "Kulturerbe": [null, 1, 0]
       },
@@ -191,14 +193,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Heckendichte",
       'section': 'physical',
       'borderColor': MyColors.blue,
-      'values': [
-        '',
-        '<250m/25 ha',
-        '250-800m/25 ha',
-        '800-1500m/25 ha',
-        '1500-2200m/25 ha',
-        '>2200m/25 ha'
-      ],
+      'values': ['', 'lt_250m_or_25ha', '250_to_800m_or_25ha', '800_to_1500m_or_25ha', '1500_to_2200m_or_25ha', 'gt_2200m_or_25ha'],
+      'valuesEN': ['', '<250m/25 ha', '250-800m/25 ha', '800-1500m/25 ha', '1500-2200m/25 ha', '>2200m/25 ha'],
+      'valuesDE': ['', '<250m/25 ha', '250-800m/25 ha', '800-1500m/25 ha', '1500-2200m/25 ha', '>2200m/25 ha'],
       'valueMap': {
         'Klimaschutz': [null, 1, 2, 3, 4, 5],
         'Wasserschutz': [null, 1, 2, 3, 4, 5],
@@ -217,14 +214,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "klimatische Wasserbilanz",
       'section': 'environmental',
       'borderColor': MyColors.blue,
-      'values': [
-        '',
-        'violett',
-        'blau ',
-        'weißblau-hellblau ',
-        'hellgelb-weiß ',
-        'rot, orange'
-      ],
+      'values': ['', 'violett', 'blau ', 'weissblau_hellblau ', 'hellgelb_weiss', 'rot, orange'],
+      'valuesEN': ['', 'purple', 'blue ', 'white-blue-light blue ', 'light yellow-white ', 'red, orange'],
+      'valuesDE': ['', 'violett', 'blau ', 'weißblau-hellblau ', 'hellgelb-weiß ', 'rot, orange'],
       'valueMap': {
         'Klimaschutz': [null, 5, 4, 3, 2, 1],
         'Bodenschutz': [null, 1, 2, 3, 4, 5],
@@ -237,7 +229,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Bevölkerungsdichte",
       'section': 'environmental',
       'borderColor': MyColors.blue,
-      'values': ['', '0-15', '16-30', '31-75', '76-200', '>200'],
+      'values': ['', '0_to_15', '16_to_30', '31_to_75', '76_to_200', 'gt_200'],
+      'valuesEN': ['', '0-15', '16-30', '31-75', '76-200', '>200'],
+      'valuesDE': ['', '0-15', '16-30', '31-75', '76-200', '>200'],
       'valueMap': {
         "Erholung & Tourismus": [null, 1, 2, 3, 4, 5],
       },
@@ -250,6 +244,8 @@ List<Map<String, dynamic>> createFormFields() {
       'section': 'environmental',
       'borderColor': MyColors.blue,
       'values': ['', 'ja', 'nein'],
+      'valuesEN': ['', 'yes', 'no'],
+      'valuesDE': ['', 'ja', 'nein'],
       'valueMap': {
         "Korridor": [null, 1, 0],
       },
@@ -261,7 +257,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "traditionelle Heckenregion",
       'section': 'environmental',
       'borderColor': MyColors.blue,
-      'values': ['', 'Heckenregion', 'Keine Heckenregion'],
+      'values': ['', 'heckenregion', 'keine_heckenregion'],
+      'valuesEN': ['', 'hedge region', 'no hedge region'],
+      'valuesDE': ['', 'Heckenregion', 'Keine Heckenregion'],
       'valueMap': {
         "Kulturerbe": [null, 5, 1],
       },
@@ -273,7 +271,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Franziszeischer Kataster",
       'section': 'environmental',
       'borderColor': MyColors.blue,
-      'values': ['', 'Im Kataster erkennbar', 'Nicht im Kataster erkennbar'],
+      'values': ['', 'im_kataster_erkennbar', 'nicht_im_kataster_erkennbar'],
+      'valuesEN': ['', 'Identifiable in cadastre', 'Not identifiable in cadastre'],
+      'valuesDE': ['', 'Im Kataster erkennbar', 'Nicht im Kataster erkennbar'],
       'valueMap': {
         "Kulturerbe": [null, 5, 1],
       },
@@ -285,13 +285,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "nutzbare Feldkapazität",
       'section': 'physical',
       'borderColor': MyColors.blue,
-      'values': [
-        '',
-        'sehr gering (<60mm)',
-        'gering (60-140mm)',
-        'mittel (140-220mm)',
-        'hoch (220-300mm)'
-      ],
+      'values': ['', 'lt_60mm', '60_to_140mm', '140_to-220mm', '220_to_300mm'],
+      'valuesEN': ['', 'Very low (<60mm)', 'Low (60-140mm)', 'Medium (140-220mm)', 'High (220-300mm)'],
+      'valuesDE': ['', 'sehr gering (<60mm)', 'gering (60-140mm)', 'mittel (140-220mm)', 'hoch (220-300mm)'],
       'valueMap': {
         'Wasserschutz': [null, 5, 4, 2, 1],
         'Nähr- & Schadstoffkreisläufe': [null, 5, 4, 2, 1],
@@ -304,12 +300,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Humusbilanz",
       'section': 'environmental',
       'borderColor': MyColors.blue,
-      'values': [
-        '',
-        'Standortgruppe 1, 2',
-        'Standortgruppe 3, 4',
-        'Standortgruppe 5, 6'
-      ],
+      'values': ['', 'standortgruppe_1_2', 'standortgruppe_3_4', 'standortgruppe_5_6'],
+      'valuesEN': ['', 'site group 1, 2', 'site group 3, 4', 'site group 5, 6'],
+      'valuesDE': ['', 'Standortgruppe 1, 2', 'Standortgruppe 3, 4', 'Standortgruppe 5, 6'],
       'valueMap': {
         "Klimaschutz": [null, 1, 3, 5],
       },
@@ -322,15 +315,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Position zum Hang",
       'section': 'physical',
       'borderColor': MyColors.green,
-      'values': [
-        '',
-        'in Hangrichtung',
-        'Oberhang',
-        'diagonal zur Falllinie',
-        'Unterhang / Hangfuß',
-        'im Hang, quer',
-        '(keine Hangneigung)'
-      ],
+      'values': ['', 'in_hangrichtung', 'oberhang', 'diagonal_zur_falllinie', 'unterhang_hangfuss', 'im_hang_quer', 'keine_hangneigung'],
+      'valuesEN': ['', 'upslope', 'upslope', 'diagonal to fall line', 'downslope / toe of slope', 'downslope, across', '(no slope)'],
+      'valuesDE': ['', 'in Hangrichtung', 'Oberhang', 'diagonal zur Falllinie', 'Unterhang / Hangfuß', 'im Hang, quer', '(keine Hangneigung)'],
       'valueMap': {
         'Wasserschutz': [null, 1, 1, 3, 4, 5, 1],
         'Bodenschutz': [null, 1, 1, 3, 4, 5, 1],
@@ -344,14 +331,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Hangneigung",
       'section': 'physical',
       'borderColor': MyColors.green,
-      'values': [
-        '',
-        'annähernd eben',
-        'Neigung merkbar',
-        'deutlich steigend',
-        'durchschn. Bergstraße',
-        'steilste Abschnitte v. Bergstraßen'
-      ],
+      'values': ['', 'annaehernd_eben', 'neigung_merkbar', 'deutlich_steigend', 'durchschn_bergstrasse', 'steilste_abschnitte_v_bergstraßen'],
+      'valuesEN': ['', 'approximately level', 'slope noticeable', 'clearly rising', 'average mountain road', 'steepest sections of mountain roads'],
+      'valuesDE': ['', 'annähernd eben', 'Neigung merkbar', 'deutlich steigend', 'durchschn. Bergstraße', 'steilste Abschnitte v. Bergstraßen'],
       'valueMap': {
         'Wasserschutz': [null, 1, 2, 3, 4, 5],
         'Bodenschutz': [null, 1, 2, 3, 4, 5],
@@ -365,13 +347,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Netzwerk",
       'section': 'environmental',
       'borderColor': MyColors.green,
-      'values': [
-        '',
-        'keine Verbindungen zu (semi‑) natürlichen LR',
-        '1 Verbindung ',
-        '>1 Verbindung ',
-        'Teil von Rainnetzwerk'
-      ],
+      'values': ['', 'keine_verbindungen_natuerlichen_lr', '1_verbindung', 'gt_1_verbindung', 'teil_regennetzwerk'],
+      'valuesEN': ['', 'no connections to (semi-) natural LR', '1 connection', '>1 connection', 'part of rain network'],
+      'valuesDE': ['', 'keine Verbindungen zu (semi‑) natürlichen LR', '1 Verbindung', '>1 Verbindung', 'Teil von Regennetzwerk'],
       'valueMap': {
         'Bestäubung': [null, 1, 2, 5, 3],
         'Korridor': [null, 1, 2, 5, 3],
@@ -385,7 +363,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Erschließung",
       'section': 'environmental',
       'borderColor': MyColors.green,
-      'values': ['', 'Weg an/in Hecke', 'Sichtbeziehung zu Hecke', 'Kein Weg'],
+      'values': ['', 'weg_an_in_hecke', 'sichtbeziehung_zu_hecke', 'kein_weg'],
+      'valuesEN': ['', 'path at/in hedge', 'line of sight to hedge', 'no path'],
+      'valuesDE': ['', 'Weg an/in Hecke', 'Sichtbeziehung zu Hecke', 'Kein Weg'],
       'valueMap': {
         'Erholung & Tourismus': [null, 5, 3, 1],
       },
@@ -397,12 +377,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "horizontale Schichtung",
       'section': 'biodiversity',
       'borderColor': MyColors.green,
-      'values': [
-        '',
-        'nur Baumschicht',
-        'nur Strauchschicht',
-        'Baum- und Strauchschicht'
-      ],
+      'values': ['', 'nur_baumschicht', 'nur_strauchschicht', 'baum_und_strauchschicht'],
+      'valuesEN': ['', 'tree layer only', 'shrub layer only', 'tree and shrub layer'],
+      'valuesDE': ['', 'nur Baumschicht', 'nur Strauchschicht', 'Baum- und Strauchschicht'],
       'valueMap': {
         'Ertragssteigerung': [null, 0, 0, 1, 1],
         'Wasserschutz': [null, 0, 0, 1, 1],
@@ -417,7 +394,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "vertikale Schichtung",
       'section': 'biodiversity',
       'borderColor': MyColors.green,
-      'values': ['', 'nur Kernzone', 'nur Mantelzone', 'Kern- und Mantelzone'],
+      'values': ['', 'nur_kernzone', 'nur_mantelzone', 'kern_und_mantelzone'],
+      'valuesEN': ['', 'core zone only', 'mantle zone only', 'core and mantle zone'],
+      'valuesDE': ['', 'nur Kernzone', 'nur Mantelzone', 'Kern- und Mantelzone'],
       'valueMap': {
         'Fortpflanzungs- & Ruhestätte': [null, 0, 0, 1],
       },
@@ -429,12 +408,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Strukturvielfalt",
       'section': 'biodiversity',
       'borderColor': MyColors.green,
-      'values': [
-        '',
-        '+/- gleich hoch, gleich breit',
-        '1 Dimension variabel',
-        '2 Dimensionen variabel'
-      ],
+      'values': ['', 'gleich_hoch_gleich_breit', '1_dimension_variabel', '2_dimensionen_variabel'],
+      'valuesEN': ['', '+/- same height, same width', '1 dimension variable', '2 dimensions variable'],
+      'valuesDE': ['', '+/- gleich hoch, gleich breit', '1 Dimension variabel', '2 Dimensionen variabel'],
       'valueMap': {
         'Schädlings- & Krankheitskontrolle': [null, 1, 3, 5],
         'Fortpflanzungs- & Ruhestätte': [null, 1, 3, 5],
@@ -447,14 +423,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Lücken",
       'section': 'biodiversity',
       'borderColor': MyColors.green,
-      'values': [
-        '',
-        'min. 1 Lücke >5m',
-        '>10% Lücken',
-        '5-10% Lücken',
-        '<5% Lücken',
-        'keine Lücken'
-      ],
+      'values': ['', 'min_1_luecke_gt_5m', 'gt_10pct_luecken', '5_to_10pct_luecken', 'lt_5pct_luecken', 'keine_luecken'],
+      'valuesEN': ['', 'min. 1 gap >5m', '>10% gaps', '5-10% gaps', '<5% gaps', 'no gaps'],
+      'valuesDE': ['', 'min. 1 Lücke >5m', '>10% Lücken', '5-10% Lücken', '<5% Lücken', 'keine Lücken'],
       'valueMap': {
         'Ertragssteigerung': [null, 1, 1, 3, 4, 5],
         'Bodenschutz': [null, 1, 1, 3, 4, 5],
@@ -469,14 +440,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Totholz",
       'section': 'biodiversity',
       'borderColor': MyColors.green,
-      'values': [
-        '',
-        'kein Totholz',
-        'kein Merkmal',
-        '1 Merkmal',
-        '2 Merkmale',
-        '3 Merkmale:'
-      ],
+      'values': ['', 'kein_totholz', 'kein_merkmal', '1_merkmal', '2_merkmale', '3_merkmale'],
+      'valuesEN': ['', 'no deadwood', 'no feature', '1 feature', '2 features', '3 features'],
+      'valuesDE': ['', 'kein Totholz', 'kein Merkmal', '1 Merkmal', '2 Merkmale', '3 Merkmale'],
       'valueMap': {
         'Rohstoffe': [null, 0, 0, 0, -1, -1],
         'Nähr- & Schadstoffkreisläufe': [null, 5, 4, 3, 2, 1],
@@ -492,14 +458,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Alterszusammensetzung",
       'section': 'biodiversity',
       'borderColor': MyColors.green,
-      'values': [
-        '',
-        '<6 Jahre',
-        '6-20 Jahre',
-        '20-50 Jahre',
-        '>50 Jahre',
-        'gemischtes Alter'
-      ],
+      'values': ['', 'lt_6_jahre', '6_to_20_jahre', '20_to_50_jahre', 'gt_50_jahre', 'gemischtes_alter'],
+      'valuesEN': ['', '<6 years', '6-20 years', '20-50 years', '>50 years', 'mixed age'],
+      'valuesDE': ['', '<6 Jahre', '6-20 Jahre', '20-50 Jahre', '>50 Jahre', 'gemischtes Alter'],
       'valueMap': {
         'Klimaschutz': [null, 1, 2, 4, 5, 4],
         'Bestäubung': [null, 1, 2, 4, 5, 4],
@@ -514,7 +475,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Saumart",
       'section': 'biodiversity',
       'borderColor': MyColors.green,
-      'values': ['', 'Saum', 'Mähstreifen', 'Grünland', 'nichts davon'],
+      'values': ['', 'saum', 'maehstreifen', 'gruenland', 'nichts_davon'],
+      'valuesEN': ['', 'fringe', 'mowed strip', 'grassland', 'none of the above'],
+      'valuesDE': ['', 'Saum', 'Mähstreifen', 'Grünland', 'nichts davon'],
       'valueMap': {
         'Klimaschutz': [null, 1, 0.8, 0.6, 1],
         'Bestäubung': [null, 1, 0.8, 0.6, 1],
@@ -531,7 +494,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Saumbreite",
       'section': 'biodiversity',
       'borderColor': MyColors.green,
-      'values': ['', 'kein Saum', '< 2 m', '2-3 m', '3-4 m', '> 4 m'],
+      'values': ['', 'kein_saum', 'lt_2m', '2_to_3m', '3_to_4m', 'gt_4m'],
+      'valuesEN': ['', 'no fringe', '< 2 m', '2-3 m', '3-4 m', '> 4 m'],
+      'valuesDE': ['', 'kein Saum', '< 2 m', '2-3 m', '3-4 m', '> 4 m'],
       'valueMap': {
         'Klimaschutz': [null, 1, 2, 3, 4, 5],
         'Wasserschutz': [null, 1, 2, 3, 4, 5],
@@ -549,7 +514,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Höhe",
       'section': 'physical',
       'borderColor': MyColors.green,
-      'values': ['', '<2 m', '2-5 m', '5-10 m', '10-15 m', '>15 m'],
+      'values': ['', 'lt_2m', '2_to_5m', '5_to_10m', '10_to_15m', 'gt_15m'],
+      'valuesEN': ['', '<2 m', '2-5 m', '5-10 m', '10-15 m', '>15 m'],
+      'valuesDE': ['', '<2 m', '2-5 m', '5-10 m', '10-15 m', '>15 m'],
       'valueMap': {
         'Ertragssteigerung': [null, 1, 2, 3, 4, 5],
         'Klimaschutz': [null, 1, 2, 3, 4, 5],
@@ -565,7 +532,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Breite",
       'section': 'physical',
       'borderColor': MyColors.green,
-      'values': ['', '<2 m', '2-4 m', '4-6 m', '6-8 m', '8-12 m'],
+      'values': ['', 'lt_2m', '2_to_4m', '4_to_6m', '6_to_8m', '8_to_12m'],
+      'valuesEN': ['', '<2 m', '2-4 m', '4-6 m', '6-8 m', '8-12 m'],
+      'valuesDE': ['', '<2 m', '2-4 m', '4-6 m', '6-8 m', '8-12 m'],
       'valueMap': {
         'Klimaschutz': [null, 1, 2, 3, 4, 5],
         'Wasserschutz': [null, 1, 2, 3, 4, 5],
@@ -582,7 +551,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Baumanteil",
       'section': 'biodiversity',
       'borderColor': MyColors.green,
-      'values': ['', '0', '1-2/ 100m', '3-9/ 100m', '10-20/ 100m', '>20/ 100m'],
+      'values': ['', '0', '1_to_2_per_00m', '3_to_9_per_00m', '10_to_20_per_100m', 'gt_20_per_100m'],
+      'valuesEN': ['', '0', '1-2/ 100m', '3-9/ 100m', '10-20/ 100m', '>20/ 100m'],
+      'valuesDE': ['', '0', '1-2/ 100m', '3-9/ 100m', '10-20/ 100m', '>20/ 100m'],
       'valueMap': {
         'Rohstoffe': [null, 1, 1, 1, 2, 3],
         'Schädlings- & Krankheitskontrolle': [null, 1, 2, 3, 4, 5],
@@ -595,14 +566,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Anzahl Gehölzarten",
       'section': 'biodiversity',
       'borderColor': MyColors.green,
-      'values': [
-        '',
-        '1-3 Arten in 30m',
-        '4-5 Arten in 30m',
-        '6-7 Arten in 30m',
-        '8-9 Arten in 30m',
-        '10+ Arten in 30m'
-      ],
+      'values': ['', '1_to_3_arten_in_30m', '4_to_5_arten_in_30m', '6_to_7_arten_in_30m', '8_to_9_arten_in_30m', 'gt_10_arten_in_30m'],
+      'valuesEN': ['', '1-3 species in 30m', '4-5 species in 30m', '6-7 species in 30m', '8-9 species in 30m', '10+ species in 30m'],
+      'valuesDE': ['', '1-3 Arten in 30m', '4-5 Arten in 30m', '6-7 Arten in 30m', '8-9 Arten in 30m', '10+ Arten in 30m'],
       'valueMap': {
         'Bestäubung': [null, 1, 2, 3, 4, 5],
         'Nahrungsquelle': [null, 1, 2, 3, 4, 5],
@@ -618,7 +584,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Dominanzen",
       'section': 'biodiversity',
       'borderColor': MyColors.green,
-      'values': ['', '(quasi) keine', 'leichte Dominanz', 'starke Dominanz'],
+      'values': ['', 'quasi_keine', 'leichte_dominanz', 'starke_dominanz'],
+      'valuesEN': ['', '(quasi) none', 'slight dominance', 'strong dominance'],
+      'valuesDE': ['', '(quasi) keine', 'leichte Dominanz', 'starke Dominanz'],
       'valueMap': {
         'Bestäubung': [null, 1, 3, 5],
         'Nahrungsquelle': [null, 1, 3, 5],
@@ -632,7 +600,9 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Neophyten",
       'section': 'biodiversity',
       'borderColor': MyColors.green,
-      'values': ['', '>50%', '25-50%', '10-25%', '5-10%', '0-5%'],
+      'values': ['', 'gt_50pct', '25_to_50pct', '10_to_25pct', '5_to_10pct', '0_to_5pct'],
+      'valuesEN': ['', '>50%', '25-50%', '10-25%', '5-10%', '0-5%'],
+      'valuesDE': ['', '>50%', '25-50%', '10-25%', '5-10%', '0-5%'],
       'valueMap': {
         'Bestäubung': [null, 1, 2, 3, 4, 5],
         'Schädlings- & Krankheitskontrolle': [null, 1, 2, 3, 4, 5],
@@ -664,7 +634,25 @@ List<Map<String, dynamic>> createDynamicFormFields() {
       "headerTextEN": "Neighboring areas",
       "headerTextDE": "Nachbarflächen",
       'borderColor': MyColors.coral,
-      'defValues': const [
+      'values': const [
+        '',
+        'Siedlung/Straße',
+        'Grünland ext.',
+        'Grünland int.',
+        'Acker',
+        'unbefestigter Weg',
+        'Brache'
+      ],
+      'valuesEN': const [
+        '',
+        'settlement/road',
+        'grassland ext',
+        'grassland int',
+        'arable land',
+        'unpaved road',
+        'fallow land'
+      ],
+      'valuesDE': const [
         '',
         'Siedlung/Straße',
         'Grünland ext.',
@@ -686,7 +674,25 @@ List<Map<String, dynamic>> createDynamicFormFields() {
       "headerTextEN": "Traces of use",
       "headerTextDE": "Nutzungsspuren",
       'borderColor': MyColors.coral,
-      'defValues': const [
+      'values': const [
+        '',
+        'keine ersichtlich',
+        'Bienenstöcke',
+        'Obst',
+        'gelagerte Holzstapel',
+        'andere Nutzung',
+        'Brache'
+      ],
+      'valuesEN': const [
+        '',
+        'none apparent',
+        'bee hives',
+        'fruit',
+        'stored wood piles',
+        'other use',
+        'fallow'
+      ],
+      'valuesDE': const [
         '',
         'keine ersichtlich',
         'Bienenstöcke',
@@ -707,7 +713,23 @@ List<Map<String, dynamic>> createDynamicFormFields() {
       "headerTextEN": "Additional structures",
       "headerTextDE": "Zusatzstrukturen",
       'borderColor': MyColors.coral,
-      'defValues': const [
+      'values': const [
+        '',
+        'Jagd, z.B. Hochstand',
+        'Erholung, z.B. Bank',
+        'Bildung, z.B. Schautafel',
+        'Kulturdenkmal',
+        'nichts'
+      ],
+      'valuesEN': const [
+        '',
+        'hunting, e.g. high stand',
+        'recreation, e.g. bench',
+        'education, e.g. display board',
+        'cultural monument',
+        'nothing'
+      ],
+      'valuesDE': const [
         '',
         'Jagd, z.B. Hochstand',
         'Erholung, z.B. Bank',
@@ -728,7 +750,25 @@ List<Map<String, dynamic>> createDynamicFormFields() {
       "headerTextEN": "Management",
       "headerTextDE": "Management",
       'borderColor': MyColors.coral,
-      'defValues': const [
+      'values': const [
+        '',
+        'nichts sichtbar',
+        'Baum/Strauch nachgepflanzt',
+        'Seitenschnitt sichtbar',
+        'auf Stock gesetzt',
+        'Einzelbaum/-strauch Rückschnitte',
+        'Einzelstamm Entnahme'
+      ],
+      'valuesEN': const [
+        '',
+        'nothing visible',
+        'tree/shrub replanted',
+        'side cut visible',
+        'stocked',
+        'single tree/shrub pruning',
+        'single trunk removal'
+      ],
+      'valuesDE': const [
         '',
         'nichts sichtbar',
         'Baum/Strauch nachgepflanzt',
@@ -749,7 +789,23 @@ List<Map<String, dynamic>> createDynamicFormFields() {
       "headerTextEN": "Special form",
       "headerTextDE": "Sonderform",
       'borderColor': MyColors.coral,
-      'defValues': const [
+      'values': const [
+        '',
+        'keine Sonderform',
+        'Lesesteinhecke',
+        'Hecke auf Hochrain',
+        'Böschungshecke',
+        'Grabenhecke'
+      ],
+      'valuesEN': const [
+        '',
+        'no special shape',
+        'reading stone hedge',
+        'hedge on high ground',
+        'slope hedge',
+        'ditch hedge'
+      ],
+      'valuesDE': const [
         '',
         'keine Sonderform',
         'Lesesteinhecke',

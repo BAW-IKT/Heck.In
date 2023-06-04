@@ -132,6 +132,7 @@ class NameFormState extends State<NameForm> {
   void onDynamicDropdownsChanged(
       String dropdownKey, String dropdownValue) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    // TODO: probably have to strip EN/DE here
     String cleanDropdownKey = dropdownKey.split("_")[0];
     String dropdownPostfix = dropdownKey.split("_")[1];
     String? originalDropdownKey = localeToOriginal[cleanDropdownKey];
@@ -453,7 +454,7 @@ class NameFormState extends State<NameForm> {
             String? selectedValue =
                 prefs.getString(dynamicField["headerText"] + "_$i");
             int dropdownValueIndex =
-                dynamicField["defValues"].indexOf(selectedValue ?? '');
+                dynamicField["values"].indexOf(selectedValue ?? '');
             double? dropdownScore =
                 dynamicField["valueMap"][group][dropdownValueIndex]?.toDouble();
             if (dropdownScore != null) {
@@ -500,10 +501,9 @@ class NameFormState extends State<NameForm> {
       }
     }
 
+    // perform calculations, update _radarChartData
     _radarChartData = calc.performCalculations(_radarChartDataListsReduced);
 
-    // idk if i need this
-    // setState(() {});
   }
 
   Future<String> refreshCurrentLocale() async {
@@ -513,12 +513,6 @@ class NameFormState extends State<NameForm> {
     localeToOriginal = localeMap.getLocaleToOriginal(currentLocale);
     originalToLocale = localeMap.getOriginalToLocale(currentLocale);
     return locale ?? "EN";
-  }
-
-  void _onMenuItemSelected(String item) {
-    setState(() {
-      selectedMenuItem = localeToOriginal[item]!;
-    });
   }
 
   @override

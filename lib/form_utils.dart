@@ -24,7 +24,7 @@ Column buildDynamicFormFieldGrid({
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
             child: DynamicDropdowns(
               key: dropdownKeys[index],
-              defValues: child['defValues'],
+              values: child['values'],
               headerText: child['headerText$currentLocale'],
               borderColor: child['borderColor'],
               onChanged: onDropdownChanged,

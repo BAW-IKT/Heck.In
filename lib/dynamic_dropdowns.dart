@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DynamicDropdowns extends StatefulWidget {
-  final List<String> defValues;
+  final List<String> values;
   final String headerText;
   final Color borderColor;
   final Function(String, String) onChanged;
@@ -11,7 +11,7 @@ class DynamicDropdowns extends StatefulWidget {
 
   const DynamicDropdowns({
     Key? key,
-    required this.defValues,
+    required this.values,
     required this.headerText,
     required this.borderColor,
     required this.onChanged,
@@ -59,7 +59,7 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
     } else {
       // otherwise, build minDropdownCount amount of widgets as default
       dropdownCount++;
-      selectedValues.add(widget.defValues[0]);
+      selectedValues.add(widget.values[0]);
     }
   }
 
@@ -67,7 +67,7 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
     if (dropdownCount < widget.maxDropdownCount) {
       setState(() {
         dropdownCount++;
-        selectedValues.add(widget.defValues[0]);
+        selectedValues.add(widget.values[0]);
       });
     }
   }
@@ -137,7 +137,7 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
                               widget.onChanged(dropdownKey, newValue);
                             });
                           },
-                          items: widget.defValues
+                          items: widget.values
                               .map(
                                 (value) => DropdownMenuItem<String>(
                                   value: value,
