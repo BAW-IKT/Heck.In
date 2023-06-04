@@ -5,7 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'dart:io';
 import 'form.dart';
-import 'form_utils.dart';
+import 'colors.dart';
 import 'utils_geo_v2.dart' as geo;
 import 'snackbar.dart';
 
@@ -63,12 +63,10 @@ class _WebViewPageState extends State<WebViewPage> {
   String _currentUrlStem = '';
   String _geoLastChange = 'never updated';
   String _geoLastKnown = 'no location available';
-  String _geoOrDatabaseWarning = 'not initialized';
   String systemLocale = Platform.localeName.startsWith("de") ? "DE" : "EN";
   String currentLocale = "EN";
   bool _darkMode = true;
   bool _isLoading = true;
-  Map<String, Color> cmap = getColorMap();
 
   /// initializes the firebase app
   _initDatabase() async {
@@ -77,7 +75,7 @@ class _WebViewPageState extends State<WebViewPage> {
         options: DefaultFirebaseOptions.currentPlatform,
       );
     } catch (e) {
-      _geoOrDatabaseWarning += e.toString();
+      showSnackbar(context, e.toString());
     }
   }
 
@@ -150,7 +148,6 @@ class _WebViewPageState extends State<WebViewPage> {
     // wait for refresh of coords
     await geo.updateLocation();
     setState(() {
-      // _geoOrDatabaseWarning = warning;
       _geoLastChange = prefs.getString("geoLastChange")?.split(".")[0] ?? 'n/a';
       String lat = prefs.getString("latitude") ?? "n/a";
       String lon = prefs.getString("longitude") ?? "n/a";
@@ -209,7 +206,8 @@ class _WebViewPageState extends State<WebViewPage> {
     } else {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Hedge Profiler'),
+          title: Text(
+              currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler"),
         ),
         drawer: Drawer(
           child: Column(
@@ -220,93 +218,31 @@ class _WebViewPageState extends State<WebViewPage> {
                   children: [
                     DrawerHeader(
                       decoration: const BoxDecoration(
-                        color: Color.fromRGBO(0, 96, 205, 1),
+                        color: MyColors.blue,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Row(children: [
-                            const Text(
-                              'Hedge Profiler',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
+                          Text(
+                            currentLocale == "EN"
+                                ? "Hedge Profiler"
+                                : "Hecken Profiler",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
                             ),
-                            IconButton(
-                              icon: currentLocale == "EN"
-                                  ? const Icon(Icons.language,
-                                      color: Colors.green)
-                                  : const Icon(Icons.language,
-                                      color: Colors.orange),
-                              // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
-                              onPressed: () async {
-                                // toggle and update locale
-                                SharedPreferences prefs =
-                                    await SharedPreferences.getInstance();
-                                if (prefs.getString("locale") == "EN") {
-                                  prefs.setString("locale", "DE");
-                                  currentLocale = "DE";
-                                } else {
-                                  prefs.setString("locale", "EN");
-                                  currentLocale = "EN";
-                                }
-
-                                // rebuild form
-                                setState(() {});
-                                // _nameFormKey.currentState?.rebuildForm();
-                              },
-                            ),
-                            IconButton(
-                              icon: _darkMode
-                                  ? const Icon(Icons.light_mode)
-                                  : const Icon(Icons.dark_mode),
-                              // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
-                              onPressed: () {
-                                setState(() {
-                                  _darkMode = !_darkMode;
-                                  if (_darkMode) {
-                                    HedgeProfilerApp.of(context)
-                                        .changeTheme(ThemeMode.dark);
-                                  } else {
-                                    HedgeProfilerApp.of(context)
-                                        .changeTheme(ThemeMode.light);
-                                  }
-                                });
-                              },
-                            )
-                          ]),
-                          Row(
-                            children: [
-                              const Text('Last known location',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold)),
-                              IconButton(
-                                onPressed: _updateLocationAndLocales,
-                                icon: const Icon(
-                                  Icons.refresh,
-                                  size: 20,
-                                ),
-                              ),
-                            ],
                           ),
-                          Text(_geoLastKnown,
-                              style: const TextStyle(
-                                  fontSize: 10, fontStyle: FontStyle.italic)),
-                          Text(_geoLastChange,
-                              style: const TextStyle(
-                                  fontSize: 10, fontStyle: FontStyle.italic)),
-                          Text(_geoOrDatabaseWarning,
-                              style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.deepOrange,
-                                  fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 30),
+                          _buildGeoStatusText(),
                         ],
                       ),
                     ),
                     ListTile(
                       leading:
-                          const Icon(Icons.eco_rounded, color: Colors.green),
-                      title: const Text('Rate Hedge'),
+                          const Icon(Icons.eco_rounded, color: MyColors.green),
+                      title: Text(currentLocale == "EN"
+                          ? "Rate Hedge"
+                          : "Hecke Bewerten"),
                       onTap: () {
                         setState(() {
                           _showNameForm = true;
@@ -316,8 +252,10 @@ class _WebViewPageState extends State<WebViewPage> {
                     ),
                     ListTile(
                       leading:
-                          const Icon(Icons.map_outlined, color: Colors.red),
-                      title: const Text('Arcanum'),
+                          const Icon(Icons.map_outlined, color: MyColors.coral),
+                      title: Text(currentLocale == "EN"
+                          ? "View Arcanum Map"
+                          : "Arcanum Karte Öffnen"),
                       onTap: () {
                         setState(() {
                           _showNameForm = false;
@@ -328,8 +266,10 @@ class _WebViewPageState extends State<WebViewPage> {
                     ),
                     ListTile(
                       leading:
-                          const Icon(Icons.map_outlined, color: Colors.blue),
-                      title: const Text('Bodenkarte'),
+                          const Icon(Icons.map_outlined, color: MyColors.teal),
+                      title: Text(currentLocale == "EN"
+                          ? "View Bodenkarte"
+                          : "Bodenkarte Öffnen"),
                       onTap: () {
                         setState(() {
                           _showNameForm = false;
@@ -343,6 +283,16 @@ class _WebViewPageState extends State<WebViewPage> {
               ),
               Column(
                 children: [
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        const SizedBox(width: 10),
+                        _buildLanguageToggleButton(),
+                        _buildGeoRefreshButton(),
+                        _buildDarkmodeToggleButton(),
+                        const SizedBox(width: 10),
+                      ]),
+                  const SizedBox(height: 30),
                   Image.asset(
                     'data/lsw_logo.png',
                     fit: BoxFit.contain,
@@ -371,7 +321,7 @@ class _WebViewPageState extends State<WebViewPage> {
             if (_showNameForm)
               Positioned.fill(
                 child: Container(
-                  color: Colors.black.withOpacity(0.5),
+                  color: MyColors.black.withOpacity(0.5),
                   child: Center(
                     child: NameForm(formKey: _nameFormKey),
                   ),
@@ -381,6 +331,142 @@ class _WebViewPageState extends State<WebViewPage> {
         ),
       );
     }
+  }
+
+  void _toggleLanguage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.getString("locale") == "EN") {
+      prefs.setString("locale", "DE");
+      currentLocale = "DE";
+    } else {
+      prefs.setString("locale", "EN");
+      currentLocale = "EN";
+    }
+
+    // Rebuild form
+    setState(() {});
+  }
+
+  Widget _buildLanguageToggleButton() {
+    // return Row(children: [
+    //   IconButton(
+    //     icon: currentLocale == "EN"
+    //         ? const Icon(Icons.translate, color: MyColors.green)
+    //         : const Icon(Icons.translate, color: MyColors.orange),
+    //     onPressed: _toggleLanguage,
+    //     tooltip:
+    //     currentLocale == "EN" ? "Switch to German" : "Switch to English",
+    //   ),
+    //   Text(
+    //     currentLocale == "EN" ? "EN" : "DE",
+    //     style: TextStyle(
+    //       color: currentLocale == "EN" ? MyColors.green : MyColors.orange,
+    //       fontWeight: FontWeight.bold,
+    //     ),
+    //   ),
+    // ]);
+
+    return ElevatedButton(
+      onPressed: _toggleLanguage,
+      child: Column(children: [
+        const Icon(Icons.translate, ),
+        currentLocale == "EN" ? const Text("Deutsch") : const Text("English"),
+      ]),
+    );
+  }
+
+  Widget _buildDarkmodeToggleButton() {
+    // return IconButton(
+    //   icon: _darkMode
+    //       ? const Icon(Icons.light_mode, color: MyColors.yellow)
+    //       : const Icon(Icons.dark_mode, color: MyColors.black,),
+    //   // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
+    //   onPressed: () {
+    //     setState(() {
+    //       _darkMode = !_darkMode;
+    //       if (_darkMode) {
+    //         HedgeProfilerApp.of(context).changeTheme(ThemeMode.dark);
+    //       } else {
+    //         HedgeProfilerApp.of(context).changeTheme(ThemeMode.light);
+    //       }
+    //     });
+    //   },
+    // );
+
+    String light = currentLocale == "EN" ? "Light" : "Hell";
+    String dark = currentLocale == "EN" ? "Dark" : "Dunkel";
+
+    return ElevatedButton(
+      child: Column(
+        children: [
+          _darkMode
+              ? const Icon(Icons.light_mode, color: MyColors.yellow)
+              : const Icon(
+                  Icons.dark_mode,
+                  color: MyColors.black,
+                ),
+          _darkMode ? Text(light) : Text(dark),
+        ],
+      ),
+      onPressed: () {
+        setState(() {
+          _darkMode = !_darkMode;
+          if (_darkMode) {
+            HedgeProfilerApp.of(context).changeTheme(ThemeMode.dark);
+          } else {
+            HedgeProfilerApp.of(context).changeTheme(ThemeMode.light);
+          }
+        });
+      },
+    );
+  }
+
+  Widget _buildGeoRefreshButton() {
+    // return IconButton(
+    //   onPressed: _updateLocationAndLocales,
+    //   icon: const Icon(
+    //     Icons.my_location_sharp,
+    //     color: MyColors.coral,
+    //     size: 20,
+    //   ),
+    // );
+    return ElevatedButton(
+        onPressed: _updateLocationAndLocales,
+        child: Column(children: [
+          const Icon(Icons.my_location_sharp, color: MyColors.coral),
+          currentLocale == "EN"
+              ? const Text("Location")
+              : const Text("Standort")
+        ]));
+  }
+
+  Widget _buildGeoStatusText() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              currentLocale == "EN"
+                  ? "Location updated: "
+                  : "Standort aktualisiert: ",
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              _geoLastChange,
+              style: const TextStyle(fontSize: 10, fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+        Align(
+          alignment: Alignment.topLeft,
+          child: Text(
+            _geoLastKnown,
+            style: const TextStyle(fontSize: 10, fontStyle: FontStyle.italic),
+          ),
+        ),
+      ],
+    );
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'colors.dart';
 import 'dynamic_dropdowns.dart';
 import 'form_data.dart';
 import 'dart:io';
@@ -53,33 +54,8 @@ class NameFormState extends State<NameForm> {
     "gelaende": ValueNotifier<bool>(false),
   };
 
-  // ValueNotifier<bool> _generalSectionDone = ValueNotifier<bool>(false);
-  // ValueNotifier<bool> _gisSectionDone = ValueNotifier<bool>(false);
-  // ValueNotifier<bool> _gelaendeSectionDone = ValueNotifier<bool>(false);
-
-  Map<String, Color> cmap = getColorMap();
-
-  final Map<String, String> _radarDataToGroup = {
-    'Rohstoffe': 'Bereitstellend',
-    'Ertragssteigerung': 'Bereitstellend',
-    'Klimaschutz': 'Regulierend',
-    'Wasserschutz': 'Regulierend',
-    'Bodenschutz': 'Regulierend',
-    'Nähr- & Schadstoffkreisläufe': 'Regulierend',
-    'Bestäubung': 'Regulierend',
-    'Schädlings- & Krankheitskontrolle': 'Regulierend',
-    'Nahrungsquelle': 'Habitat',
-    'Korridor': 'Habitat',
-    'Fortpflanzungs- & Ruhestätte': 'Habitat',
-    'Erholung & Tourismus': 'Kulturell',
-    'Kulturerbe': 'Kulturell'
-  };
-  final Map<String, Color> _radarGroupColors = {
-    'Bereitstellend': Colors.red,
-    'Regulierend': Colors.blue,
-    'Habitat': Colors.green,
-    'Kulturell': Colors.orange,
-  };
+  final Map<String, String> _radarDataToGroup = getRadarDataGroups();
+  final Map<String, Color> _radarGroupColors = getRadarGroupColors();
 
   late String currentLocale = '';
   LocaleMap localeMap = LocaleMap();
@@ -134,13 +110,20 @@ class NameFormState extends State<NameForm> {
   void _populateStaticInputFields() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     for (var field in inputFields) {
-      if (field['type'] == 'text' || field['type'] == 'number') {
-        field['controller'].text = prefs.getString(field['label']) ?? '';
-      } else if (field['type'] == 'dropdown') {
-        field['selectedValue'] = prefs.getString(field['label']) ?? '';
+      if (field["type"] == "text" || field["type"] == "number") {
+        field["controller"].text = prefs.getString(field["label"]) ?? "";
+        field["selectedValue"] = prefs.getString(field["label"]) ?? "";
+      } else if (field["type"] == "dropdown") {
+        field["selectedValue"] = prefs.getString(field["label"]) ?? "";
       }
     }
-    setState(() {});
+
+    // update sectionNotifiers
+    for (String section in sectionNotifiers.keys) {
+      _setSectionNotifiers(section);
+    }
+
+    // setState(() {});
   }
 
   /// action triggered by DynamicDropdowns onChanged events (select + remove)
@@ -174,20 +157,40 @@ class NameFormState extends State<NameForm> {
 
     // validate all widgets of that section are checked
     String widgetGroup = inputFields[widgetIndex]["section"];
+    _setSectionNotifiers(widgetGroup);
+    // bool allFilledOut = true;
+    // for (var inputField in inputFields) {
+    //   if (inputField["section"] == widgetGroup &&
+    //       (!inputField.containsKey("selectedValue") ||
+    //           inputField["selectedValue"] == null ||
+    //           inputField["selectedValue"] == "")) {
+    //     allFilledOut = false;
+    //   }
+    // }
+    // if (allFilledOut) {
+    //   sectionNotifiers[widgetGroup]?.value = true;
+    // } else {
+    //   sectionNotifiers[widgetGroup]?.value = false;
+    // }
+
+    print("$widgetLabel $widgetValue");
+  }
+
+  /// validates all widgets of a section are checked
+  /// and sets sectionNotifier accordingly
+  void _setSectionNotifiers(String section) {
     bool allFilledOut = true;
     for (var inputField in inputFields) {
-      if (inputField["section"] == widgetGroup &&
+      if (inputField["section"] == section &&
           (!inputField.containsKey("selectedValue") ||
               inputField["selectedValue"] == null ||
               inputField["selectedValue"] == "")) {
         allFilledOut = false;
       }
     }
-    if (allFilledOut) {
-      sectionNotifiers[widgetGroup]?.value = true;
-    }
-
-    print("$widgetLabel $widgetValue");
+    allFilledOut
+        ? sectionNotifiers[section]?.value = true
+        : sectionNotifiers[section]?.value = false;
   }
 
   /// action for Clear button
@@ -336,8 +339,8 @@ class NameFormState extends State<NameForm> {
                   },
                 ),
                 OutlinedButton(
-                  child:
-                      const Text('Images', style: TextStyle(color: Colors.red)),
+                  child: const Text('Images',
+                      style: TextStyle(color: MyColors.red)),
                   onPressed: () {
                     Navigator.of(context).pop();
                     _clearImages();
@@ -345,7 +348,7 @@ class NameFormState extends State<NameForm> {
                 ),
                 OutlinedButton(
                   child:
-                      const Text('Form', style: TextStyle(color: Colors.red)),
+                      const Text('Form', style: TextStyle(color: MyColors.red)),
                   onPressed: () {
                     Navigator.of(context).pop();
                     _clearInputStorage();
@@ -549,7 +552,7 @@ class NameFormState extends State<NameForm> {
         IconButton(
           icon: const Icon(
             Icons.send_and_archive_sharp,
-            color: Colors.green,
+            color: MyColors.green,
           ),
           onPressed: () => _saveFormData(),
         ),
@@ -605,8 +608,8 @@ class NameFormState extends State<NameForm> {
       IconData icon,
       IconData iconSelected,
       String labelText,
-      {Color colorDone = Colors.green,
-      Color colorIncomplete = Colors.orange}) {
+      {Color colorDone = MyColors.green,
+      Color colorIncomplete = MyColors.orange}) {
     return NavigationRailDestination(
       icon: ValueListenableBuilder<bool>(
         valueListenable: valueListenable,
@@ -671,12 +674,12 @@ class NameFormState extends State<NameForm> {
                 NavigationRailDestination(
                     icon: Icon(Icons.favorite_border,
                         color: _selectedImages.isNotEmpty
-                            ? Colors.green
-                            : Colors.orange),
+                            ? MyColors.green
+                            : MyColors.orange),
                     selectedIcon: Icon(Icons.favorite,
                         color: _selectedImages.isNotEmpty
-                            ? Colors.green
-                            : Colors.orange),
+                            ? MyColors.green
+                            : MyColors.orange),
                     label: Text(sectionToLocale["images"]!)),
               ],
               trailing: Column(
@@ -808,14 +811,14 @@ class NameFormState extends State<NameForm> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
+                      color: MyColors.grey.withOpacity(0.5),
                       spreadRadius: -5,
                       blurRadius: 10,
                     ),
                   ],
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.highlight_remove, color: Colors.red),
+                  icon: const Icon(Icons.highlight_remove, color: MyColors.red),
                   onPressed: () => _removeImage(index),
                 ),
               ),
