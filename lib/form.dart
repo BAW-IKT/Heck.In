@@ -28,7 +28,7 @@ class NameForm extends StatefulWidget {
 class NameFormState extends State<NameForm> {
   List<File> _selectedImages = [];
 
-  ValueNotifier<bool> _isSaving = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _isSaving = ValueNotifier<bool>(false);
   List<Map<String, dynamic>> inputFields = [];
   Map<String, int> inputFieldLabelToIndex = {};
   List<Map<String, dynamic>> dynamicFields = [];
@@ -47,11 +47,13 @@ class NameFormState extends State<NameForm> {
   int _selectedIndex = 0;
   int _selectedIndexCheck = 0;
   bool _triggeredByMenu = false;
-  ValueNotifier<bool> _isNavigationRailVisible = ValueNotifier<bool>(true);
+  final ValueNotifier<bool> _isNavigationRailVisible =
+      ValueNotifier<bool>(true);
   Map<String, ValueNotifier<bool>> sectionNotifiers = {
     "general": ValueNotifier<bool>(false),
-    "gis": ValueNotifier<bool>(false),
-    "gelaende": ValueNotifier<bool>(false),
+    "physical": ValueNotifier<bool>(false),
+    "environmental": ValueNotifier<bool>(false),
+    "biodiversity": ValueNotifier<bool>(false),
   };
 
   final Map<String, String> _radarDataToGroup = getRadarDataGroups();
@@ -201,9 +203,9 @@ class NameFormState extends State<NameForm> {
         return ConfirmationDialog(
           message: 'Are you sure you want to clear the form data?',
           onConfirm: () {
-            sectionNotifiers["general"]?.value = false;
-            sectionNotifiers["gis"]?.value = false;
-            sectionNotifiers["gelaende"]?.value = false;
+            for (String section in sectionNotifiers.keys) {
+              sectionNotifiers[section]?.value = false;
+            }
             Navigator.of(context).pop(true);
           },
           onCancel: () => Navigator.of(context).pop(false),
@@ -603,41 +605,51 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  NavigationRailDestination _buildNavigationRailDestination(
-      ValueListenable<bool> valueListenable,
-      IconData icon,
-      IconData iconSelected,
-      String labelText,
+  NavigationRailDestination _buildNavigationRailDestination(String section,
       {Color colorDone = MyColors.green,
       Color colorIncomplete = MyColors.orange}) {
+    ValueListenable<bool> listener =
+        sectionNotifiers[section] as ValueListenable<bool>;
+    int sectionIdx = 0;
+    for (int i = 0; i < sections.length; i++) {
+      if (sections[i]["label"] == section) {
+        sectionIdx = i;
+        break;
+      }
+    }
+
     return NavigationRailDestination(
       icon: ValueListenableBuilder<bool>(
-        valueListenable: valueListenable,
+        valueListenable: listener,
         builder: (context, value, child) {
           return Icon(
-            icon,
+            sections[sectionIdx]["icon"],
             color: value ? colorDone : colorIncomplete,
           );
         },
       ),
       selectedIcon: ValueListenableBuilder<bool>(
-        valueListenable: valueListenable,
+        valueListenable: listener,
         builder: (context, value, child) {
           return Icon(
-            iconSelected,
+            sections[sectionIdx]["iconActive"],
             color: value ? colorDone : colorIncomplete,
           );
         },
       ),
-      label: Text(labelText),
+      label: Text(sections[sectionIdx]["label$currentLocale"]),
     );
   }
 
   Widget _buildSideBar() {
-    Map<String, String> sectionToLocale = {};
-    for (var sec in sections) {
-      sectionToLocale[sec["label"]] = sec["label$currentLocale"];
+    int imgIndex = 0;
+    for (int i=0; i<sections.length; i++) {
+      if (sections[i]["label"] == "images") {
+        imgIndex = i;
+        break;
+      }
     }
+
     return Row(children: [
       const VerticalDivider(thickness: 1, width: 1),
       SingleChildScrollView(
@@ -654,58 +666,44 @@ class NameFormState extends State<NameForm> {
                   _selectedIndex = index;
                 });
               },
-              labelType: NavigationRailLabelType.selected,
+              labelType: NavigationRailLabelType.none,
               destinations: [
-                _buildNavigationRailDestination(
-                    sectionNotifiers["general"] as ValueListenable<bool>,
-                    Icons.favorite_border,
-                    Icons.favorite,
-                    sectionToLocale["general"]!),
-                _buildNavigationRailDestination(
-                    sectionNotifiers["gis"] as ValueListenable<bool>,
-                    Icons.favorite_border,
-                    Icons.favorite,
-                    sectionToLocale["gis"]!),
-                _buildNavigationRailDestination(
-                    sectionNotifiers["gelaende"] as ValueListenable<bool>,
-                    Icons.favorite_border,
-                    Icons.favorite,
-                    sectionToLocale["gelaende"]!),
+                _buildNavigationRailDestination("general"),
+                _buildNavigationRailDestination("physical"),
+                _buildNavigationRailDestination("environmental"),
+                _buildNavigationRailDestination("biodiversity"),
                 NavigationRailDestination(
-                    icon: Icon(Icons.favorite_border,
+                    icon: Icon(sections[imgIndex]["icon"],
                         color: _selectedImages.isNotEmpty
                             ? MyColors.green
                             : MyColors.orange),
-                    selectedIcon: Icon(Icons.favorite,
+                    selectedIcon: Icon(sections[imgIndex]["iconActive"],
                         color: _selectedImages.isNotEmpty
                             ? MyColors.green
                             : MyColors.orange),
-                    label: Text(sectionToLocale["images"]!)),
+                    label: Text(sections[imgIndex]["label$currentLocale"])
+                ),
               ],
-              trailing: Column(
-                  // crossAxisAlignment: CrossAxisAlignment.center,
-                  // mainAxisSize: MainAxisSize.max,
-                  // mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    const SizedBox(height: 50),
-                    IconButton(
-                      icon: Icon(Icons.clear,
-                          color: Theme.of(context).colorScheme.error),
-                      onPressed: () => _showClearDialog(),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.photo_library),
-                      onPressed: () => _addImage(ImageSource.gallery),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add_a_photo),
-                      onPressed: () => _addImage(ImageSource.camera),
-                    ),
-                    const SizedBox(height: 50),
-                    _buildRadarChartButton(),
-                    _buildAnimatedSubmitButton(),
-                    const SizedBox(height: 50),
-                  ]),
+              trailing: Column(children: [
+                const SizedBox(height: 50),
+                IconButton(
+                  icon: Icon(Icons.clear,
+                      color: Theme.of(context).colorScheme.error),
+                  onPressed: () => _showClearDialog(),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.photo_library),
+                  onPressed: () => _addImage(ImageSource.gallery),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_a_photo),
+                  onPressed: () => _addImage(ImageSource.camera),
+                ),
+                const SizedBox(height: 50),
+                _buildRadarChartButton(),
+                _buildAnimatedSubmitButton(),
+                const SizedBox(height: 50),
+              ]),
             ),
           ),
         ),
@@ -735,8 +733,11 @@ class NameFormState extends State<NameForm> {
                         index: _selectedIndex,
                         children: [
                           buildMenuPage("general", columns, dynamicColumns),
-                          buildMenuPage("gis", columns, dynamicColumns),
-                          buildMenuPage("gelaende", columns, dynamicColumns),
+                          buildMenuPage("physical", columns, dynamicColumns),
+                          buildMenuPage(
+                              "environmental", columns, dynamicColumns),
+                          buildMenuPage(
+                              "biodiversity", columns, dynamicColumns),
                           buildImagePage("images"),
                         ],
                       ),
