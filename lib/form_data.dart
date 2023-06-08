@@ -127,7 +127,7 @@ List<Map<String, dynamic>> createFormFields() {
       'type': 'text',
       'label': 'anmerkungen_kommentare',
       "labelEN": "Notes",
-      "labelDE": "anmerkungen",
+      "labelDE": "Anmerkungen",
       'section': 'general',
       'borderColor': MyColors.yellow,
       'controller': TextEditingController(),

@@ -87,6 +87,7 @@ Column buildFormFieldGrid(List<Map<String, dynamic>> inputFields,
   return Column(children: rows);
 }
 
+
 int determineRequiredColumnsDynamicDropdowns(var mediaQueryData) {
   final screenWidth = mediaQueryData.size.width;
   int columns = 1;
@@ -100,15 +101,15 @@ int determineRequiredColumnsDynamicDropdowns(var mediaQueryData) {
 
 int determineRequiredColumns(var mediaQueryData) {
   final screenWidth = mediaQueryData.size.width;
-  int columns = 2;
+  int columns = 1;
   if (screenWidth > 960) {
-    columns = 6;
-  } else if (screenWidth > 840) {
     columns = 5;
-  } else if (screenWidth > 720) {
+  } else if (screenWidth > 840) {
     columns = 4;
-  } else if (screenWidth > 600) {
+  } else if (screenWidth > 720) {
     columns = 3;
+  } else if (screenWidth > 600) {
+    columns = 2;
   }
   return columns;
 }

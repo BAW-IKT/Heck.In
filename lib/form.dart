@@ -503,7 +503,6 @@ class NameFormState extends State<NameForm> {
 
     // perform calculations, update _radarChartData
     _radarChartData = calc.performCalculations(_radarChartDataListsReduced);
-
   }
 
   Future<String> refreshCurrentLocale() async {
@@ -531,7 +530,6 @@ class NameFormState extends State<NameForm> {
           case ConnectionState.active:
           case ConnectionState.waiting:
             return const Center(child: CircularProgressIndicator());
-            print('loading');
           default:
             currentLocale = snapshot.data.toString();
             localeToOriginal = localeMap.getLocaleToOriginal(currentLocale);
@@ -637,7 +635,7 @@ class NameFormState extends State<NameForm> {
 
   Widget _buildSideBar() {
     int imgIndex = 0;
-    for (int i=0; i<sections.length; i++) {
+    for (int i = 0; i < sections.length; i++) {
       if (sections[i]["label"] == "images") {
         imgIndex = i;
         break;
@@ -675,8 +673,7 @@ class NameFormState extends State<NameForm> {
                         color: _selectedImages.isNotEmpty
                             ? MyColors.green
                             : MyColors.orange),
-                    label: Text(sections[imgIndex]["label$currentLocale"])
-                ),
+                    label: Text(sections[imgIndex]["label$currentLocale"])),
               ],
               trailing: Column(children: [
                 const SizedBox(height: 50),
@@ -717,6 +714,7 @@ class NameFormState extends State<NameForm> {
         child: Form(
           key: widget.formKey,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: SingleChildScrollView(
@@ -768,20 +766,23 @@ class NameFormState extends State<NameForm> {
   }
 
   Widget buildMenuPage(String section, var columns, var dynamicColumns) {
-    return Column(children: [
-      createHeader(originalToLocale[section]!),
-      const Divider(),
-      buildFormFieldGrid(inputFields, section, currentLocale,
-          onWidgetChanged: onStaticWidgetChanged, columns: columns),
-      buildDynamicFormFieldGrid(
-        children: dynamicFields,
-        section: section,
-        dropdownKeys: _dropdownsKeys,
-        onDropdownChanged: onDynamicDropdownsChanged,
-        currentLocale: currentLocale,
-        columns: dynamicColumns,
-      ),
-    ]);
+    return Column(
+      children: [
+        createHeader(originalToLocale[section]!),
+        const Divider(),
+        // buildStaticSteppers(inputFields, section, currentLocale, onWidgetChanged: onStaticWidgetChanged),
+        buildFormFieldGrid(inputFields, section, currentLocale,
+            onWidgetChanged: onStaticWidgetChanged, columns: columns),
+        buildDynamicFormFieldGrid(
+          children: dynamicFields,
+          section: section,
+          dropdownKeys: _dropdownsKeys,
+          onDropdownChanged: onDynamicDropdownsChanged,
+          currentLocale: currentLocale,
+          columns: dynamicColumns,
+        ),
+      ],
+    );
   }
 
   Widget buildImagePage(String section) {
