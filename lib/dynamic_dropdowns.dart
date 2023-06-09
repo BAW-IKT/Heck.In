@@ -68,6 +68,8 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
       setState(() {
         dropdownCount++;
         selectedValues.add(widget.values[0]);
+        String dropdownKey = '${widget.headerText}_${dropdownCount}';
+        widget.onChanged(dropdownKey, "ADD");
       });
     }
   }
@@ -78,7 +80,7 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
         dropdownCount--;
         selectedValues.removeLast();
         String dropdownKey = '${widget.headerText}_${dropdownCount + 1}';
-        widget.onChanged(dropdownKey, "");
+        widget.onChanged(dropdownKey, "REMOVE");
       });
     }
   }

@@ -87,6 +87,27 @@ Column buildFormFieldGrid(List<Map<String, dynamic>> inputFields,
   return Column(children: rows);
 }
 
+Widget buildSteppers(
+    List<Map<String, dynamic>> inputFields,
+    List<Map<String, dynamic>> dynamicFields,
+    List<GlobalKey<DynamicDropdownsState>> dropdownKeys,
+    GlobalKey<StepperWidgetState> stepperKey,
+    String sectionToBuild,
+    String currentLocale,
+    Function(String, String) onStaticWidgetChanged,
+    Function(String, String) onDynamicWidgetChanged) {
+  return Center(
+    child: StepperWidget(
+      inputFields: inputFields,
+      dynamicFields: dynamicFields,
+      dropdownKeys: dropdownKeys,
+      sectionToBuild: sectionToBuild,
+      currentLocale: currentLocale,
+      onStaticWidgetChanged: onStaticWidgetChanged,
+      onDynamicWidgetChanged: onDynamicWidgetChanged,
+    ),
+  );
+}
 
 int determineRequiredColumnsDynamicDropdowns(var mediaQueryData) {
   final screenWidth = mediaQueryData.size.width;
@@ -114,57 +135,60 @@ int determineRequiredColumns(var mediaQueryData) {
   return columns;
 }
 
-Expanded _createTextInput(
+Widget _createTextInput(
     var field, String currentLocale, Function(String, String) onChanged,
     {Color? borderColor}) {
-  return Expanded(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: TextFormField(
-        controller: field['controller'],
-        decoration: InputDecoration(
-          enabledBorder: OutlineInputBorder(
-            borderSide: borderColor != null
-                ? BorderSide(color: borderColor)
-                : const BorderSide(),
-          ),
-          labelText: field['label$currentLocale'],
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    child: TextFormField(
+      controller: field['controller'],
+      decoration: InputDecoration(
+        enabledBorder: OutlineInputBorder(
+          borderSide: borderColor != null
+              ? BorderSide(color: borderColor)
+              : const BorderSide(),
         ),
-        keyboardType: TextInputType.text,
-        onChanged: (value) {
-          onChanged(field["label"], value);
-        },
+        labelText: field['label$currentLocale'],
       ),
+      keyboardType: TextInputType.text,
+      onChanged: (value) {
+        onChanged(field["label"], value);
+      },
     ),
   );
 }
 
-Expanded _createNumberInput(
+Padding _paddedWidget(Widget widget) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    child: widget
+  );
+}
+
+Widget _createNumberInput(
     var field, String currentLocale, Function(String, String) onChanged,
     {Color? borderColor}) {
-  return Expanded(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: TextFormField(
-        controller: field['controller'],
-        decoration: InputDecoration(
-          enabledBorder: OutlineInputBorder(
-            borderSide: borderColor != null
-                ? BorderSide(color: borderColor)
-                : const BorderSide(),
-          ),
-          labelText: field['label$currentLocale'],
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    child: TextFormField(
+      controller: field['controller'],
+      decoration: InputDecoration(
+        enabledBorder: OutlineInputBorder(
+          borderSide: borderColor != null
+              ? BorderSide(color: borderColor)
+              : const BorderSide(),
         ),
-        keyboardType: TextInputType.number,
-        onChanged: (value) {
-          onChanged(field["label"], value);
-        },
+        labelText: field['label$currentLocale'],
       ),
+      keyboardType: TextInputType.number,
+      onChanged: (value) {
+        onChanged(field["label"], value);
+      },
     ),
   );
 }
 
-Expanded _createDropdownInput(
+Widget _createDropdownInput(
     var field, String currentLocale, Function(String, String) onChanged,
     {Color? borderColor}) {
   var dropdownItems = field['values'].map<DropdownMenuItem<String>>((value) {
@@ -185,27 +209,25 @@ Expanded _createDropdownInput(
       ),
     );
   }).toList();
-  return Expanded(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: DropdownButtonFormField(
-        value: field['selectedValue'],
-        decoration: InputDecoration(
-          enabledBorder: OutlineInputBorder(
-            borderSide: borderColor != null
-                ? BorderSide(color: borderColor)
-                : const BorderSide(),
-          ),
-          labelText: field['label$currentLocale'],
-          labelStyle: TextStyle(
-            fontSize: field['label$currentLocale'].length > 24 ? 14 : 16,
-          ),
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    child: DropdownButtonFormField(
+      value: field['selectedValue'],
+      decoration: InputDecoration(
+        enabledBorder: OutlineInputBorder(
+          borderSide: borderColor != null
+              ? BorderSide(color: borderColor)
+              : const BorderSide(),
         ),
-        items: dropdownItems,
-        onChanged: (value) {
-          onChanged(field["label"], value.toString());
-        },
+        labelText: field['label$currentLocale'],
+        labelStyle: TextStyle(
+          fontSize: field['label$currentLocale'].length > 24 ? 14 : 16,
+        ),
       ),
+      items: dropdownItems,
+      onChanged: (value) {
+        onChanged(field["label"], value.toString());
+      },
     ),
   );
 }
@@ -297,3 +319,160 @@ class LocaleMap {
   }
 }
 
+class StepperWidget extends StatefulWidget {
+  final List<Map<String, dynamic>> inputFields;
+  final List<Map<String, dynamic>> dynamicFields;
+  final List<GlobalKey<DynamicDropdownsState>> dropdownKeys;
+  final String sectionToBuild;
+  final String currentLocale;
+  final Function(String, String) onStaticWidgetChanged;
+  final Function(String, String) onDynamicWidgetChanged;
+
+  const StepperWidget({
+    Key? key,
+    required this.inputFields,
+    required this.dynamicFields,
+    required this.dropdownKeys,
+    required this.sectionToBuild,
+    required this.currentLocale,
+    required this.onStaticWidgetChanged,
+    required this.onDynamicWidgetChanged,
+  }) : super(key: key);
+
+  @override
+  State<StepperWidget> createState() => StepperWidgetState();
+}
+
+class StepperWidgetState extends State<StepperWidget> {
+  int _index = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    List<Step> steps = [];
+
+    // Build steps from inputFields
+    for (var field in widget.inputFields) {
+      if (field["section"] != widget.sectionToBuild) {
+        continue;
+      }
+
+      // generate input widget
+      Widget? inputWidget;
+      Color? borderColor = field['borderColor'];
+      if (field["type"] == "text") {
+        inputWidget = _createTextInput(
+            field, widget.currentLocale, widget.onStaticWidgetChanged,
+            borderColor: borderColor);
+      } else if (field["type"] == "dropdown") {
+        inputWidget = _createDropdownInput(
+            field, widget.currentLocale, widget.onStaticWidgetChanged,
+            borderColor: borderColor);
+      } else if (field["type"] == "number") {
+        inputWidget = _createNumberInput(
+            field, widget.currentLocale, widget.onStaticWidgetChanged,
+            borderColor: borderColor);
+      }
+
+      // create actual step
+      Step step = Step(
+        title: Text(field['label${widget.currentLocale}']),
+        state: _index > steps.length ? StepState.complete : StepState.indexed,
+        isActive: _index == steps.length,
+        content: Container(
+          alignment: Alignment.centerLeft,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _paddedWidget(Text(field["description${widget.currentLocale}"])),
+              inputWidget!
+            ],
+          ),
+        ),
+      );
+      steps.add(step);
+    }
+
+    // Build steps from dynamicFields
+    for (var field in widget.dynamicFields) {
+      if (field["section"] != widget.sectionToBuild) {
+        continue;
+      }
+      int index = widget.dynamicFields.indexOf(field);
+      Step step = Step(
+        title: Text(field['headerText${widget.currentLocale}']),
+        state: _index > steps.length ? StepState.complete : StepState.indexed,
+        isActive: _index == steps.length,
+        content: Container(
+          alignment: Alignment.centerLeft,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _paddedWidget(Text(field["description${widget.currentLocale}"])),
+              const SizedBox(height: 10),
+              DynamicDropdowns(
+                key: widget.dropdownKeys[index],
+                values: field["values"],
+                headerText: field["headerText${widget.currentLocale}"],
+                borderColor: field["borderColor"],
+                onChanged: widget.onDynamicWidgetChanged,
+                minDropdownCount: field["minDropdownCount"] ?? 0,
+                maxDropdownCount: field["maxDropdownCount"] ?? 6,
+              ),
+            ],
+          ),
+        ),
+      );
+      steps.add(step);
+    }
+
+    return Stepper(
+      currentStep: _index,
+      physics: const ClampingScrollPhysics(),
+      onStepCancel: () {
+        if (_index > 0) {
+          setState(() {
+            _index -= 1;
+          });
+        }
+      },
+      onStepContinue: () {
+        if (_index < steps.length - 1) {
+          setState(() {
+            _index += 1;
+          });
+        }
+      },
+      onStepTapped: (int index) {
+        setState(() {
+          _index = index;
+        });
+
+        // Scroll to the selected stepper content
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Scrollable.ensureVisible(
+            context,
+            alignment: 0.5, // Adjust the alignment as needed
+            duration: const Duration(milliseconds: 300),
+          );
+        });
+      },
+      steps: steps,
+      controlsBuilder: (BuildContext context, ControlsDetails details) {
+        return Row(
+          children: [
+            if (_index > 0)
+              TextButton(
+                onPressed: details.onStepCancel,
+                child: Text(widget.currentLocale == "EN" ? "Back" : "Zurück"),
+              ),
+            if (_index < steps.length - 1)
+              TextButton(
+                onPressed: details.onStepContinue,
+                child: Text(widget.currentLocale == "EN" ? "Next" : "Weiter"),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}

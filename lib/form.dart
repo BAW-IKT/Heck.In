@@ -32,8 +32,10 @@ class NameFormState extends State<NameForm> {
   List<Map<String, dynamic>> inputFields = [];
   Map<String, int> inputFieldLabelToIndex = {};
   List<Map<String, dynamic>> dynamicFields = [];
+  Map<String, int> dynamicFieldLabelToIndex = {};
   List<Map<String, dynamic>> sections = getSections();
   List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
+  List<GlobalKey<StepperWidgetState>> _stepperKeys = [];
 
   FormCalc calc = FormCalc();
 
@@ -86,9 +88,12 @@ class NameFormState extends State<NameForm> {
     for (var i = 0; i < inputFields.length; i++) {
       inputFieldLabelToIndex[inputFields[i]["label"]] = i;
     }
-    ;
 
     dynamicFields = createDynamicFormFields();
+
+    for (var i = 0; i < dynamicFields.length; i++) {
+      dynamicFieldLabelToIndex[dynamicFields[i]["headerText"]] = i;
+    }
 
     localeMap.initialize(inputFields, dynamicFields, sections);
     localeToOriginal = localeMap.getLocaleToOriginal(currentLocale);
@@ -96,6 +101,9 @@ class NameFormState extends State<NameForm> {
 
     _dropdownsKeys = List.generate(
         dynamicFields.length, (_) => GlobalKey<DynamicDropdownsState>());
+
+    _stepperKeys =
+        List.generate(sections.length, (_) => GlobalKey<StepperWidgetState>());
 
     menuItems =
         sections.map((s) => s["label$currentLocale"].toString()).toList();
@@ -137,15 +145,30 @@ class NameFormState extends State<NameForm> {
     String dropdownPostfix = dropdownKey.split("_")[1];
     String? originalDropdownKey = localeToOriginal[cleanDropdownKey];
     String concatKeyForStorage = "$originalDropdownKey" "_$dropdownPostfix";
+
+    int? dynamicIndex = dynamicFieldLabelToIndex[originalDropdownKey];
+    if (!dynamicFields[dynamicIndex!].containsKey("selectedValues")) {
+      dynamicFields[dynamicIndex]["selectedValues"] = {};
+    }
+
     // in case dropdown gets removed, remove key/val from preferences
-    if (dropdownValue == "" &&
-        sharedPreferences.get(originalDropdownKey!) != null) {
-      sharedPreferences.remove(originalDropdownKey);
+    if (dropdownValue == "") {
+      if (sharedPreferences.get(originalDropdownKey!) != null) {
+        sharedPreferences.remove(originalDropdownKey);
+      }
+      dynamicFields[dynamicIndex]["selectedValues"][dropdownPostfix] = "";
+    }
+    else if (dropdownValue == "ADD") {
+      dynamicFields[dynamicIndex]["selectedValues"][dropdownPostfix] = "";
+    } else if (dropdownValue == "REMOVE") {
+      dynamicFields[dynamicIndex]["selectedValues"].remove(dropdownPostfix);
     } else {
       // otherwise, add/update preferences with dropdown values
-
+      dynamicFields[dynamicIndex]["selectedValues"][dropdownPostfix] = dropdownValue;
       sharedPreferences.setString(concatKeyForStorage, dropdownValue);
     }
+
+    _setSectionNotifiers(dynamicFields[dynamicIndex]["section"]);
   }
 
   /// action triggered by static widgets onChanged events
@@ -191,6 +214,15 @@ class NameFormState extends State<NameForm> {
         allFilledOut = false;
       }
     }
+    for (var dynamicField in dynamicFields) {
+      if (dynamicField["section"] == section &&
+          (!dynamicField.containsKey("selectedValues") ||
+              dynamicField["selectedValues"].length == 0 ||
+              dynamicField["selectedValues"].values.any((value) => value == ""))) {
+        allFilledOut = false;
+      }
+    }
+    print(allFilledOut);
     allFilledOut
         ? sectionNotifiers[section]?.value = true
         : sectionNotifiers[section]?.value = false;
@@ -766,21 +798,31 @@ class NameFormState extends State<NameForm> {
   }
 
   Widget buildMenuPage(String section, var columns, var dynamicColumns) {
+    int sectionIdx =
+        sections.indexWhere((element) => element["label"] == section);
     return Column(
       children: [
         createHeader(originalToLocale[section]!),
         const Divider(),
-        // buildStaticSteppers(inputFields, section, currentLocale, onWidgetChanged: onStaticWidgetChanged),
-        buildFormFieldGrid(inputFields, section, currentLocale,
-            onWidgetChanged: onStaticWidgetChanged, columns: columns),
-        buildDynamicFormFieldGrid(
-          children: dynamicFields,
-          section: section,
-          dropdownKeys: _dropdownsKeys,
-          onDropdownChanged: onDynamicDropdownsChanged,
-          currentLocale: currentLocale,
-          columns: dynamicColumns,
-        ),
+        buildSteppers(
+            inputFields,
+            dynamicFields,
+            _dropdownsKeys,
+            _stepperKeys[sectionIdx],
+            section,
+            currentLocale,
+            onStaticWidgetChanged,
+            onDynamicDropdownsChanged),
+        // buildFormFieldGrid(inputFields, section, currentLocale,
+        //     onWidgetChanged: onStaticWidgetChanged, columns: columns),
+        // buildDynamicFormFieldGrid(
+        //   children: dynamicFields,
+        //   section: section,
+        //   dropdownKeys: _dropdownsKeys,
+        //   onDropdownChanged: onDynamicDropdownsChanged,
+        //   currentLocale: currentLocale,
+        //   columns: dynamicColumns,
+        // ),
       ],
     );
   }

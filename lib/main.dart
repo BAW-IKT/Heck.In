@@ -286,11 +286,9 @@ class _WebViewPageState extends State<WebViewPage> {
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        const SizedBox(width: 10),
                         _buildLanguageToggleButton(),
                         _buildGeoRefreshButton(),
                         _buildDarkmodeToggleButton(),
-                        const SizedBox(width: 10),
                       ]),
                   const SizedBox(height: 30),
                   Image.asset(
