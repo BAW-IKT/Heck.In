@@ -234,7 +234,7 @@ class NameFormState extends State<NameForm> {
         allFilledOut = false;
       }
     }
-    print(allFilledOut);
+    // print(allFilledOut);
     allFilledOut
         ? sectionNotifiers[section]?.value = true
         : sectionNotifiers[section]?.value = false;

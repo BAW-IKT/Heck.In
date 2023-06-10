@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hedge_profiler_flutter/colors.dart';
 import 'dynamic_dropdowns.dart';
+
+void doNothing() {
+}
 
 Column buildDynamicFormFieldGrid({
   required List<Map<String, dynamic>> children,
@@ -32,6 +36,7 @@ Column buildDynamicFormFieldGrid({
               originalValues: child["values"],
               minDropdownCount: child['minDropdownCount'] ?? minDropdownCount,
               maxDropdownCount: child['maxDropdownCount'] ?? maxDropdownCount,
+              setStateParent: doNothing,
             ),
           ),
         ),
@@ -386,10 +391,16 @@ class StepperWidgetState extends State<StepperWidget> {
   int _index = 0;
   Map<String, dynamic> dropdownValues = {};
 
+  void setStepperWidgetState() {
+    setState(() {});
+    print("done setting parents state");
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Step> steps = [];
     Map<String, dynamic> subSections = {};
+    Map<String, List<String>> subSectionToOriginales = {};
 
     // Build steps from inputFields
     for (var field in widget.inputFields) {
@@ -401,16 +412,14 @@ class StepperWidgetState extends State<StepperWidget> {
       Widget? inputWidget;
       Color? borderColor = field['borderColor'];
       if (field["type"] == "text") {
-        inputWidget = _createTextInput(
-            field, widget.currentLocale, widget.onStaticWidgetChanged,
-            borderColor: borderColor);
+        inputWidget =
+            _createTextInputForStepper(field, borderColor: borderColor);
       } else if (field["type"] == "dropdown") {
         inputWidget =
             _createDropdownInputForStepper(field, borderColor: borderColor);
       } else if (field["type"] == "number") {
-        inputWidget = _createNumberInput(
-            field, widget.currentLocale, widget.onStaticWidgetChanged,
-            borderColor: borderColor);
+        inputWidget =
+            _createNumberInputForStepper(field, borderColor: borderColor);
       }
 
       // add to column with descriptive text
@@ -419,19 +428,27 @@ class StepperWidgetState extends State<StepperWidget> {
         children: [
           _paddedWidget(Text(field["description${widget.currentLocale}"])),
           const SizedBox(height: 10),
-          inputWidget!
+          inputWidget!,
+          const SizedBox(height: 16),
         ],
       );
 
       // add widget to defined subSection map if defined (if not, create own group based on label)
       if (!field.containsKey("subSection${widget.currentLocale}")) {
-        subSections[field["label${widget.currentLocale}"]] = [column];
+        String fieldLabel = field["label${widget.currentLocale}"];
+        subSections[fieldLabel] = [column];
+        subSectionToOriginales[fieldLabel] = [field["label"]];
       } else {
         String subSection = field["subSection${widget.currentLocale}"];
         if (!subSections.containsKey(subSection)) {
           subSections[subSection] = [column];
         } else {
           subSections[subSection].add(column);
+        }
+        if (!subSectionToOriginales.containsKey(subSection)) {
+          subSectionToOriginales[subSection] = [field["label"]];
+        } else {
+          subSectionToOriginales[subSection]?.add(field["label"]);
         }
       }
     }
@@ -459,13 +476,17 @@ class StepperWidgetState extends State<StepperWidget> {
             originalValues: field["values"],
             minDropdownCount: field["minDropdownCount"] ?? 0,
             maxDropdownCount: field["maxDropdownCount"] ?? 6,
+            setStateParent: setStepperWidgetState,
           ),
+          const SizedBox(height: 16),
         ],
       );
 
       // add widget to defined subSection map if defined (if not, create own group based on label)
       if (!field.containsKey("subSection${widget.currentLocale}")) {
-        subSections[field["headerText${widget.currentLocale}"]] = [column];
+        String fieldLabel = field["headerText${widget.currentLocale}"];
+        subSections[fieldLabel] = [column];
+        subSectionToOriginales[fieldLabel] = [field["headerText"]];
       } else {
         String subSection = field["subSection${widget.currentLocale}"];
         if (!subSections.containsKey(subSection)) {
@@ -473,24 +494,37 @@ class StepperWidgetState extends State<StepperWidget> {
         } else {
           subSections[subSection].add(column);
         }
+        if (!subSectionToOriginales.containsKey(subSection)) {
+          subSectionToOriginales[subSection] = [field["headerText"]];
+        } else {
+          subSectionToOriginales[subSection]?.add(field["headerText"]);
+        }
       }
     }
 
     // build steps
+    List<bool> stepCompletionStatus = List.filled(subSections.length, false);
+    int index = 0;
     for (String subSection in subSections.keys) {
+      // List<String> originalWidgetNames = subSections[subSection];
+      bool isStepComplete =
+          checkAllFieldsFilled(subSectionToOriginales[subSection]);
+      stepCompletionStatus[index] = isStepComplete;
       Step step = Step(
         title: Text(subSection),
-        state: _index > steps.length ? StepState.complete : StepState.indexed,
-        isActive: _index == steps.length,
+        // state: _index > steps.length ? StepState.complete : StepState.indexed,
+        state: isStepComplete ? StepState.complete : StepState.indexed,
+        isActive: _index == index,
         content: Container(
           alignment: Alignment.centerLeft,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: subSections[subSection],
+            children: [...subSections[subSection]],
           ),
         ),
       );
       steps.add(step);
+      index++;
     }
 
     return Stepper(
@@ -526,22 +560,69 @@ class StepperWidgetState extends State<StepperWidget> {
       },
       steps: steps,
       controlsBuilder: (BuildContext context, ControlsDetails details) {
-        return Row(
+        bool isLastStep = _index == steps.length - 1;
+        bool isStepComplete = stepCompletionStatus[_index];
+
+        return Stack(
           children: [
-            if (_index > 0)
-              TextButton(
-                onPressed: details.onStepCancel,
-                child: Text(widget.currentLocale == "EN" ? "Back" : "Zurück"),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (_index > 0)
+                  ElevatedButton(
+                    onPressed: details.onStepCancel,
+                    child:
+                        Text(widget.currentLocale == "EN" ? "Back" : "Zurück"),
+                  ),
+                const SizedBox(width: 4),
+                if (_index < steps.length - 1)
+                  ElevatedButton(
+                    onPressed: details.onStepContinue,
+                    child:
+                        Text(widget.currentLocale == "EN" ? "Next" : "Weiter"),
+                  ),
+              ],
+            ),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Icon(
+                isStepComplete ? Icons.check_circle : Icons.pending,
+                color: isStepComplete ? Colors.green : Colors.orange,
+                size: 20,
               ),
-            if (_index < steps.length - 1)
-              TextButton(
-                onPressed: details.onStepContinue,
-                child: Text(widget.currentLocale == "EN" ? "Next" : "Weiter"),
-              ),
+            ),
           ],
         );
       },
     );
+  }
+
+  bool checkAllFieldsFilled(List<String>? originalLabels) {
+    for (String originalLabel in originalLabels!) {
+      for (var staticField in widget.inputFields) {
+        if (staticField["label"] == originalLabel &&
+            (!staticField.containsKey("selectedValue") ||
+                staticField["selectedValue"] == null ||
+                staticField["selectedValue"] == "")) {
+          return false;
+        }
+      }
+
+      for (var dynamicField in widget.dynamicFields) {
+        if (dynamicField["headerText"] == originalLabel &&
+            (!dynamicField.containsKey("selectedValues") ||
+                dynamicField["selectedValues"].length == 0 ||
+                dynamicField["selectedValues"]
+                    .values
+                    .any((value) => value == ""))) {
+          return false;
+        }
+      }
+    }
+    // print("all done!");
+    return true;
   }
 
   Widget _createDropdownInputForStepper(var field, {Color? borderColor}) {
@@ -590,6 +671,50 @@ class StepperWidgetState extends State<StepperWidget> {
           setState(() {
             dropdownValues[field["label"]] = value;
           });
+        },
+      ),
+    );
+  }
+
+  Widget _createNumberInputForStepper(var field, {Color? borderColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: TextFormField(
+        controller: field['controller'],
+        decoration: InputDecoration(
+          enabledBorder: OutlineInputBorder(
+            borderSide: borderColor != null
+                ? BorderSide(color: borderColor)
+                : const BorderSide(),
+          ),
+          labelText: field['label${widget.currentLocale}'],
+        ),
+        keyboardType: TextInputType.number,
+        onChanged: (value) {
+          widget.onStaticWidgetChanged(field["label"], value);
+          setState(() {});
+        },
+      ),
+    );
+  }
+
+  Widget _createTextInputForStepper(var field, {Color? borderColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: TextFormField(
+        controller: field['controller'],
+        decoration: InputDecoration(
+          enabledBorder: OutlineInputBorder(
+            borderSide: borderColor != null
+                ? BorderSide(color: borderColor)
+                : const BorderSide(),
+          ),
+          labelText: field['label${widget.currentLocale}'],
+        ),
+        keyboardType: TextInputType.text,
+        onChanged: (value) {
+          widget.onStaticWidgetChanged(field["label"], value);
+          setState(() {});
         },
       ),
     );

@@ -10,6 +10,7 @@ class DynamicDropdowns extends StatefulWidget {
   final List<String> originalValues;
   final int minDropdownCount;
   final int maxDropdownCount;
+  final VoidCallback setStateParent;
 
   const DynamicDropdowns({
     Key? key,
@@ -21,6 +22,8 @@ class DynamicDropdowns extends StatefulWidget {
     required this.originalValues,
     this.minDropdownCount = 0,
     this.maxDropdownCount = 6,
+    required this.setStateParent,
+
   }) : super(key: key);
 
   @override
@@ -44,6 +47,7 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
     dropdownCount = 0;
     buildInitialDropdowns();
     setState(() {});
+    widget.setStateParent();
   }
 
   Future<void> buildInitialDropdowns() async {
@@ -75,6 +79,7 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
 
   void addDropdown() {
     if (dropdownCount < widget.maxDropdownCount) {
+      widget.setStateParent();
       setState(() {
         dropdownCount++;
         selectedValues.add(widget.values[0]);
@@ -87,6 +92,7 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
 
   void removeDropdown() {
     if (dropdownCount > widget.minDropdownCount) {
+      widget.setStateParent();
       setState(() {
         dropdownCount--;
         selectedValues.removeLast();
@@ -143,6 +149,7 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
                         DropdownButton<String>(
                           value: selectedLocaleValues[index],
                           onChanged: (newValue) {
+                            widget.setStateParent();
                             setState(() {
                               selectedLocaleValues[index] = newValue!;
                               // hand over parameters to parent
