@@ -389,6 +389,7 @@ class StepperWidgetState extends State<StepperWidget> {
   @override
   Widget build(BuildContext context) {
     List<Step> steps = [];
+    Map<String, dynamic> subSections = {};
 
     // Build steps from inputFields
     for (var field in widget.inputFields) {
@@ -412,23 +413,27 @@ class StepperWidgetState extends State<StepperWidget> {
             borderColor: borderColor);
       }
 
-      // create actual step
-      Step step = Step(
-        title: Text(field['label${widget.currentLocale}']),
-        state: _index > steps.length ? StepState.complete : StepState.indexed,
-        isActive: _index == steps.length,
-        content: Container(
-          alignment: Alignment.centerLeft,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _paddedWidget(Text(field["description${widget.currentLocale}"])),
-              inputWidget!
-            ],
-          ),
-        ),
+      // add to column with descriptive text
+      Column column = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _paddedWidget(Text(field["description${widget.currentLocale}"])),
+          const SizedBox(height: 10),
+          inputWidget!
+        ],
       );
-      steps.add(step);
+
+      // add widget to defined subSection map if defined (if not, create own group based on label)
+      if (!field.containsKey("subSection${widget.currentLocale}")) {
+        subSections[field["label${widget.currentLocale}"]] = [column];
+      } else {
+        String subSection = field["subSection${widget.currentLocale}"];
+        if (!subSections.containsKey(subSection)) {
+          subSections[subSection] = [column];
+        } else {
+          subSections[subSection].add(column);
+        }
+      }
     }
 
     // Build steps from dynamicFields
@@ -437,29 +442,51 @@ class StepperWidgetState extends State<StepperWidget> {
         continue;
       }
       int index = widget.dynamicFields.indexOf(field);
+
+      // build column with descriptive text
+      Column column = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _paddedWidget(Text(field["description${widget.currentLocale}"])),
+          const SizedBox(height: 10),
+          DynamicDropdowns(
+            key: widget.dropdownKeys[index],
+            values: field["values${widget.currentLocale}"],
+            headerText: field["headerText${widget.currentLocale}"],
+            originalHeader: field["headerText"],
+            borderColor: field["borderColor"],
+            onChanged: widget.onDynamicWidgetChanged,
+            originalValues: field["values"],
+            minDropdownCount: field["minDropdownCount"] ?? 0,
+            maxDropdownCount: field["maxDropdownCount"] ?? 6,
+          ),
+        ],
+      );
+
+      // add widget to defined subSection map if defined (if not, create own group based on label)
+      if (!field.containsKey("subSection${widget.currentLocale}")) {
+        subSections[field["headerText${widget.currentLocale}"]] = [column];
+      } else {
+        String subSection = field["subSection${widget.currentLocale}"];
+        if (!subSections.containsKey(subSection)) {
+          subSections[subSection] = [column];
+        } else {
+          subSections[subSection].add(column);
+        }
+      }
+    }
+
+    // build steps
+    for (String subSection in subSections.keys) {
       Step step = Step(
-        title: Text(field['headerText${widget.currentLocale}']),
+        title: Text(subSection),
         state: _index > steps.length ? StepState.complete : StepState.indexed,
         isActive: _index == steps.length,
         content: Container(
           alignment: Alignment.centerLeft,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _paddedWidget(Text(field["description${widget.currentLocale}"])),
-              const SizedBox(height: 10),
-              DynamicDropdowns(
-                key: widget.dropdownKeys[index],
-                values: field["values${widget.currentLocale}"],
-                headerText: field["headerText${widget.currentLocale}"],
-                originalHeader: field["headerText"],
-                borderColor: field["borderColor"],
-                onChanged: widget.onDynamicWidgetChanged,
-                originalValues: field["values"],
-                minDropdownCount: field["minDropdownCount"] ?? 0,
-                maxDropdownCount: field["maxDropdownCount"] ?? 6,
-              ),
-            ],
+            children: subSections[subSection],
           ),
         ),
       );
