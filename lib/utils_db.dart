@@ -64,13 +64,13 @@ Future<void> writeDocument(
       documentData[entry.key] = entry.value;
     }
     documentData['images'] = downloadUrls;
-    documentData['timestamp'] = timestamp;
+    documentData['form_submit_timestamp'] = timestamp.toString();
     await document.set(documentData);
 
     // Call the callback function with success status and message
-    onResult(true, 'Document saved successfully.');
+    onResult(true, 'success');
   } catch (e) {
     // Call the callback function with error status and message
-    onResult(false, 'Error saving document: $e');
+    onResult(false, '$e');
   }
 }

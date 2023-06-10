@@ -259,13 +259,13 @@ class NameFormState extends State<NameForm> {
     );
     if (confirmed == true) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      Object? lat = prefs.get("latitude");
-      Object? lon = prefs.get("longitude");
-      Object? geoLastChange = prefs.get("geoLastChange");
+      Object? lat = prefs.get("geo_latitude");
+      Object? lon = prefs.get("geo_longitude");
+      Object? geoLastChange = prefs.get("geo_last_change");
       prefs.clear();
-      prefs.setString("latitude", lat.toString());
-      prefs.setString("longitude", lon.toString());
-      prefs.setString("geoLastChange", geoLastChange.toString());
+      prefs.setString("geo_latitude", lat.toString());
+      prefs.setString("geo_longitude", lon.toString());
+      prefs.setString("geo_last_change", geoLastChange.toString());
       _populateStaticInputFields();
 
       // trigger rebuild of dynamic dropdowns
@@ -293,7 +293,10 @@ class NameFormState extends State<NameForm> {
     // write to the database, show snackbar with result, stop loading indicator
     db.writeDocument(dataMap, _selectedImages, (success, message) {
       _isSaving.value = false;
-      showSnackbar(context, message, success: success);
+      String statusText = currentLocale == "EN"
+          ? "Document saved successfully"
+          : "Dokument erfolgreich gespeichert";
+      showSnackbar(context, success ? statusText : message, success: success);
     });
   }
 

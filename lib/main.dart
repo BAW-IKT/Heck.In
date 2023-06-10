@@ -6,7 +6,7 @@ import 'firebase_options.dart';
 import 'dart:io';
 import 'form.dart';
 import 'colors.dart';
-import 'utils_geo_v2.dart' as geo;
+import 'utils_geo.dart' as geo;
 import 'snackbar.dart';
 
 void main() => runApp(const HedgeProfilerApp());
@@ -54,7 +54,7 @@ class WebViewPage extends StatefulWidget {
 
 /// main page, instantiates WebView controller and NameForm (displayed as overlay)
 class _WebViewPageState extends State<WebViewPage> {
-  ValueNotifier<double> _loadingPercentage = ValueNotifier<double>(0.0);
+  final ValueNotifier<double> _loadingPercentage = ValueNotifier<double>(0.0);
   late final WebViewController _controller;
 
   bool _showNameForm = true;
@@ -105,13 +105,6 @@ class _WebViewPageState extends State<WebViewPage> {
           },
           onWebResourceError: (WebResourceError error) {
             _loadingPercentage.value = 0;
-//             debugPrint('''
-// Page resource error:
-//   code: ${error.errorCode}
-//   description: ${error.description}
-//   errorType: ${error.errorType}
-//   isForMainFrame: ${error.isForMainFrame}
-//           ''');
             showSnackbar(context, error.description.toString());
           },
           onNavigationRequest: (NavigationRequest request) {
@@ -125,6 +118,10 @@ class _WebViewPageState extends State<WebViewPage> {
 
   /// refreshes geo coordinates and updates variables for menu accordingly
   _updateLocationAndLocales() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     // initially set locale
@@ -138,20 +135,38 @@ class _WebViewPageState extends State<WebViewPage> {
     // set to last known pos
     await geo.getLastKnownLocation();
     setState(() {
-      _geoLastChange = prefs.getString("geoLastChange")?.split(".")[0] ?? 'n/a';
-      String lat = prefs.getString("latitude") ?? "n/a";
-      String lon = prefs.getString("longitude") ?? "n/a";
+      _geoLastChange = prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
+      String lat = prefs.getString("geo_latitude") ?? "n/a";
+      String lon = prefs.getString("geo_longitude") ?? "n/a";
       _geoLastKnown = "lat: $lat\nlon: $lon";
-      _isLoading = false;
     });
 
     // wait for refresh of coords
-    await geo.updateLocation();
+    try {
+      // wait for refresh of coords with a timeout of 5 seconds
+      await geo.updateLocation().timeout(const Duration(seconds: 5), onTimeout: () {
+        setState(() {
+          _isLoading = false;
+        });
+        showSnackbar(
+            context,
+            currentLocale == "EN"
+                ? "Updating geo information timed out after 5 seconds"
+                : "Geo koordinaten konnten nach 5 Sekunden nicht aktualisiert werden");
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        showSnackbar(context, "Error when upding geo information: $e");
+      });
+    }
+
     setState(() {
-      _geoLastChange = prefs.getString("geoLastChange")?.split(".")[0] ?? 'n/a';
-      String lat = prefs.getString("latitude") ?? "n/a";
-      String lon = prefs.getString("longitude") ?? "n/a";
+      _geoLastChange = prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
+      String lat = prefs.getString("geo_latitude") ?? "n/a";
+      String lon = prefs.getString("geo_longitude") ?? "n/a";
       _geoLastKnown = "lat: $lat\nlon: $lon";
+      _isLoading = false;
     });
   }
 
@@ -171,8 +186,8 @@ class _WebViewPageState extends State<WebViewPage> {
         _updateLocationAndLocales();
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        var latitude = prefs.getString("latitude");
-        var longitude = prefs.getString("longitude");
+        var latitude = prefs.getString("geo_latitude");
+        var longitude = prefs.getString("geo_longitude");
         var zoom =
             "15"; // change location zoom depending on whether location can be loaded
 
@@ -356,7 +371,9 @@ class _WebViewPageState extends State<WebViewPage> {
     return ElevatedButton(
       onPressed: _toggleLanguage,
       child: Column(children: [
-        const Icon(Icons.translate, ),
+        const Icon(
+          Icons.translate,
+        ),
         currentLocale == "EN" ? const Text("Deutsch") : const Text("English"),
       ]),
     );

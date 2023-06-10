@@ -90,12 +90,6 @@ Map<String, String> getEnglishRadarPlotTranslations() {
   };
 }
 
-List<String> getSectionsFromLocale(String locale) {
-  return getSections()
-      .map((section) => section["label$locale"].toString())
-      .toList();
-}
-
 /// This function defines the data for static inputs (text, number or dropdown)
 /// labels must be unique across all static & dynamic widgets!
 /// example usage to create widgets:
@@ -171,6 +165,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionEN': 'Enter the length of the hedge in meters',
       'descriptionDE': 'Geben Sie die Länge der Hecke in Metern ein',
       'section': 'physical',
+      "subSectionDE": "Abmessungen",
+      "subSectionEN": "Dimensions",
       'borderColor': MyColors.blue,
       'controller': TextEditingController(),
     },
@@ -182,6 +178,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Select the compass direction",
       "descriptionDE": "Wählen Sie die Ausrichtung nach Himmelsrichtung aus",
       'section': 'physical',
+      "subSectionDE": "Ausrichtung",
+      "subSectionEN": "Orientation",
       'borderColor': MyColors.blue,
       'values': ['', 's_n', 'so_nw', 'w_o', 'sw_no'],
       'valuesEN': ['', 'S-N', 'SE-NW', 'W-O', 'SW-NE'],
@@ -200,6 +198,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Select the protected area status",
       "descriptionDE": "Wählen Sie den Schutzgebietsstatus aus",
       'section': 'environmental',
+      "subSectionEN": "Conservation",
+      "subSectionDE": "Schutzgebiet",
       'borderColor': MyColors.blue,
       'values': ['', 'schutzgebiet', 'kein_schutzgebiet'],
       'valuesEN': ['', 'protected area', 'no protected area'],
@@ -218,6 +218,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionDE':
           "Wählen Sie aus, ob es sich bei der Hecke um ein Naturdenkmal handelt oder nicht",
       'section': 'environmental',
+      "subSectionEN": "Conservation",
+      "subSectionDE": "Schutzgebiet",
       'borderColor': MyColors.blue,
       'values': [
         '',
@@ -246,6 +248,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionEN': "Select the density range of the hedge",
       'descriptionDE': "Wählen Sie den Dichtebereich der Hecke aus",
       'section': 'physical',
+      "subSectionDE": "Dichte und Kapazität",
+      "subSectionEN": "Density and Capacity",
       'borderColor': MyColors.blue,
       'values': [
         '',
@@ -290,6 +294,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionEN': "Select the climatic water balance color",
       'descriptionDE': "Wählen Sie die Farbe der klimatischen Wasserbilanz aus",
       'section': 'environmental',
+      "subSectionEN": "Climate and Water",
+      "subSectionDE": "Klima und Wasser",
       'borderColor': MyColors.blue,
       'values': [
         '',
@@ -328,6 +334,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionEN': "Select the population density range",
       'descriptionDE': "Wählen Sie den Bereich der Bevölkerungsdichte aus",
       'section': 'environmental',
+      "subSectionEN": "Landscape and Population",
+      "subSectionDE": "Landschaft und Bevölkerung",
       'borderColor': MyColors.blue,
       'values': ['', '0_to_15', '16_to_30', '31_to_75', '76_to_200', 'gt_200'],
       'valuesEN': ['', '0-15', '16-30', '31-75', '76-200', '>200'],
@@ -345,6 +353,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionDE':
           "Wählen Sie aus, ob sich der Standort in einem Wildtierkorridor befindet",
       'section': 'environmental',
+      "subSectionEN": "Landscape and Population",
+      "subSectionDE": "Landschaft und Bevölkerung",
       'borderColor': MyColors.blue,
       'values': ['', 'ja', 'nein'],
       'valuesEN': ['', 'yes', 'no'],
@@ -362,6 +372,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionDE':
           "Wählen Sie aus, ob es sich um eine traditionelle Heckenregion handelt oder nicht",
       'section': 'environmental',
+      "subSectionEN": "Landscape and Population",
+      "subSectionDE": "Landschaft und Bevölkerung",
       'borderColor': MyColors.blue,
       'values': ['', 'heckenregion', 'keine_heckenregion'],
       'valuesEN': ['', 'hedge region', 'no hedge region'],
@@ -380,6 +392,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionDE':
           "Wählen Sie aus, ob es im französischen Kataster erkennbar ist oder nicht",
       'section': 'environmental',
+      "subSectionEN": "Landscape and Population",
+      "subSectionDE": "Landschaft und Bevölkerung",
       'borderColor': MyColors.blue,
       'values': ['', 'im_kataster_erkennbar', 'nicht_im_kataster_erkennbar'],
       'valuesEN': [
@@ -400,6 +414,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Enter the usable field capacity",
       "descriptionDE": "Geben Sie die nutzbare Feldkapazität ein",
       'section': 'physical',
+      "subSectionDE": "Dichte und Kapazität",
+      "subSectionEN": "Density and Capacity",
       'borderColor': MyColors.blue,
       'values': ['', 'lt_60mm', '60_to_140mm', '140_to-220mm', '220_to_300mm'],
       'valuesEN': [
@@ -429,6 +445,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Select the humus balance",
       "descriptionDE": "Wählen Sie die Humusbilanz aus",
       'section': 'environmental',
+      "subSectionEN": "Management and Connectivity",
+      "subSectionDE": "Management und Vernetzung",
       'borderColor': MyColors.blue,
       'values': [
         '',
@@ -456,6 +474,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Select the position to the slope",
       "descriptionDE": "Wählen Sie die Position zum Hang aus",
       'section': 'physical',
+      "subSectionDE": "Position und Eigenschaften",
+      "subSectionEN": "Position and Characteristics",
       'borderColor': MyColors.green,
       'values': [
         '',
@@ -498,6 +518,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Select the slope gradient",
       "descriptionDE": "Wählen Sie die Hangneigung aus",
       'section': 'physical',
+      "subSectionDE": "Position und Eigenschaften",
+      "subSectionEN": "Position and Characteristics",
       'borderColor': MyColors.green,
       'values': [
         '',
@@ -537,6 +559,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Select the network",
       "descriptionDE": "Wählen Sie das Netzwerk aus",
       'section': 'environmental',
+      "subSectionEN": "Management and Connectivity",
+      "subSectionDE": "Management und Vernetzung",
       'borderColor': MyColors.green,
       'values': [
         '',
@@ -573,6 +597,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Select the access",
       "descriptionDE": "Wählen Sie die Erschließung aus",
       'section': 'environmental',
+      "subSectionEN": "Management and Connectivity",
+      "subSectionDE": "Management und Vernetzung",
       'borderColor': MyColors.green,
       'values': ['', 'weg_an_in_hecke', 'sichtbeziehung_zu_hecke', 'kein_weg'],
       'valuesEN': ['', 'path at/in hedge', 'line of sight to hedge', 'no path'],
@@ -594,6 +620,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Select the horizontal layering",
       "descriptionDE": "Wählen Sie die horizontale Schichtung aus",
       'section': 'biodiversity',
+      "subSectionEN": "Biodiversity Layers",
+      "subSectionDE": "Biodiversitätsschichten",
       'borderColor': MyColors.green,
       'values': [
         '',
@@ -628,6 +656,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionEN': 'Enter the vertical layering',
       'descriptionDE': 'Geben Sie die vertikale Schichtung ein',
       'section': 'biodiversity',
+      "subSectionEN": "Biodiversity Layers",
+      "subSectionDE": "Biodiversitätsschichten",
       'borderColor': MyColors.green,
       'values': ['', 'nur_kernzone', 'nur_mantelzone', 'kern_und_mantelzone'],
       'valuesEN': [
@@ -654,6 +684,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionEN': 'Enter the structural diversity',
       'descriptionDE': 'Geben Sie die Strukturvielfalt ein',
       'section': 'biodiversity',
+      "subSectionEN": "Structural Elements",
+      "subSectionDE": "Strukturelemente",
       'borderColor': MyColors.green,
       'values': [
         '',
@@ -686,6 +718,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionEN': 'Enter the gaps',
       'descriptionDE': 'Geben Sie die Lücken ein',
       'section': 'biodiversity',
+      "subSectionEN": "Structural Elements",
+      "subSectionDE": "Strukturelemente",
       'borderColor': MyColors.green,
       'values': [
         '',
@@ -726,6 +760,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionEN': 'Enter the deadwood',
       'descriptionDE': 'Geben Sie das Totholz ein',
       'section': 'biodiversity',
+      "subSectionEN": "Structural Elements",
+      "subSectionDE": "Strukturelemente",
       'borderColor': MyColors.green,
       'values': [
         '',
@@ -767,6 +803,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionEN': 'Enter the age composition',
       'descriptionDE': 'Geben Sie die Alterszusammensetzung ein',
       'section': 'biodiversity',
+      "subSectionEN": "Biodiversity Layers",
+      "subSectionDE": "Biodiversitätsschichten",
       'borderColor': MyColors.green,
       'values': [
         '',
@@ -807,6 +845,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionEN': 'Enter the hem type',
       'descriptionDE': 'Geben Sie die Saumart ein',
       'section': 'biodiversity',
+      "subSectionEN": "Structural Elements",
+      "subSectionDE": "Strukturelemente",
       'borderColor': MyColors.green,
       'values': ['', 'saum', 'maehstreifen', 'gruenland', 'nichts_davon'],
       'valuesEN': [
@@ -834,6 +874,8 @@ List<Map<String, dynamic>> createFormFields() {
       'descriptionEN': 'Enter the hem width',
       'descriptionDE': 'Geben Sie die Saumbreite ein',
       'section': 'biodiversity',
+      "subSectionEN": "Structural Elements",
+      "subSectionDE": "Strukturelemente",
       'borderColor': MyColors.green,
       'values': ['', 'kein_saum', 'lt_2m', '2_to_3m', '3_to_4m', 'gt_4m'],
       'valuesEN': ['', 'no fringe', '< 2 m', '2-3 m', '3-4 m', '> 4 m'],
@@ -856,6 +898,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Enter the height of the hedge",
       "descriptionDE": "Geben Sie die Höhe der Hecke ein",
       'section': 'physical',
+      "subSectionDE": "Abmessungen",
+      "subSectionEN": "Dimensions",
       'borderColor': MyColors.green,
       'values': ['', 'lt_2m', '2_to_5m', '5_to_10m', '10_to_15m', 'gt_15m'],
       'valuesEN': ['', '<2 m', '2-5 m', '5-10 m', '10-15 m', '>15 m'],
@@ -876,6 +920,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Enter the width of the hedge",
       "descriptionDE": "Geben Sie die Breite der Hecke ein",
       'section': 'physical',
+      "subSectionDE": "Abmessungen",
+      "subSectionEN": "Dimensions",
       'borderColor': MyColors.green,
       'values': ['', 'lt_2m', '2_to_4m', '4_to_6m', '6_to_8m', '8_to_12m'],
       'valuesEN': ['', '<2 m', '2-4 m', '4-6 m', '6-8 m', '8-12 m'],
@@ -897,6 +943,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Select the proportion of trees",
       "descriptionDE": "Wählen Sie den Baumanteil aus",
       'section': 'biodiversity',
+      "subSectionEN": "Species Composition",
+      "subSectionDE": "Artenzusammensetzung",
       'borderColor': MyColors.green,
       'values': [
         '',
@@ -936,6 +984,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionDE":
           "Wählen Sie die Anzahl der Gehölzarten innerhalb von 30m aus",
       'section': 'biodiversity',
+      "subSectionEN": "Species Composition",
+      "subSectionDE": "Artenzusammensetzung",
       'borderColor': MyColors.green,
       'values': [
         '',
@@ -977,6 +1027,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Select the dominance level",
       "descriptionDE": "Wählen Sie das Dominanzniveau aus",
       'section': 'biodiversity',
+      "subSectionEN": "Biodiversity Layers",
+      "subSectionDE": "Biodiversitätsschichten",
       'borderColor': MyColors.green,
       'values': ['', 'quasi_keine', 'leichte_dominanz', 'starke_dominanz'],
       'valuesEN': ['', '(quasi) none', 'slight dominance', 'strong dominance'],
@@ -995,6 +1047,8 @@ List<Map<String, dynamic>> createFormFields() {
       "descriptionEN": "Select the percentage of neophytes",
       "descriptionDE": "Wählen Sie den Prozentsatz der Neophyten aus",
       'section': 'biodiversity',
+      "subSectionEN": "Species Composition",
+      "subSectionDE": "Artenzusammensetzung",
       'borderColor': MyColors.green,
       'values': [
         '',
@@ -1014,6 +1068,12 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
   ];
+}
+
+List<String> getSectionsFromLocale(String locale) {
+  return getSections()
+      .map((section) => section["label$locale"].toString())
+      .toList();
 }
 
 /// this section defines the data for dynamic dropdown fields
@@ -1080,6 +1140,9 @@ List<Map<String, dynamic>> createDynamicFormFields() {
       "headerTextDE": "Nutzungsspuren",
       'descriptionEN': 'Indicate any visible traces of use',
       'descriptionDE': 'Geben Sie sichtbare Nutzungsspuren an',
+      'section': 'physical',
+      "subSectionDE": "Position und Eigenschaften",
+      "subSectionEN": "Position and Characteristics",
       'borderColor': MyColors.coral,
       'values': const [
         '',
@@ -1112,7 +1175,6 @@ List<Map<String, dynamic>> createDynamicFormFields() {
         'Rohstoffe': [null, 0, 1, 1, 1, 1],
         'Bestäubung': [null, 0, 1, 0, 0, 0],
       },
-      'section': 'physical',
       'maxDropdownCount': 4,
     },
     {
@@ -1121,6 +1183,9 @@ List<Map<String, dynamic>> createDynamicFormFields() {
       "headerTextDE": "Zusatzstrukturen",
       'descriptionEN': 'Choose any additional structures present',
       'descriptionDE': 'Wählen Sie zusätzliche Strukturen aus',
+      'section': 'physical',
+      "subSectionDE": "Position und Eigenschaften",
+      "subSectionEN": "Position and Characteristics",
       'borderColor': MyColors.coral,
       'values': const [
         '',
@@ -1151,7 +1216,6 @@ List<Map<String, dynamic>> createDynamicFormFields() {
         'Erholung & Tourismus': [null, 0.5, 1, 1, 0.5, 0],
         'Kulturerbe': [null, 0, 0, 0, 1, 0],
       },
-      'section': 'physical',
       'maxDropdownCount': 4,
     },
     {
@@ -1160,6 +1224,9 @@ List<Map<String, dynamic>> createDynamicFormFields() {
       "headerTextDE": "Management",
       'descriptionEN': 'Select the type of land management activities',
       'descriptionDE': 'Wählen Sie die Art der Bewirtschaftung aus',
+      'section': 'environmental',
+      "subSectionEN": "Management and Connectivity",
+      "subSectionDE": "Management und Vernetzung",
       'borderColor': MyColors.coral,
       'values': const [
         '',
@@ -1192,7 +1259,6 @@ List<Map<String, dynamic>> createDynamicFormFields() {
         'Rohstoffe': [null, 0, 0, -1, 2, 0, 1],
         'Bestäubung': [null, 1, 0, -1, 1, 1, 0],
       },
-      'section': 'environmental',
       'maxDropdownCount': 5,
     },
     {
@@ -1201,6 +1267,9 @@ List<Map<String, dynamic>> createDynamicFormFields() {
       "headerTextDE": "Sonderform",
       'descriptionEN': 'Specify if there are any special forms of vegetation',
       'descriptionDE': 'Geben Sie an, ob es besondere Vegetationsformen gibt',
+      'section': 'physical',
+      "subSectionDE": "Position und Eigenschaften",
+      "subSectionEN": "Position and Characteristics",
       'borderColor': MyColors.coral,
       'values': const [
         '',
@@ -1233,7 +1302,6 @@ List<Map<String, dynamic>> createDynamicFormFields() {
         'Fortpflanzungs- & Ruhestätte': [null, 0, 1, 1, 1, 1],
         'Kulturerbe': [null, 0, 1, 1, 1, 1],
       },
-      'section': 'physical',
       'maxDropdownCount': 4,
     },
   ];
