@@ -4,8 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DynamicDropdowns extends StatefulWidget {
   final List<String> values;
   final String headerText;
+  final String originalHeader;
   final Color borderColor;
   final Function(String, String) onChanged;
+  final List<String> originalValues;
   final int minDropdownCount;
   final int maxDropdownCount;
 
@@ -13,8 +15,10 @@ class DynamicDropdowns extends StatefulWidget {
     Key? key,
     required this.values,
     required this.headerText,
+    required this.originalHeader,
     required this.borderColor,
     required this.onChanged,
+    required this.originalValues,
     this.minDropdownCount = 0,
     this.maxDropdownCount = 6,
   }) : super(key: key);
@@ -25,6 +29,7 @@ class DynamicDropdowns extends StatefulWidget {
 
 class DynamicDropdownsState extends State<DynamicDropdowns> {
   List<String> selectedValues = [];
+  List<String> selectedLocaleValues = [];
   int dropdownCount = 0;
 
   @override
@@ -35,6 +40,7 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
 
   void rebuild() {
     selectedValues = [];
+    selectedLocaleValues = [];
     dropdownCount = 0;
     buildInitialDropdowns();
     setState(() {});
@@ -47,19 +53,23 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
     // get matching keys based on header text, e.g. "Fredl_"
     List<String> matchingKeys = prefs
         .getKeys()
-        .where((key) => key.startsWith('${widget.headerText}_'))
+        .where((key) => key.startsWith('${widget.originalHeader}_'))
         .toList();
 
     // if matching keys exist, iterate and add values to selectedValues
     if (matchingKeys.isNotEmpty) {
       for (String key in matchingKeys) {
         dropdownCount++;
-        selectedValues.add(prefs.get(key).toString());
+        String storedValue = prefs.get(key).toString();
+        int storedValueIndex = widget.originalValues.indexOf(storedValue);
+        selectedValues.add(storedValue);
+        selectedLocaleValues.add(widget.values[storedValueIndex]);
       }
     } else {
       // otherwise, build minDropdownCount amount of widgets as default
       dropdownCount++;
       selectedValues.add(widget.values[0]);
+      selectedLocaleValues.add(widget.values[0]);
     }
   }
 
@@ -68,7 +78,8 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
       setState(() {
         dropdownCount++;
         selectedValues.add(widget.values[0]);
-        String dropdownKey = '${widget.headerText}_${dropdownCount}';
+        selectedLocaleValues.add(widget.values[0]);
+        String dropdownKey = '${widget.headerText}_$dropdownCount';
         widget.onChanged(dropdownKey, "ADD");
       });
     }
@@ -79,6 +90,7 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
       setState(() {
         dropdownCount--;
         selectedValues.removeLast();
+        selectedLocaleValues.removeLast();
         String dropdownKey = '${widget.headerText}_${dropdownCount + 1}';
         widget.onChanged(dropdownKey, "REMOVE");
       });
@@ -129,10 +141,10 @@ class DynamicDropdownsState extends State<DynamicDropdowns> {
                         ),
                         const SizedBox(width: 6),
                         DropdownButton<String>(
-                          value: selectedValues[index],
+                          value: selectedLocaleValues[index],
                           onChanged: (newValue) {
                             setState(() {
-                              selectedValues[index] = newValue!;
+                              selectedLocaleValues[index] = newValue!;
                               // hand over parameters to parent
                               String dropdownKey =
                                   '${widget.headerText}_${index + 1}';

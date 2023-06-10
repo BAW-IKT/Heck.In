@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:hedge_profiler_flutter/form_data.dart';
 
 class RadarChartDialog extends StatefulWidget {
   final Map<String, double> data;
   final Map<String, String> dataToGroup;
   final Map<String, Color> groupColors;
+  final String currentLocale;
 
   const RadarChartDialog({
     Key? key,
     required this.data,
     required this.dataToGroup,
     required this.groupColors,
+    required this.currentLocale,
   }) : super(key: key);
 
   @override
@@ -18,35 +21,34 @@ class RadarChartDialog extends StatefulWidget {
 }
 
 class RadarChartDialogState extends State<RadarChartDialog> {
-
-List<Widget> _buildLegend() {
-  return widget.groupColors.entries.map((entry) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5),
-      child: Column(
-        children: [
-          Container(
-            width: 12,
-            height: 10,
-            decoration: BoxDecoration(
-              color: entry.value,
-              shape: BoxShape.circle,
+  Map<String, String> engTrans = getEnglishRadarPlotTranslations();
+  List<Widget> _buildLegend() {
+    return widget.groupColors.entries.map((entry) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 5),
+        child: Column(
+          children: [
+            Container(
+              width: 12,
+              height: 10,
+              decoration: BoxDecoration(
+                color: entry.value,
+                shape: BoxShape.circle,
+              ),
             ),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            entry.key,
-            style: TextStyle(
-              fontSize: MediaQuery.of(context).size.width > 600 ? 12 : 10,
-              // Add more properties if needed
+            const SizedBox(width: 5),
+            Text(
+              widget.currentLocale == "EN" ? engTrans[entry.key]! : entry.key,
+              style: TextStyle(
+                fontSize: MediaQuery.of(context).size.width > 600 ? 12 : 10,
+                // Add more properties if needed
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }).toList();
-}
-
+          ],
+        ),
+      );
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,8 +61,8 @@ List<Widget> _buildLegend() {
     List<RadarDataSet> radarDataSets = [];
 
     widget.groupColors.forEach((group, color) {
-
-      List<RadarEntry> entries = List.filled(maxEntries, const RadarEntry(value: 0));
+      List<RadarEntry> entries =
+          List.filled(maxEntries, const RadarEntry(value: 0));
 
       int index = 0;
       widget.data.forEach((key, value) {
@@ -79,7 +81,8 @@ List<Widget> _buildLegend() {
       );
 
       // Create an additional dataset to hide entries with value 0
-      List<RadarEntry> hiddenEntries = List.filled(maxEntries, RadarEntry(value: 0));
+      List<RadarEntry> hiddenEntries =
+          List.filled(maxEntries, RadarEntry(value: 0));
       radarDataSets.add(
         RadarDataSet(
           dataEntries: hiddenEntries,
@@ -96,9 +99,9 @@ List<Widget> _buildLegend() {
         child: Column(
           children: [
             const SizedBox(height: 10),
-            const Text(
-              'Ergebnisrose',
-              style: TextStyle(
+            Text(
+              widget.currentLocale == "EN" ? "Result Graph" : "Ergebnisrose",
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -127,6 +130,7 @@ List<Widget> _buildLegend() {
 
                     // if text is too long, break it
                     String tickText = widget.data.keys.elementAt(index);
+                    tickText = widget.currentLocale == "EN" ? engTrans[tickText]! : tickText;
                     if (tickText.contains("&")) {
                       var tickSplits = tickText.split("&");
                       tickSplits[0] += "&";
@@ -139,13 +143,18 @@ List<Widget> _buildLegend() {
                       // positionPercentageOffset: 0.7,
                     );
                   },
-                  ticksTextStyle: TextStyle(fontSize: 8, color: isDarkMode ? Colors.white70 : Colors.black87),
+                  ticksTextStyle: TextStyle(
+                      fontSize: 8,
+                      color: isDarkMode ? Colors.white70 : Colors.black87),
                   titlePositionPercentageOffset: isTablet ? 0.25 : 0.35,
-                  titleTextStyle: TextStyle(fontSize: isTablet ? 8:7),
+                  titleTextStyle: TextStyle(fontSize: isTablet ? 8 : 7),
                   radarBackgroundColor: backgroundColor.withOpacity(0.5),
-                  gridBorderData: const BorderSide(color: Colors.black26, width: 2),
-                  tickBorderData: const BorderSide(color: Colors.black26, width: 2),
-                  radarBorderData: const BorderSide(color: Colors.black87, width: 2),
+                  gridBorderData:
+                      const BorderSide(color: Colors.black26, width: 2),
+                  tickBorderData:
+                      const BorderSide(color: Colors.black26, width: 2),
+                  radarBorderData:
+                      const BorderSide(color: Colors.black87, width: 2),
                 ),
               ),
             ),

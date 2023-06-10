@@ -24,10 +24,12 @@ Column buildDynamicFormFieldGrid({
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
             child: DynamicDropdowns(
               key: dropdownKeys[index],
-              values: child['values'],
+              values: child['values$currentLocale'],
               headerText: child['headerText$currentLocale'],
+              originalHeader: child["headerText"],
               borderColor: child['borderColor'],
               onChanged: onDropdownChanged,
+              originalValues: child["values"],
               minDropdownCount: child['minDropdownCount'] ?? minDropdownCount,
               maxDropdownCount: child['maxDropdownCount'] ?? maxDropdownCount,
             ),
@@ -160,9 +162,8 @@ Widget _createTextInput(
 
 Padding _paddedWidget(Widget widget) {
   return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-    child: widget
-  );
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: widget);
 }
 
 Widget _createNumberInput(
@@ -191,7 +192,8 @@ Widget _createNumberInput(
 Widget _createDropdownInput(
     var field, String currentLocale, Function(String, String) onChanged,
     {Color? borderColor}) {
-  var dropdownItems = field['values'].map<DropdownMenuItem<String>>((value) {
+  var dropdownItems =
+      field['values$currentLocale'].map<DropdownMenuItem<String>>((value) {
     double dynamicTextSize = 12;
     if (value.toString().length > 16) {
       dynamicTextSize = 10;
@@ -209,6 +211,7 @@ Widget _createDropdownInput(
       ),
     );
   }).toList();
+
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
     child: DropdownButtonFormField(
@@ -288,11 +291,29 @@ class LocaleMap {
   Map<String, String> getLocaleToOriginal(String locale) {
     Map<String, String> map = {};
 
+    if (locale.isEmpty) {
+      return map;
+    }
+
     for (Map<String, dynamic> field in formFields) {
       map[field["label$locale"]] = field["label"];
+      if (field.containsKey("values")) {
+        for (int i = 0; i < field["values"].length; i++) {
+          if (field["values"][i] == "") {
+            continue;
+          }
+          map[field["values$locale"][i]] = field["values"][i];
+        }
+      }
     }
     for (Map<String, dynamic> dynField in dynamicFormFields) {
       map[dynField["headerText$locale"]] = dynField["headerText"];
+      for (int i = 0; i < dynField["values"].length; i++) {
+        if (dynField["values"][i] == "") {
+          continue;
+        }
+        map[dynField["values$locale"][i]] = dynField["values"][i];
+      }
     }
 
     for (Map<String, dynamic> sec in sections) {
@@ -305,11 +326,29 @@ class LocaleMap {
   Map<String, String> getOriginalToLocale(String locale) {
     Map<String, String> map = {};
 
+    if (locale.isEmpty) {
+      return map;
+    }
+
     for (Map<String, dynamic> field in formFields) {
       map[field["label"]] = field["label$locale"];
+      if (field.containsKey("values")) {
+        for (int i = 0; i < field["values"].length; i++) {
+          if (field["values"][i] == "") {
+            continue;
+          }
+          map[field["values"][i]] = field["values$locale"][i];
+        }
+      }
     }
     for (Map<String, dynamic> dynField in dynamicFormFields) {
       map[dynField["headerText"]] = dynField["headerText$locale"];
+      for (int i = 0; i < dynField["values"].length; i++) {
+        if (dynField["values"][i] == "") {
+          continue;
+        }
+        map[dynField["values"][i]] = dynField["values$locale"][i];
+      }
     }
     for (Map<String, dynamic> sec in sections) {
       map[sec["label"]] = sec["label$locale"];
@@ -345,6 +384,7 @@ class StepperWidget extends StatefulWidget {
 
 class StepperWidgetState extends State<StepperWidget> {
   int _index = 0;
+  Map<String, dynamic> dropdownValues = {};
 
   @override
   Widget build(BuildContext context) {
@@ -364,9 +404,8 @@ class StepperWidgetState extends State<StepperWidget> {
             field, widget.currentLocale, widget.onStaticWidgetChanged,
             borderColor: borderColor);
       } else if (field["type"] == "dropdown") {
-        inputWidget = _createDropdownInput(
-            field, widget.currentLocale, widget.onStaticWidgetChanged,
-            borderColor: borderColor);
+        inputWidget =
+            _createDropdownInputForStepper(field, borderColor: borderColor);
       } else if (field["type"] == "number") {
         inputWidget = _createNumberInput(
             field, widget.currentLocale, widget.onStaticWidgetChanged,
@@ -411,10 +450,12 @@ class StepperWidgetState extends State<StepperWidget> {
               const SizedBox(height: 10),
               DynamicDropdowns(
                 key: widget.dropdownKeys[index],
-                values: field["values"],
+                values: field["values${widget.currentLocale}"],
                 headerText: field["headerText${widget.currentLocale}"],
+                originalHeader: field["headerText"],
                 borderColor: field["borderColor"],
                 onChanged: widget.onDynamicWidgetChanged,
+                originalValues: field["values"],
                 minDropdownCount: field["minDropdownCount"] ?? 0,
                 maxDropdownCount: field["maxDropdownCount"] ?? 6,
               ),
@@ -473,6 +514,57 @@ class StepperWidgetState extends State<StepperWidget> {
           ],
         );
       },
+    );
+  }
+
+  Widget _createDropdownInputForStepper(var field, {Color? borderColor}) {
+    String locale = widget.currentLocale;
+    var dropdownItems =
+        field['values$locale'].map<DropdownMenuItem<String>>((value) {
+      double dynamicTextSize = 12;
+      if (value.toString().length > 16) {
+        dynamicTextSize = 10;
+      }
+      if (value.toString().length > 24) {
+        dynamicTextSize = 7;
+      }
+      return DropdownMenuItem<String>(
+        value: value,
+        child: Text(
+          value,
+          style: TextStyle(
+            fontSize: dynamicTextSize,
+          ),
+        ),
+      );
+    }).toList();
+
+    String dropdownValue = dropdownValues[field["label"]] ??
+        dropdownItems[0].value; // Updated line
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: DropdownButtonFormField(
+        value: dropdownValue,
+        decoration: InputDecoration(
+          enabledBorder: OutlineInputBorder(
+            borderSide: borderColor != null
+                ? BorderSide(color: borderColor)
+                : const BorderSide(),
+          ),
+          labelText: field['label$locale'],
+          labelStyle: TextStyle(
+            fontSize: field['label$locale'].length > 24 ? 14 : 16,
+          ),
+        ),
+        items: dropdownItems,
+        onChanged: (value) {
+          widget.onStaticWidgetChanged(field["label"], value.toString());
+          setState(() {
+            dropdownValues[field["label"]] = value;
+          });
+        },
+      ),
     );
   }
 }

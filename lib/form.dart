@@ -119,12 +119,17 @@ class NameFormState extends State<NameForm> {
   /// from SharedPreferences
   void _populateStaticInputFields() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? locale = currentLocale == "" ? prefs.getString("locale") : currentLocale;
+
     for (var field in inputFields) {
+      String? storedValue = prefs.getString(field["label"]) ?? "";
       if (field["type"] == "text" || field["type"] == "number") {
-        field["controller"].text = prefs.getString(field["label"]) ?? "";
-        field["selectedValue"] = prefs.getString(field["label"]) ?? "";
+        field["controller"].text = storedValue;
+        field["selectedValue"] = storedValue;
       } else if (field["type"] == "dropdown") {
-        field["selectedValue"] = prefs.getString(field["label"]) ?? "";
+        int valueIndex = field["values"].indexOf(storedValue);
+        String localValue = field["values$locale"][valueIndex];
+        field["selectedValue"] = localValue;
       }
     }
 
@@ -165,7 +170,8 @@ class NameFormState extends State<NameForm> {
     } else {
       // otherwise, add/update preferences with dropdown values
       dynamicFields[dynamicIndex]["selectedValues"][dropdownPostfix] = dropdownValue;
-      sharedPreferences.setString(concatKeyForStorage, dropdownValue);
+      String? originalValue = localeToOriginal[dropdownValue];
+      sharedPreferences.setString(concatKeyForStorage, originalValue!);
     }
 
     _setSectionNotifiers(dynamicFields[dynamicIndex]["section"]);
@@ -175,11 +181,17 @@ class NameFormState extends State<NameForm> {
   void onStaticWidgetChanged(String widgetLabel, String widgetValue) async {
     // refresh inputFields for graph etc.
     int widgetIndex = inputFieldLabelToIndex[widgetLabel]!;
+    String? originalValue = localeToOriginal[widgetValue];
     inputFields[widgetIndex]["selectedValue"] = widgetValue;
 
     // write to shared preferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString(widgetLabel, widgetValue);
+    if (originalValue == null) {
+      // in case of number widget
+      prefs.setString(widgetLabel, widgetValue);
+    } else {
+      prefs.setString(widgetLabel, originalValue);
+    }
 
     // validate all widgets of that section are checked
     String widgetGroup = inputFields[widgetIndex]["section"];
@@ -199,7 +211,7 @@ class NameFormState extends State<NameForm> {
     //   sectionNotifiers[widgetGroup]?.value = false;
     // }
 
-    print("$widgetLabel $widgetValue");
+    print("$widgetLabel $originalValue");
   }
 
   /// validates all widgets of a section are checked
@@ -455,11 +467,13 @@ class NameFormState extends State<NameForm> {
         if (inputField["type"] == "dropdown" &&
             inputField.containsKey("valueMap") &&
             inputField["valueMap"].containsKey(group)) {
-          if (inputField["selectedValue"] == "") {
+          // if (inputField["selectedValue"] == "") {
+          String? selVal = prefs.getString(inputField["label"]);
+          if (selVal == "" || selVal == null) {
             _radarChartDataFull[group][inputField["label"]] = 0;
           } else {
             int dropdownValueIndex =
-                inputField["values"].indexOf(inputField["selectedValue"]);
+                inputField["values"].indexOf(selVal);
             var dropdownScore =
                 inputField["valueMap"][group][dropdownValueIndex];
             _radarChartDataFull[group][inputField["label"]] = dropdownScore;
@@ -617,6 +631,7 @@ class NameFormState extends State<NameForm> {
                     data: _radarChartData,
                     dataToGroup: _radarDataToGroup,
                     groupColors: _radarGroupColors,
+                    currentLocale: currentLocale,
                   );
                 } else {
                   return const CircularProgressIndicator(); // or any other loading indicator

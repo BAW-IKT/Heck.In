@@ -58,7 +58,7 @@ class _WebViewPageState extends State<WebViewPage> {
   late final WebViewController _controller;
 
   bool _showNameForm = true;
-  final GlobalKey<NameFormState> _nameFormKey = GlobalKey<NameFormState>();
+  GlobalKey<NameFormState> _nameFormKey = GlobalKey<NameFormState>();
 
   String _currentUrlStem = '';
   String _geoLastChange = 'never updated';
@@ -340,30 +340,19 @@ class _WebViewPageState extends State<WebViewPage> {
       prefs.setString("locale", "EN");
       currentLocale = "EN";
     }
-
-    // Rebuild form
+    // Rebuild main form
     setState(() {});
+
+    // // re-initialize form (delayed)
+    // Future.delayed(Duration.zero, () {
+    //   _nameFormKey.currentState?.initState();
+    // });
+
+    // reset form key
+    _nameFormKey = GlobalKey<NameFormState>();
   }
 
   Widget _buildLanguageToggleButton() {
-    // return Row(children: [
-    //   IconButton(
-    //     icon: currentLocale == "EN"
-    //         ? const Icon(Icons.translate, color: MyColors.green)
-    //         : const Icon(Icons.translate, color: MyColors.orange),
-    //     onPressed: _toggleLanguage,
-    //     tooltip:
-    //     currentLocale == "EN" ? "Switch to German" : "Switch to English",
-    //   ),
-    //   Text(
-    //     currentLocale == "EN" ? "EN" : "DE",
-    //     style: TextStyle(
-    //       color: currentLocale == "EN" ? MyColors.green : MyColors.orange,
-    //       fontWeight: FontWeight.bold,
-    //     ),
-    //   ),
-    // ]);
-
     return ElevatedButton(
       onPressed: _toggleLanguage,
       child: Column(children: [
@@ -374,23 +363,6 @@ class _WebViewPageState extends State<WebViewPage> {
   }
 
   Widget _buildDarkmodeToggleButton() {
-    // return IconButton(
-    //   icon: _darkMode
-    //       ? const Icon(Icons.light_mode, color: MyColors.yellow)
-    //       : const Icon(Icons.dark_mode, color: MyColors.black,),
-    //   // icon: MediaQuery.of(context).platformBrightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
-    //   onPressed: () {
-    //     setState(() {
-    //       _darkMode = !_darkMode;
-    //       if (_darkMode) {
-    //         HedgeProfilerApp.of(context).changeTheme(ThemeMode.dark);
-    //       } else {
-    //         HedgeProfilerApp.of(context).changeTheme(ThemeMode.light);
-    //       }
-    //     });
-    //   },
-    // );
-
     String light = currentLocale == "EN" ? "Light" : "Hell";
     String dark = currentLocale == "EN" ? "Dark" : "Dunkel";
 
@@ -420,14 +392,6 @@ class _WebViewPageState extends State<WebViewPage> {
   }
 
   Widget _buildGeoRefreshButton() {
-    // return IconButton(
-    //   onPressed: _updateLocationAndLocales,
-    //   icon: const Icon(
-    //     Icons.my_location_sharp,
-    //     color: MyColors.coral,
-    //     size: 20,
-    //   ),
-    // );
     return ElevatedButton(
         onPressed: _updateLocationAndLocales,
         child: Column(children: [

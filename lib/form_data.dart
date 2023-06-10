@@ -68,6 +68,28 @@ Map<String, String> getRadarDataGroups() {
   };
 }
 
+Map<String, String> getEnglishRadarPlotTranslations() {
+  return {
+    'Bereitstellend': 'Provisioning',
+    'Bestäubung': 'Pollination',
+    'Bodenschutz': 'Soil protection',
+    'Erholung & Tourismus': 'Recreation & Tourism',
+    'Ertragssteigerung': 'Yield increase',
+    'Fortpflanzungs- & Ruhestätte': 'Breeding & resting place',
+    'Habitat': 'Habitat',
+    'Klimaschutz': 'Climate protection',
+    'Korridor': 'Corridor',
+    'Kulturell': 'Cultural',
+    'Kulturerbe': 'Cultural heritage',
+    'Nahrungsquelle': 'Food source',
+    'Nähr- & Schadstoffkreisläufe': 'Nutrient & pollutant cycles',
+    'Regulierend': 'Regulating',
+    'Rohstoffe': 'Raw materials',
+    'Schädlings- & Krankheitskontrolle': 'Pest & disease control',
+    'Wasserschutz': 'Water protection',
+  };
+}
+
 List<String> getSectionsFromLocale(String locale) {
   return getSections()
       .map((section) => section["label$locale"].toString())
@@ -446,7 +468,7 @@ List<Map<String, dynamic>> createFormFields() {
       ],
       'valuesEN': [
         '',
-        'upslope',
+        'in direction of the slope',
         'upslope',
         'diagonal to fall line',
         'downslope / toe of slope',
