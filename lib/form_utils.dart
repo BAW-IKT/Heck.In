@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hedge_profiler_flutter/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dynamic_dropdowns.dart';
 
 void doNothing() {
@@ -389,7 +390,7 @@ class StepperWidget extends StatefulWidget {
 
 class StepperWidgetState extends State<StepperWidget> {
   int _index = 0;
-  Map<String, dynamic> dropdownValues = {};
+  Map<String, dynamic> dropdownSelectedIndex = {};
 
   void setStepperWidgetState() {
     setState(() {});
@@ -415,6 +416,7 @@ class StepperWidgetState extends State<StepperWidget> {
         inputWidget =
             _createTextInputForStepper(field, borderColor: borderColor);
       } else if (field["type"] == "dropdown") {
+        // dropdownSelectedIndex[field["label"]] = field["selectedValue"];
         inputWidget =
             _createDropdownInputForStepper(field, borderColor: borderColor);
       } else if (field["type"] == "number") {
@@ -579,17 +581,20 @@ class StepperWidgetState extends State<StepperWidget> {
                   ElevatedButton(
                     onPressed: details.onStepContinue,
                     child:
-                        Text(widget.currentLocale == "EN" ? "Next" : "Weiter"),
+                        Text(
+                            widget.currentLocale == "EN" ? "Next" : "Weiter",
+                          style: TextStyle(color: isStepComplete ? MyColors.green : MyColors.orange),
+                        ),
                   ),
               ],
             ),
             Positioned(
-              left: 0,
+              left: 5,
               top: 0,
               bottom: 0,
               child: Icon(
                 isStepComplete ? Icons.check_circle : Icons.pending,
-                color: isStepComplete ? Colors.green : Colors.orange,
+                color: isStepComplete ? MyColors.green : MyColors.orange,
                 size: 20,
               ),
             ),
@@ -627,8 +632,8 @@ class StepperWidgetState extends State<StepperWidget> {
 
   Widget _createDropdownInputForStepper(var field, {Color? borderColor}) {
     String locale = widget.currentLocale;
-    var dropdownItems =
-        field['values$locale'].map<DropdownMenuItem<String>>((value) {
+    var dropdownItems = field['values$locale']
+        .map<DropdownMenuItem<String>>((value) {
       double dynamicTextSize = 12;
       if (value.toString().length > 16) {
         dynamicTextSize = 10;
@@ -647,8 +652,14 @@ class StepperWidgetState extends State<StepperWidget> {
       );
     }).toList();
 
-    String dropdownValue = dropdownValues[field["label"]] ??
-        dropdownItems[0].value; // Updated line
+    String dropdownValue;
+    if (!field["values${widget.currentLocale}"].contains(field["selectedValue"])) {
+      String otherLanguage = locale == "EN" ? "DE" : "EN";
+      int dropdownValueIndex = field["values$otherLanguage"].indexOf(field["selectedValue"]);
+      dropdownValue = field["values${widget.currentLocale}"][dropdownValueIndex];
+    } else {
+      dropdownValue = field["selectedValue"];
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -669,7 +680,7 @@ class StepperWidgetState extends State<StepperWidget> {
         onChanged: (value) {
           widget.onStaticWidgetChanged(field["label"], value.toString());
           setState(() {
-            dropdownValues[field["label"]] = value;
+            dropdownSelectedIndex[field["label"]] = value;
           });
         },
       ),

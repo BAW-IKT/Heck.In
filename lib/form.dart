@@ -108,18 +108,31 @@ class NameFormState extends State<NameForm> {
     menuItems =
         sections.map((s) => s["label$currentLocale"].toString()).toList();
 
-    _populateStaticInputFields();
+    _populateInputs();
     _checkPermissions();
     _getLostImageData();
     _loadPersistedImages();
   }
 
+  /// wrapper to populate input fields (static and dynamic) and
+  /// to refresh section notifiers
+  void _populateInputs() async {
+    await _populateStaticInputFields();
+    await _prePopulateDynamicInputFields();
+
+    // update sectionNotifiers
+    for (String section in sectionNotifiers.keys) {
+      _setSectionNotifiers(section);
+    }
+  }
+
   /// populate input fields on page init;
   /// dynamic fields are populated in DynamicDropdowns class
   /// from SharedPreferences
-  void _populateStaticInputFields() async {
+  Future<void> _populateStaticInputFields() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? locale = currentLocale == "" ? prefs.getString("locale") : currentLocale;
+    String? locale =
+        currentLocale == "" ? prefs.getString("locale") : currentLocale;
 
     for (var field in inputFields) {
       String? storedValue = prefs.getString(field["label"]) ?? "";
@@ -132,20 +145,49 @@ class NameFormState extends State<NameForm> {
         field["selectedValue"] = localValue;
       }
     }
+  }
 
-    // update sectionNotifiers
-    for (String section in sectionNotifiers.keys) {
-      _setSectionNotifiers(section);
+  /// pre-populates the selectedValues of dynamic dropdowns for making sure
+  /// they are available on app reload for stepper verifications
+  Future<void> _prePopulateDynamicInputFields() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    for (var dynamicField in dynamicFields) {
+
+      // if already populated, do nothing
+      if (dynamicField.containsKey("selectedValues")) {
+        continue;
+      }
+
+      String header = dynamicField["headerText"];
+
+      // get matching keys from shared preferences
+      List<String> matchingKeys = prefs
+          .getKeys()
+          .where((key) => key.startsWith("${header}_"))
+          .toList();
+      if (matchingKeys.isNotEmpty) {
+
+        dynamicField["selectedValues"] = {};
+
+        for (String key in matchingKeys) {
+          String val = prefs.get(key).toString();
+
+          // split at last "_"
+          int lastUnderscoreIndex = key.lastIndexOf("_");
+          // String keyClean = key.substring(0, lastUnderscoreIndex);
+          String keyIndex = key.substring(lastUnderscoreIndex + 1);
+
+          // add to map
+          dynamicField["selectedValues"][keyIndex] = val;
+        }
+      }
     }
-
-    // setState(() {});
   }
 
   /// action triggered by DynamicDropdowns onChanged events (select + remove)
   void onDynamicDropdownsChanged(
       String dropdownKey, String dropdownValue) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    // TODO: probably have to strip EN/DE here
     String cleanDropdownKey = dropdownKey.split("_")[0];
     String dropdownPostfix = dropdownKey.split("_")[1];
     String? originalDropdownKey = localeToOriginal[cleanDropdownKey];
@@ -162,14 +204,14 @@ class NameFormState extends State<NameForm> {
         sharedPreferences.remove(originalDropdownKey);
       }
       dynamicFields[dynamicIndex]["selectedValues"][dropdownPostfix] = "";
-    }
-    else if (dropdownValue == "ADD") {
+    } else if (dropdownValue == "ADD") {
       dynamicFields[dynamicIndex]["selectedValues"][dropdownPostfix] = "";
     } else if (dropdownValue == "REMOVE") {
       dynamicFields[dynamicIndex]["selectedValues"].remove(dropdownPostfix);
     } else {
       // otherwise, add/update preferences with dropdown values
-      dynamicFields[dynamicIndex]["selectedValues"][dropdownPostfix] = dropdownValue;
+      dynamicFields[dynamicIndex]["selectedValues"][dropdownPostfix] =
+          dropdownValue;
       String? originalValue = localeToOriginal[dropdownValue];
       sharedPreferences.setString(concatKeyForStorage, originalValue!);
     }
@@ -230,7 +272,9 @@ class NameFormState extends State<NameForm> {
       if (dynamicField["section"] == section &&
           (!dynamicField.containsKey("selectedValues") ||
               dynamicField["selectedValues"].length == 0 ||
-              dynamicField["selectedValues"].values.any((value) => value == ""))) {
+              dynamicField["selectedValues"]
+                  .values
+                  .any((value) => value == ""))) {
         allFilledOut = false;
       }
     }
@@ -266,7 +310,7 @@ class NameFormState extends State<NameForm> {
       prefs.setString("geo_latitude", lat.toString());
       prefs.setString("geo_longitude", lon.toString());
       prefs.setString("geo_last_change", geoLastChange.toString());
-      _populateStaticInputFields();
+      _populateInputs();
 
       // trigger rebuild of dynamic dropdowns
       for (GlobalKey<DynamicDropdownsState> dropdownKey in _dropdownsKeys) {
@@ -326,8 +370,8 @@ class NameFormState extends State<NameForm> {
 
   Future<void> _addImage(ImageSource source) async {
     final picker = ImagePicker();
-    // set image quality to 50% to save storage
-    final pickedFile = await picker.pickImage(source: source, imageQuality: 50);
+    // set image quality to 33% to save storage
+    final pickedFile = await picker.pickImage(source: source, imageQuality: 33);
     if (pickedFile != null) {
       setState(() {
         _selectedImages.add(File(pickedFile.path));
@@ -475,8 +519,7 @@ class NameFormState extends State<NameForm> {
           if (selVal == "" || selVal == null) {
             _radarChartDataFull[group][inputField["label"]] = 0;
           } else {
-            int dropdownValueIndex =
-                inputField["values"].indexOf(selVal);
+            int dropdownValueIndex = inputField["values"].indexOf(selVal);
             var dropdownScore =
                 inputField["valueMap"][group][dropdownValueIndex];
             _radarChartDataFull[group][inputField["label"]] = dropdownScore;
@@ -568,7 +611,7 @@ class NameFormState extends State<NameForm> {
     if (_selectedIndex != _selectedIndexCheck || _triggeredByMenu) {
       _selectedIndexCheck = _selectedIndex;
       _triggeredByMenu = false;
-      return _buildReducedForm();
+      return _buildFormPage();
     }
 
     return FutureBuilder<String>(
@@ -583,7 +626,7 @@ class NameFormState extends State<NameForm> {
             currentLocale = snapshot.data.toString();
             localeToOriginal = localeMap.getLocaleToOriginal(currentLocale);
             originalToLocale = localeMap.getOriginalToLocale(currentLocale);
-            return _buildReducedForm();
+            return _buildFormPage();
         }
       },
     );
@@ -660,6 +703,7 @@ class NameFormState extends State<NameForm> {
       }
     }
 
+    String railLabel = sections[sectionIdx]["label$currentLocale"].split(" ")[0];
     return NavigationRailDestination(
       icon: ValueListenableBuilder<bool>(
         valueListenable: listener,
@@ -679,7 +723,7 @@ class NameFormState extends State<NameForm> {
           );
         },
       ),
-      label: Text(sections[sectionIdx]["label$currentLocale"]),
+      label: Text(railLabel),
     );
   }
 
@@ -708,7 +752,7 @@ class NameFormState extends State<NameForm> {
                   _selectedIndex = index;
                 });
               },
-              labelType: NavigationRailLabelType.none,
+              labelType: NavigationRailLabelType.selected,
               destinations: [
                 _buildNavigationRailDestination("general"),
                 _buildNavigationRailDestination("physical"),
@@ -732,15 +776,15 @@ class NameFormState extends State<NameForm> {
                       color: Theme.of(context).colorScheme.error),
                   onPressed: () => _showClearDialog(),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.photo_library),
-                  onPressed: () => _addImage(ImageSource.gallery),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add_a_photo),
-                  onPressed: () => _addImage(ImageSource.camera),
-                ),
-                const SizedBox(height: 50),
+                // IconButton(
+                //   icon: const Icon(Icons.photo_library),
+                //   onPressed: () => _addImage(ImageSource.gallery),
+                // ),
+                // IconButton(
+                //   icon: const Icon(Icons.add_a_photo),
+                //   onPressed: () => _addImage(ImageSource.camera),
+                // ),
+                // const SizedBox(height: 50),
                 _buildRadarChartButton(),
                 _buildAnimatedSubmitButton(),
                 const SizedBox(height: 50),
@@ -752,7 +796,7 @@ class NameFormState extends State<NameForm> {
     ]);
   }
 
-  Widget _buildReducedForm() {
+  Widget _buildFormPage() {
     // Determine amount of columns based on screen width and orientation
     final mediaQueryData = MediaQuery.of(context);
     final columns = determineRequiredColumns(mediaQueryData);
@@ -774,16 +818,32 @@ class NameFormState extends State<NameForm> {
                       IndexedStack(
                         index: _selectedIndex,
                         children: [
-                          buildMenuPage("general", columns, dynamicColumns),
-                          buildMenuPage("physical", columns, dynamicColumns),
-                          buildMenuPage(
-                              "environmental", columns, dynamicColumns),
-                          buildMenuPage(
-                              "biodiversity", columns, dynamicColumns),
-                          buildImagePage("images"),
+                          SizedBox(
+                            height: _selectedIndex == 0 ? null : 1,
+                            child: _buildMenuPage(
+                                "general", columns, dynamicColumns),
+                          ),
+                          SizedBox(
+                            height: _selectedIndex == 1 ? null : 1,
+                            child: _buildMenuPage(
+                                "physical", columns, dynamicColumns),
+                          ),
+                          SizedBox(
+                            height: _selectedIndex == 2 ? null : 1,
+                            child: _buildMenuPage(
+                                "environmental", columns, dynamicColumns),
+                          ),
+                          SizedBox(
+                            height: _selectedIndex == 3 ? null : 1,
+                            child: _buildMenuPage(
+                                "biodiversity", columns, dynamicColumns),
+                          ),
+                          SizedBox(
+                            height: _selectedIndex == 4 ? null : 1,
+                            child: _buildImagePage("images"),
+                          ),
                         ],
                       ),
-                      // Text("something: $_selectedIndex $currentLocale"),
                     ],
                   ),
                 ),
@@ -815,7 +875,7 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  Widget buildMenuPage(String section, var columns, var dynamicColumns) {
+  Widget _buildMenuPage(String section, var columns, var dynamicColumns) {
     int sectionIdx =
         sections.indexWhere((element) => element["label"] == section);
     return Column(
@@ -845,43 +905,101 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  Widget buildImagePage(String section) {
-    return Column(children: [
-      createHeader(originalToLocale[section]!),
-      const Divider(),
-      GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: _selectedImages.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-        ),
-        itemBuilder: (BuildContext context, int index) {
-          return Stack(
-            children: [
-              Image.file(_selectedImages[index], fit: BoxFit.cover),
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: MyColors.grey.withOpacity(0.5),
-                      spreadRadius: -5,
-                      blurRadius: 10,
-                    ),
+  Widget _buildImagePage(String section) {
+    return Column(
+      children: [
+        createHeader(originalToLocale[section]!),
+        const Divider(),
+        Row(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildImageGrid(),
                   ],
                 ),
-                child: IconButton(
-                  icon: const Icon(Icons.highlight_remove, color: MyColors.red),
-                  onPressed: () => _removeImage(index),
-                ),
               ),
-            ],
-          );
-        },
+            ),
+            SizedBox(
+              width: 80,
+              // // Adjust the width according to your sidebar requirements
+              // color: Colors.grey,
+              // Set the desired background color for the sidebar
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: MyColors.green,
+                        width: 2.0,
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.photo_library),
+                      onPressed: () => _addImage(ImageSource.gallery),
+                    ),
+                  ),
+                  Text(currentLocale == "EN" ? "Gallery" : "Gallerie"),
+                  const SizedBox(height: 20),
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: MyColors.green,
+                        width: 2.0,
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.add_a_photo),
+                      onPressed: () => _addImage(ImageSource.camera),
+                    ),
+                  ),
+                  Text(currentLocale == "EN" ? "Add Foto" : "Neues Foto"),
+                ],
+              ),
+            ),
+          ],
+        )
+      ],
+    );
+  }
+
+  Widget _buildImageGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _selectedImages.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
       ),
-    ]);
+      itemBuilder: (BuildContext context, int index) {
+        return Stack(
+          children: [
+            Image.file(_selectedImages[index], fit: BoxFit.cover),
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: MyColors.grey.withOpacity(0.5),
+                    spreadRadius: -5,
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.highlight_remove, color: MyColors.red),
+                onPressed: () => _removeImage(index),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

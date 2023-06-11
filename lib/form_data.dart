@@ -8,35 +8,35 @@ List<Map<String, dynamic>> getSections() {
       "labelEN": "General",
       "labelDE": "Allgemeines",
       "icon": Icons.location_history,
-      "iconActive": Icons.location_history_outlined,
+      "iconActive": Icons.location_history,
     },
     {
       "label": "physical",
       "labelEN": "Physical Characteristics",
       "labelDE": "Physikalische Merkmale",
       "icon": Icons.straighten,
-      "iconActive": Icons.straighten_outlined,
+      "iconActive": Icons.straighten_rounded,
     },
     {
       "label": "environmental",
       "labelEN": "Environmental Factors",
       "labelDE": "Umweltfaktoren",
       "icon": Icons.directions_walk,
-      "iconActive": Icons.directions_walk_outlined,
+      "iconActive": Icons.directions_run,
     },
     {
       "label": "biodiversity",
       "labelEN": "Biodiversity and Composition",
       "labelDE": "Biodiversität und Zusammensetzung",
       "icon": Icons.compost,
-      "iconActive": Icons.compost_outlined,
+      "iconActive": Icons.compost_rounded,
     },
     {
       "label": "images",
       "labelEN": "Images",
       "labelDE": "Bilder",
-      "icon": Icons.image,
-      "iconActive": Icons.image_outlined
+      "icon": Icons.image_rounded,
+      "iconActive": Icons.image_rounded,
     },
   ];
 }
