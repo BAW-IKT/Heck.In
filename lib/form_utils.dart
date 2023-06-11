@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hedge_profiler_flutter/colors.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dynamic_dropdowns.dart';
 
 void doNothing() {}
@@ -242,11 +241,16 @@ Widget _createDropdownInput(
 
 Center createHeader(String headerText, {double fontSize = 24}) {
   return Center(
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Text(
-    headerText,
-    style: TextStyle(fontSize: fontSize),
-  ));
+        headerText,
+        style: TextStyle(fontSize: fontSize),
+      ),
+    ),
+  );
 }
+
 
 class ConfirmationDialog extends StatelessWidget {
   final String message;
@@ -593,7 +597,7 @@ class StepperWidgetState extends State<StepperWidget> {
       },
       steps: steps,
       controlsBuilder: (BuildContext context, ControlsDetails details) {
-        bool isLastStep = _index == steps.length - 1;
+        // bool isLastStep = _index == steps.length - 1;
         bool isStepComplete = stepCompletionStatus[_index];
 
         return Stack(

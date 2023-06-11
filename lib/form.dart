@@ -376,39 +376,38 @@ class NameFormState extends State<NameForm> {
     }
   }
 
-void _removeImage(int index) async {
-  final File image = _selectedImages[index];
+  void _removeImage(int index) async {
+    final File image = _selectedImages[index];
 
-  // Show confirmation dialog
-  bool confirmed = await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Confirm'),
-        content: const Text('Are you sure you want to remove this image?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Remove'),
-          ),
-        ],
-      );
-    },
-  );
+    // Show confirmation dialog
+    bool confirmed = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm'),
+          content: const Text('Are you sure you want to remove this image?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Remove'),
+            ),
+          ],
+        );
+      },
+    );
 
-  if (confirmed == true) {
-    setState(() {
-      _selectedImages.removeAt(index);
-    });
-    await image.delete();
-    _persistImages();
+    if (confirmed == true) {
+      setState(() {
+        _selectedImages.removeAt(index);
+      });
+      await image.delete();
+      _persistImages();
+    }
   }
-}
-
 
   Future<void> _clearImages() async {
     final confirmed = await showDialog<bool>(
@@ -758,64 +757,65 @@ void _removeImage(int index) async {
       }
     }
 
-    return Row(children: [
+    return Container(color: MyColors.sideBarBackground, child: Row(children: [
       const VerticalDivider(thickness: 1, width: 1),
       SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height - 120),
-          child: IntrinsicHeight(
-            child: NavigationRail(
-              selectedIndex: _selectedIndex,
-              groupAlignment: -1.0,
-              onDestinationSelected: (int index) {
-                _triggeredByMenu = true;
-                setState(() {
-                  _selectedIndex = index;
-                });
-              },
-              labelType: NavigationRailLabelType.selected,
-              destinations: [
-                _buildNavigationRailDestination("general"),
-                _buildNavigationRailDestination("physical"),
-                _buildNavigationRailDestination("environmental"),
-                _buildNavigationRailDestination("biodiversity"),
-                NavigationRailDestination(
-                    icon: Icon(sections[imgIndex]["icon"],
-                        color: _selectedImages.isNotEmpty
-                            ? MyColors.green
-                            : MyColors.orange),
-                    selectedIcon: Icon(sections[imgIndex]["iconActive"],
-                        color: _selectedImages.isNotEmpty
-                            ? MyColors.green
-                            : MyColors.orange),
-                    label: Text(sections[imgIndex]["label$currentLocale"])),
-              ],
-              trailing: Column(children: [
-                const SizedBox(height: 50),
-                IconButton(
-                  icon: Icon(Icons.clear,
-                      color: Theme.of(context).colorScheme.error),
-                  onPressed: () => _showClearDialog(),
-                ),
-                // IconButton(
-                //   icon: const Icon(Icons.photo_library),
-                //   onPressed: () => _addImage(ImageSource.gallery),
-                // ),
-                // IconButton(
-                //   icon: const Icon(Icons.add_a_photo),
-                //   onPressed: () => _addImage(ImageSource.camera),
-                // ),
-                // const SizedBox(height: 50),
-                _buildRadarChartButton(),
-                _buildAnimatedSubmitButton(),
-                const SizedBox(height: 50),
-              ]),
-            ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - 120),
+            child: IntrinsicHeight(
+              child: NavigationRail(
+                backgroundColor: Colors.transparent,
+                selectedIndex: _selectedIndex,
+                groupAlignment: -1.0,
+                onDestinationSelected: (int index) {
+                  _triggeredByMenu = true;
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
+                labelType: NavigationRailLabelType.selected,
+                destinations: [
+                  _buildNavigationRailDestination("general"),
+                  _buildNavigationRailDestination("physical"),
+                  _buildNavigationRailDestination("environmental"),
+                  _buildNavigationRailDestination("biodiversity"),
+                  NavigationRailDestination(
+                      icon: Icon(sections[imgIndex]["icon"],
+                          color: _selectedImages.isNotEmpty
+                              ? MyColors.green
+                              : MyColors.orange),
+                      selectedIcon: Icon(sections[imgIndex]["iconActive"],
+                          color: _selectedImages.isNotEmpty
+                              ? MyColors.green
+                              : MyColors.orange),
+                      label: Text(sections[imgIndex]["label$currentLocale"])),
+                ],
+                trailing: Column(children: [
+                  const SizedBox(height: 50),
+                  IconButton(
+                    icon: Icon(Icons.clear,
+                        color: Theme.of(context).colorScheme.error),
+                    onPressed: () => _showClearDialog(),
+                  ),
+                  // IconButton(
+                  //   icon: const Icon(Icons.photo_library),
+                  //   onPressed: () => _addImage(ImageSource.gallery),
+                  // ),
+                  // IconButton(
+                  //   icon: const Icon(Icons.add_a_photo),
+                  //   onPressed: () => _addImage(ImageSource.camera),
+                  // ),
+                  // const SizedBox(height: 50),
+                  _buildRadarChartButton(),
+                  _buildAnimatedSubmitButton(),
+                  const SizedBox(height: 50),
+                ]),
+              ),
           ),
         ),
-      )
-    ]);
+      ),
+    ]),);
   }
 
   Widget _buildFormPage() {
@@ -1018,7 +1018,8 @@ void _removeImage(int index) async {
                   ],
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.highlight_remove, color: MyColors.redDark),
+                  icon: const Icon(Icons.highlight_remove,
+                      color: MyColors.redDark),
                   onPressed: () => _removeImage(index),
                 ),
               ),

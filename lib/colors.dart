@@ -14,4 +14,7 @@ class MyColors {
   static const Color black = Colors.black;
   static const Color grey = Colors.grey;
   static const Color white = Colors.white;
+  static const Color sideBarBackground = Color.fromRGBO(0, 96, 205, 0.15);
+  // static const Color sideBarBackground = Colors.transparent;
+  static const Color topBarColor = Color.fromRGBO(0, 96, 205, 0.15);
 }

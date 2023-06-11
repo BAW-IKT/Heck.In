@@ -221,6 +221,7 @@ class _WebViewPageState extends State<WebViewPage> {
     } else {
       return Scaffold(
         appBar: AppBar(
+          backgroundColor: MyColors.topBarColor,
           title: Text(
               currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler"),
         ),
