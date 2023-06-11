@@ -3,8 +3,7 @@ import 'package:hedge_profiler_flutter/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dynamic_dropdowns.dart';
 
-void doNothing() {
-}
+void doNothing() {}
 
 Column buildDynamicFormFieldGrid({
   required List<Map<String, dynamic>> children,
@@ -391,10 +390,21 @@ class StepperWidget extends StatefulWidget {
 class StepperWidgetState extends State<StepperWidget> {
   int _index = 0;
   Map<String, dynamic> dropdownSelectedIndex = {};
+  List<GlobalKey> _scrollKeys = []; // Add this line
+  final ScrollController _scrollController = ScrollController();
 
   void setStepperWidgetState() {
     setState(() {});
     print("done setting parents state");
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize _scrollKeys with a GlobalKey for each step
+    _scrollKeys = List.generate(
+        widget.inputFields.length + widget.dynamicFields.length,
+        (_) => GlobalKey());
   }
 
   @override
@@ -517,11 +527,15 @@ class StepperWidgetState extends State<StepperWidget> {
         // state: _index > steps.length ? StepState.complete : StepState.indexed,
         state: isStepComplete ? StepState.complete : StepState.indexed,
         isActive: _index == index,
-        content: Container(
-          alignment: Alignment.centerLeft,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [...subSections[subSection]],
+        content: SingleChildScrollView(
+          key: _scrollKeys[index],
+          controller: _scrollController,
+          child: Container(
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [...subSections[subSection]],
+            ),
           ),
         ),
       );
@@ -544,6 +558,19 @@ class StepperWidgetState extends State<StepperWidget> {
           setState(() {
             _index += 1;
           });
+
+          // Scroll to the top of the content of the current step
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final RenderBox? renderBox = _scrollKeys[_index]
+                .currentContext
+                ?.findRenderObject() as RenderBox?;
+            if (renderBox != null) {
+              final offset = renderBox.localToGlobal(Offset.zero);
+              _scrollController.animateTo(offset.dy,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut);
+            }
+          });
         }
       },
       onStepTapped: (int index) {
@@ -551,13 +578,17 @@ class StepperWidgetState extends State<StepperWidget> {
           _index = index;
         });
 
-        // Scroll to the selected stepper content
+        // Scroll to the top of the content of the current step
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Scrollable.ensureVisible(
-            context,
-            alignment: 0.5, // Adjust the alignment as needed
-            duration: const Duration(milliseconds: 300),
-          );
+          final RenderBox? renderBox = _scrollKeys[index]
+              .currentContext
+              ?.findRenderObject() as RenderBox?;
+          if (renderBox != null) {
+            final offset = renderBox.localToGlobal(Offset.zero);
+            _scrollController.animateTo(offset.dy,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut);
+          }
         });
       },
       steps: steps,
@@ -580,11 +611,13 @@ class StepperWidgetState extends State<StepperWidget> {
                 if (_index < steps.length - 1)
                   ElevatedButton(
                     onPressed: details.onStepContinue,
-                    child:
-                        Text(
-                            widget.currentLocale == "EN" ? "Next" : "Weiter",
-                          style: TextStyle(color: isStepComplete ? MyColors.green : MyColors.orange),
-                        ),
+                    child: Text(
+                      widget.currentLocale == "EN" ? "Next" : "Weiter",
+                      style: TextStyle(
+                          color: isStepComplete
+                              ? MyColors.green
+                              : MyColors.orange),
+                    ),
                   ),
               ],
             ),
@@ -632,8 +665,8 @@ class StepperWidgetState extends State<StepperWidget> {
 
   Widget _createDropdownInputForStepper(var field, {Color? borderColor}) {
     String locale = widget.currentLocale;
-    var dropdownItems = field['values$locale']
-        .map<DropdownMenuItem<String>>((value) {
+    var dropdownItems =
+        field['values$locale'].map<DropdownMenuItem<String>>((value) {
       double dynamicTextSize = 12;
       if (value.toString().length > 16) {
         dynamicTextSize = 10;
@@ -653,10 +686,13 @@ class StepperWidgetState extends State<StepperWidget> {
     }).toList();
 
     String dropdownValue;
-    if (!field["values${widget.currentLocale}"].contains(field["selectedValue"])) {
+    if (!field["values${widget.currentLocale}"]
+        .contains(field["selectedValue"])) {
       String otherLanguage = locale == "EN" ? "DE" : "EN";
-      int dropdownValueIndex = field["values$otherLanguage"].indexOf(field["selectedValue"]);
-      dropdownValue = field["values${widget.currentLocale}"][dropdownValueIndex];
+      int dropdownValueIndex =
+          field["values$otherLanguage"].indexOf(field["selectedValue"]);
+      dropdownValue =
+          field["values${widget.currentLocale}"][dropdownValueIndex];
     } else {
       dropdownValue = field["selectedValue"];
     }

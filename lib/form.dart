@@ -152,7 +152,6 @@ class NameFormState extends State<NameForm> {
   Future<void> _prePopulateDynamicInputFields() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     for (var dynamicField in dynamicFields) {
-
       // if already populated, do nothing
       if (dynamicField.containsKey("selectedValues")) {
         continue;
@@ -161,12 +160,9 @@ class NameFormState extends State<NameForm> {
       String header = dynamicField["headerText"];
 
       // get matching keys from shared preferences
-      List<String> matchingKeys = prefs
-          .getKeys()
-          .where((key) => key.startsWith("${header}_"))
-          .toList();
+      List<String> matchingKeys =
+          prefs.getKeys().where((key) => key.startsWith("${header}_")).toList();
       if (matchingKeys.isNotEmpty) {
-
         dynamicField["selectedValues"] = {};
 
         for (String key in matchingKeys) {
@@ -380,14 +376,39 @@ class NameFormState extends State<NameForm> {
     }
   }
 
-  void _removeImage(int index) async {
-    final File image = _selectedImages[index];
+void _removeImage(int index) async {
+  final File image = _selectedImages[index];
+
+  // Show confirmation dialog
+  bool confirmed = await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Confirm'),
+        content: const Text('Are you sure you want to remove this image?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Remove'),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (confirmed == true) {
     setState(() {
       _selectedImages.removeAt(index);
     });
     await image.delete();
     _persistImages();
   }
+}
+
 
   Future<void> _clearImages() async {
     final confirmed = await showDialog<bool>(
@@ -703,7 +724,8 @@ class NameFormState extends State<NameForm> {
       }
     }
 
-    String railLabel = sections[sectionIdx]["label$currentLocale"].split(" ")[0];
+    String railLabel =
+        sections[sectionIdx]["label$currentLocale"].split(" ")[0];
     return NavigationRailDestination(
       icon: ValueListenableBuilder<bool>(
         valueListenable: listener,
@@ -922,7 +944,7 @@ class NameFormState extends State<NameForm> {
               ),
             ),
             SizedBox(
-              width: 80,
+              width: 90,
               // // Adjust the width according to your sidebar requirements
               // color: Colors.grey,
               // Set the desired background color for the sidebar
@@ -972,32 +994,88 @@ class NameFormState extends State<NameForm> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _selectedImages.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 250,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
       ),
       itemBuilder: (BuildContext context, int index) {
         return Stack(
           children: [
-            Image.file(_selectedImages[index], fit: BoxFit.cover),
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: MyColors.grey.withOpacity(0.5),
-                    spreadRadius: -5,
-                    blurRadius: 10,
-                  ),
-                ],
+            Image.file(_selectedImages[index], fit: BoxFit.fitWidth),
+            Positioned(
+              top: 8,
+              left: 8,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: MyColors.white.withOpacity(0.5),
+                      spreadRadius: -5,
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.highlight_remove, color: MyColors.redDark),
+                  onPressed: () => _removeImage(index),
+                ),
               ),
-              child: IconButton(
-                icon: const Icon(Icons.highlight_remove, color: MyColors.red),
-                onPressed: () => _removeImage(index),
+            ),
+            Positioned(
+              top: 48,
+              left: 10,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: MyColors.white.withOpacity(0.5),
+                      spreadRadius: -5,
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.zoom_in, color: MyColors.greenDark),
+                  onPressed: () => _showFullscreenImage(index),
+                ),
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showFullscreenImage(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          // backgroundColor: Colors.transparent,
+          child: Stack(
+            alignment: Alignment.topRight,
+            // Position the close button at the top right corner
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: double.infinity,
+                child: Image.file(
+                  _selectedImages[index],
+                  fit: BoxFit.contain,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
