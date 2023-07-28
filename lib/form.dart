@@ -10,6 +10,7 @@ import 'dynamic_dropdowns.dart';
 import 'form_data.dart';
 import 'dart:io';
 import 'form_utils.dart';
+import 'main.dart' show WebViewPageState;
 import 'utils_db.dart' as db;
 import 'snackbar.dart';
 import 'radar_chart.dart';
@@ -17,8 +18,13 @@ import 'form_calc.dart';
 
 class NameForm extends StatefulWidget {
   final GlobalKey<NameFormState> formKey;
+  final WebViewPageState webViewPageState;
 
-  const NameForm({Key? key, required this.formKey}) : super(key: key);
+  const NameForm({
+    Key? key,
+    required this.formKey,
+    required this.webViewPageState
+  }) : super(key: key);
 
   @override
   State<NameForm> createState() => NameFormState();
@@ -679,6 +685,18 @@ class NameFormState extends State<NameForm> {
     );
   }
 
+  IconButton _buildGoToMapDebugButton(String targetUrl) {
+    return IconButton(
+      icon: const Icon(
+        Icons.map_outlined,
+      ),
+      onPressed: () {
+        // widget.webViewPageState.simpleLoadTest();
+        widget.webViewPageState.loadMapBodenkarte();
+      },
+    );
+  }
+
   IconButton _buildRadarChartButton() {
     return IconButton(
       icon: const Icon(
@@ -807,6 +825,7 @@ class NameFormState extends State<NameForm> {
                   //   onPressed: () => _addImage(ImageSource.camera),
                   // ),
                   // const SizedBox(height: 50),
+                  _buildGoToMapDebugButton("https://www.leysolutions.com"),
                   _buildRadarChartButton(),
                   _buildAnimatedSubmitButton(),
                   const SizedBox(height: 50),

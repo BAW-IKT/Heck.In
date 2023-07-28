@@ -1,13 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'dart:io';
-import 'form.dart';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+
 import 'colors.dart';
-import 'utils_geo.dart' as geo;
+import 'firebase_options.dart';
+import 'form.dart';
 import 'snackbar.dart';
+import 'utils_geo.dart' as geo;
 
 void main() => runApp(const HedgeProfilerApp());
 
@@ -49,18 +51,18 @@ class WebViewPage extends StatefulWidget {
   const WebViewPage({super.key});
 
   @override
-  State<WebViewPage> createState() => _WebViewPageState();
+  State<WebViewPage> createState() => WebViewPageState();
 }
 
 /// main page, instantiates WebView controller and NameForm (displayed as overlay)
-class _WebViewPageState extends State<WebViewPage> {
+class WebViewPageState extends State<WebViewPage> {
   final ValueNotifier<double> _loadingPercentage = ValueNotifier<double>(0.0);
   late final WebViewController _controller;
 
   bool _showNameForm = true;
   GlobalKey<NameFormState> _nameFormKey = GlobalKey<NameFormState>();
 
-  String _currentUrlStem = '';
+  String _currentUrlSynonym = '';
   String _geoLastChange = 'never updated';
   String _geoLastKnown = 'no location available';
   String systemLocale = Platform.localeName.startsWith("de") ? "DE" : "EN";
@@ -135,7 +137,8 @@ class _WebViewPageState extends State<WebViewPage> {
     // set to last known pos
     await geo.getLastKnownLocation();
     setState(() {
-      _geoLastChange = prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
+      _geoLastChange =
+          prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
       String lat = prefs.getString("geo_latitude") ?? "n/a";
       String lon = prefs.getString("geo_longitude") ?? "n/a";
       _geoLastKnown = "lat: $lat\nlon: $lon";
@@ -144,7 +147,8 @@ class _WebViewPageState extends State<WebViewPage> {
     // wait for refresh of coords
     try {
       // wait for refresh of coords with a timeout of 5 seconds
-      await geo.updateLocation().timeout(const Duration(seconds: 5), onTimeout: () {
+      await geo.updateLocation().timeout(const Duration(seconds: 5),
+          onTimeout: () {
         setState(() {
           _isLoading = false;
         });
@@ -162,7 +166,8 @@ class _WebViewPageState extends State<WebViewPage> {
     }
 
     setState(() {
-      _geoLastChange = prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
+      _geoLastChange =
+          prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
       String lat = prefs.getString("geo_latitude") ?? "n/a";
       String lon = prefs.getString("geo_longitude") ?? "n/a";
       _geoLastKnown = "lat: $lat\nlon: $lon";
@@ -174,44 +179,6 @@ class _WebViewPageState extends State<WebViewPage> {
   /// NameForm is stacked on top and controlled with _showNameForm
   @override
   Widget build(BuildContext context) {
-    /// loads a page
-    void loadPage(BuildContext context, String url) async {
-      // prevent loading of page if page was already loaded before
-      String stem = RegExp("http.*(com|at)").firstMatch(url)?.group(0) ?? '';
-      if (_currentUrlStem != stem && stem != '') {
-        _currentUrlStem = stem;
-
-        // update geo info
-        // _updateLocation();
-        _updateLocationAndLocales();
-
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        var latitude = prefs.getString("geo_latitude");
-        var longitude = prefs.getString("geo_longitude");
-        var zoom =
-            "15"; // change location zoom depending on whether location can be loaded
-
-        if (latitude == "16.3389" || longitude == "48.1970") {
-          zoom = "10";
-        }
-
-        // re-build boden karte URL with updated coords
-        if (url.startsWith("https://bodenkarte.at")) {
-          url =
-              "https://bodenkarte.at/#/center/$longitude,$latitude/zoom/$zoom";
-        }
-
-        if (url.startsWith("https://maps.arcanum.com/")) {
-          String stem = "https://maps.arcanum.com/en/map";
-          String map = "europe-19century-secondsurvey";
-          url = "$stem/$map/?lon=$longitude&lat=$latitude&zoom=$zoom";
-        }
-
-        // load page via controller
-        _controller.loadRequest(Uri.parse(url));
-      }
-    }
-
     if (_isLoading) {
       return const Scaffold(
         body: Center(
@@ -273,11 +240,7 @@ class _WebViewPageState extends State<WebViewPage> {
                           ? "View Arcanum Map"
                           : "Arcanum Karte Öffnen"),
                       onTap: () {
-                        setState(() {
-                          _showNameForm = false;
-                        });
-                        loadPage(context, 'https://maps.arcanum.com/');
-                        Navigator.pop(context);
+                        loadMapArcanum();
                       },
                     ),
                     ListTile(
@@ -287,11 +250,67 @@ class _WebViewPageState extends State<WebViewPage> {
                           ? "View Bodenkarte"
                           : "Bodenkarte Öffnen"),
                       onTap: () {
-                        setState(() {
-                          _showNameForm = false;
-                        });
-                        loadPage(context, 'https://bodenkarte.at/');
-                        Navigator.pop(context);
+                        loadMapBodenkarte();
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.map_outlined, color: MyColors.teal),
+                      title: Text(currentLocale == "EN"
+                          ? "View Bodenkarte (fieldcapacity)"
+                          : "Bodenkarte (Feldkapazität) Öffnen"),
+                      onTap: () {
+                        loadMapBodenkarteNutzbareFeldkapazitaet();
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.map_outlined, color: MyColors.teal),
+                      title: Text(currentLocale == "EN"
+                          ? "View Bodenkarte (humus)"
+                          : "Bodenkarte (Humus) Öffnen"),
+                      onTap: () {
+                        loadMapBodenkarteHumusBilanz();
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.map_outlined, color: MyColors.teal),
+                      title: Text(currentLocale == "EN"
+                          ? "View Geonode Map"
+                          : "Geonode Karte Öffnen"),
+                      onTap: () {
+                        loadMapGeonodeLebensraumverletzung();
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.map_outlined, color: MyColors.teal),
+                      title: Text(currentLocale == "EN"
+                          ? "View Ecosystem Map"
+                          : "Ecosystem Karte Öffnen"),
+                      onTap: () {
+                        loadMapEcosystemAccounts();
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.map_outlined, color: MyColors.teal),
+                      title: Text(currentLocale == "EN"
+                          ? "View NOE Atlas"
+                          : "NOE Atlas Öffnen"),
+                      onTap: () {
+                        loadMapNoeNaturschutz();
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.map_outlined, color: MyColors.teal),
+                      title: Text(currentLocale == "EN"
+                          ? "View EEA Map"
+                          : "EEA Karte Öffnen"),
+                      onTap: () {
+                        loadMapEEAEuropa();
                       },
                     ),
                   ],
@@ -337,13 +356,100 @@ class _WebViewPageState extends State<WebViewPage> {
                 child: Container(
                   color: MyColors.black.withOpacity(0.5),
                   child: Center(
-                    child: NameForm(formKey: _nameFormKey),
+                    child:
+                        NameForm(formKey: _nameFormKey, webViewPageState: this),
                   ),
                 ),
               ),
           ],
         ),
       );
+    }
+  }
+
+  void loadMapArcanum() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var latitude = prefs.getString("geo_latitude");
+    var longitude = prefs.getString("geo_longitude");
+    String stem = "https://maps.arcanum.com/en/map";
+    String map = "europe-19century-secondsurvey";
+    loadPageWrapper(
+        "$stem/$map/?lon=$longitude&lat=$latitude&zoom=15",
+        "arcanum");
+  }
+
+  void loadMapBodenkarte() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var latitude = prefs.getString("geo_latitude");
+    var longitude = prefs.getString("geo_longitude");
+    loadPageWrapper(
+        "https://bodenkarte.at/#/center/$longitude,$latitude/zoom/15",
+        "bodenkarte");
+  }
+
+  void loadMapBodenkarteNutzbareFeldkapazitaet() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var latitude = prefs.getString("geo_latitude");
+    var longitude = prefs.getString("geo_longitude");
+    loadPageWrapper(
+        "https://bodenkarte.at/#/d/baw/l/nf,false,60,kb/center/$longitude,$latitude/zoom/15",
+        "bodenkarteNutzbareFeldkapazitaet");
+  }
+
+  void loadMapBodenkarteHumusBilanz() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var latitude = prefs.getString("geo_latitude");
+    var longitude = prefs.getString("geo_longitude");
+    loadPageWrapper(
+        "https://bodenkarte.at/#/d/bfa/l/hb,false,60,kb/center/$longitude,$latitude/zoom/15",
+        "bodenkarteHumusBilanz");
+  }
+
+  void loadMapGeonodeLebensraumverletzung() {
+    loadPageWrapper(
+        "https://geonode.lebensraumvernetzung.at/maps/63/view#/",
+        "geonode");
+  }
+
+  void loadMapEcosystemAccounts() {
+    loadPageWrapper(
+        "https://ecosystem-accounts.jrc.ec.europa.eu/map",
+        "ecosystem");
+  }
+
+  void loadMapGeoland() {
+    loadPageWrapper(
+        "https://www.geoland.at/webgisviewer/geoland/map/Geoland_Viewer/Geoland",
+        "geoland");
+  }
+
+  void loadMapNoeNaturschutz() {
+    loadPageWrapper(
+        "https://atlas.noe.gv.at/atlas/portal/noe-atlas/map/Naturraum/Naturschutz",
+        "noe");
+  }
+
+  void loadMapEEAEuropa() {
+    loadPageWrapper(
+        "https://www.eea.europa.eu/data-and-maps/explore-interactive-maps/european-protected-areas-1",
+        "eea");
+  }
+
+  void loadPageWrapper(String pageURL, String pageSynonym) async {
+    if (mounted) {
+      setState(() {
+        _showNameForm = false;
+      });
+    }
+    if (_currentUrlSynonym != pageSynonym) {
+      setState(() {
+        _currentUrlSynonym = pageSynonym;
+      });
+      // loadPage(context, pageURL);
+      _controller.loadRequest(Uri.parse(pageURL));
+    }
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
     }
   }
 
