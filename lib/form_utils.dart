@@ -283,6 +283,50 @@ class ConfirmationDialog extends StatelessWidget {
   }
 }
 
+class ToolTipDialog extends StatelessWidget {
+  final String header;
+  final String message;
+  final String navigateToMapButtonText;
+  final VoidCallback onNavigateToMap;
+  final String closeButtonText;
+  final VoidCallback onClose;
+  final bool createGoToMapButton;
+
+  const ToolTipDialog(
+      {Key? key,
+      required this.header,
+      required this.message,
+      required this.navigateToMapButtonText,
+      required this.onNavigateToMap,
+      required this.closeButtonText,
+      required this.onClose,
+      required this.createGoToMapButton})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> actionsList = [];
+
+    if (createGoToMapButton) {
+      actionsList.add(
+        TextButton(
+            onPressed: onNavigateToMap, child: Text(navigateToMapButtonText)),
+      );
+    }
+
+    actionsList.add(TextButton(
+      onPressed: onClose,
+      child: Text(closeButtonText),
+    ));
+
+    return AlertDialog(
+      title: Text(header),
+      content: Text(message),
+      actions: actionsList,
+    );
+  }
+}
+
 class LocaleMap {
   List<Map<String, dynamic>> formFields = [];
   List<Map<String, dynamic>> dynamicFormFields = [];

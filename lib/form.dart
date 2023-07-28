@@ -685,14 +685,33 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  IconButton _buildGoToMapDebugButton(String targetUrl) {
+  IconButton _buildGoToMapDebugButton() {
     return IconButton(
       icon: const Icon(
         Icons.map_outlined,
       ),
       onPressed: () {
-        // widget.webViewPageState.simpleLoadTest();
-        widget.webViewPageState.loadMapBodenkarte();
+        buildAndHandleToolTip();
+      },
+    );
+  }
+
+  void buildAndHandleToolTip() async {
+    await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return ToolTipDialog(
+          header: currentLocale == "EN" ? "This is some header" : "Das ist ein header",
+          message: currentLocale == "EN" ? "This parameter is describing this and that. For more info, go to arcanum map." : "Dieser parameter beschreibt irgendwas, recht langer text etc.",
+          navigateToMapButtonText: currentLocale == "EN" ? "Go to Arcanum Map" :  "Gehe zur Arkanum Karte",
+          onNavigateToMap: () {
+            widget.webViewPageState.loadMapArcanum();
+            Navigator.of(context).pop(true);
+          },
+          closeButtonText: currentLocale == "EN" ? "Close": "Schließen",
+          onClose: () => Navigator.of(context).pop(false),
+          createGoToMapButton: true,
+        );
       },
     );
   }
@@ -825,7 +844,7 @@ class NameFormState extends State<NameForm> {
                   //   onPressed: () => _addImage(ImageSource.camera),
                   // ),
                   // const SizedBox(height: 50),
-                  _buildGoToMapDebugButton("https://www.leysolutions.com"),
+                  _buildGoToMapDebugButton(),
                   _buildRadarChartButton(),
                   _buildAnimatedSubmitButton(),
                   const SizedBox(height: 50),
