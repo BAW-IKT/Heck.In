@@ -71,14 +71,14 @@ Column buildFormFieldGrid(List<Map<String, dynamic>> inputFields,
       continue;
     }
     Color? borderColor = field['borderColor'];
-    if (field['type'] == 'text') {
+    if (field['type'] == InputType.text) {
       rowChildren.add(_createTextInput(field, currentLocale, onWidgetChanged,
           borderColor: borderColor));
-    } else if (field['type'] == 'dropdown') {
+    } else if (field['type'] == InputType.dropdown) {
       rowChildren.add(_createDropdownInput(
           field, currentLocale, onWidgetChanged,
           borderColor: borderColor));
-    } else if (field['type'] == 'number') {
+    } else if (field['type'] == InputType.number) {
       rowChildren.add(_createNumberInput(field, currentLocale, onWidgetChanged,
           borderColor: borderColor));
     }
@@ -485,14 +485,14 @@ class StepperWidgetState extends State<StepperWidget> {
       // generate input widget
       Widget? inputWidget;
       Color? borderColor = field['borderColor'];
-      if (field["type"] == "text") {
+      if (field["type"] == InputType.text) {
         inputWidget =
             _createTextInputForStepper(field, borderColor: borderColor);
-      } else if (field["type"] == "dropdown") {
+      } else if (field["type"] == InputType.dropdown) {
         // dropdownSelectedIndex[field["label"]] = field["selectedValue"];
         inputWidget =
             _createDropdownInputForStepper(field, borderColor: borderColor);
-      } else if (field["type"] == "number") {
+      } else if (field["type"] == InputType.number) {
         inputWidget =
             _createNumberInputForStepper(field, borderColor: borderColor);
       }

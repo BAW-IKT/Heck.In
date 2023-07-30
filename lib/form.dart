@@ -142,10 +142,10 @@ class NameFormState extends State<NameForm> {
 
     for (var field in inputFields) {
       String? storedValue = prefs.getString(field["label"]) ?? "";
-      if (field["type"] == "text" || field["type"] == "number") {
+      if (field["type"] == InputType.text || field["type"] == InputType.number) {
         field["controller"].text = storedValue;
         field["selectedValue"] = storedValue;
-      } else if (field["type"] == "dropdown") {
+      } else if (field["type"] == InputType.dropdown) {
         int valueIndex = field["values"].indexOf(storedValue);
         String localValue = field["values$locale"][valueIndex];
         field["selectedValue"] = localValue;
@@ -537,7 +537,7 @@ class NameFormState extends State<NameForm> {
     // iterate over static fields, get values for each group based on _radarDataToGroup
     for (var inputField in inputFields) {
       for (String group in _radarChartDataFull.keys) {
-        if (inputField["type"] == "dropdown" &&
+        if (inputField["type"] == InputType.dropdown &&
             inputField.containsKey("valueMap") &&
             inputField["valueMap"].containsKey(group)) {
           // if (inputField["selectedValue"] == "") {
@@ -701,8 +701,8 @@ class NameFormState extends State<NameForm> {
     String navigateToButtonText = "";
     MapDescriptor descriptor = MapDescriptor.NULL;
     bool createGoToMapButton = false;
-    if (field.containsKey("descriptionAction")) {
-      descriptor = field["descriptionAction"];
+    if (field.containsKey("action")) {
+      descriptor = field["action"];
       navigateToButtonText = getMapDescription(descriptor, currentLocale);
       createGoToMapButton = true;
     }

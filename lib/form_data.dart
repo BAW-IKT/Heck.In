@@ -150,7 +150,7 @@ List<Map<String, dynamic>> createFormFields() {
   return [
     // general fields
     {
-      'type': 'text',
+      'type': InputType.text,
       'label': 'hecken_name',
       "labelEN": "Hedge name",
       "labelDE": "Hecken Name",
@@ -161,7 +161,7 @@ List<Map<String, dynamic>> createFormFields() {
       'controller': TextEditingController(),
     },
     {
-      'type': 'text',
+      'type': InputType.text,
       'label': 'hecken_ort',
       "labelEN": "Place",
       "labelDE": "Ort",
@@ -172,19 +172,19 @@ List<Map<String, dynamic>> createFormFields() {
       'controller': TextEditingController(),
     },
     {
-      'type': 'text',
+      'type': InputType.text,
       'label': 'gutachter',
       "labelEN": "Reviewer",
       "labelDE": "Gutachter:in",
       'descriptionEN': 'Enter the name of the reviewer',
       'descriptionDE': 'Geben Sie den Namen des Gutachters ein',
-      'descriptionAction': MapDescriptor.arcanum,
+      'action': MapDescriptor.arcanum,
       'section': 'general',
       'borderColor': MyColors.orange,
       'controller': TextEditingController(),
     },
     {
-      'type': 'text',
+      'type': InputType.text,
       'label': 'anmerkungen_kommentare',
       "labelEN": "Notes",
       "labelDE": "Anmerkungen",
@@ -196,7 +196,7 @@ List<Map<String, dynamic>> createFormFields() {
     },
     // gis fields
     {
-      'type': 'number',
+      'type': InputType.number,
       'label': 'hecken_laenge',
       "labelEN": "Length [m]",
       "labelDE": "Länge [m]",
@@ -209,7 +209,7 @@ List<Map<String, dynamic>> createFormFields() {
       'controller': TextEditingController(),
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'himmelsrichtung',
       "labelEN": "Compass direction",
       "labelDE": "Ausrichtung Himmelsrichtung",
@@ -229,7 +229,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'schutzgebiet',
       "labelEN": "Protected area",
       "labelDE": "Schutzgebiet",
@@ -247,7 +247,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'naturdenkmal',
       "labelEN": "Natural monument",
       "labelDE": "Naturdenkmal",
@@ -265,7 +265,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'hecken_dichte',
       "labelEN": "Hedge density",
       "labelDE": "Heckendichte",
@@ -290,7 +290,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'klimatische_wasserbilanz',
       "labelEN": "climatic water balance",
       "labelDE": "klimatische Wasserbilanz",
@@ -309,7 +309,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'bevoelkerungs_dichte',
       "labelEN": "population density",
       "labelDE": "Bevölkerungsdichte",
@@ -327,7 +327,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'in_wildtierkorridor',
       "labelEN": "in wildlife corridor",
       "labelDE": "in Wildtierkorridor",
@@ -345,7 +345,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'traditionelle_heckenregion',
       "labelEN": "traditional hedge region",
       "labelDE": "traditionelle Heckenregion",
@@ -363,7 +363,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'franziszeischer_kataster',
       "labelEN": "French cadastre",
       "labelDE": "Franziszeischer Kataster",
@@ -381,7 +381,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'nutzbare_feldkapazitaet',
       "labelEN": "usable field capacity",
       "labelDE": "nutzbare Feldkapazität",
@@ -400,7 +400,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'humusbilanz',
       "labelEN": "Humus balance",
       "labelDE": "Humusbilanz",
@@ -419,7 +419,7 @@ List<Map<String, dynamic>> createFormFields() {
     },
     // gelände fields
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'hang_position',
       "labelEN": "position to the slope",
       "labelDE": "Position zum Hang",
@@ -439,7 +439,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'hang_neigung',
       "labelEN": "Slope gradient",
       "labelDE": "Hangneigung",
@@ -459,7 +459,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'netzwerk',
       "labelEN": "Network",
       "labelDE": "Netzwerk",
@@ -479,7 +479,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'erschliessung',
       "labelEN": "Access",
       "labelDE": "Erschließung",
@@ -497,7 +497,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'horizontale_schichtung',
       "labelEN": "horizontal layering",
       "labelDE": "horizontale Schichtung",
@@ -518,7 +518,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'vertikale_schichtung',
       "labelEN": "vertical layering",
       "labelDE": "vertikale Schichtung",
@@ -536,7 +536,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'strukturvielfalt',
       "labelEN": "structural diversity",
       "labelDE": "Strukturvielfalt",
@@ -555,7 +555,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'luecken',
       "labelEN": "Gaps",
       "labelDE": "Lücken",
@@ -576,7 +576,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'totholz',
       "labelEN": "deadwood",
       "labelDE": "Totholz",
@@ -598,7 +598,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'alterszusammensetzung',
       "labelEN": "Age composition",
       "labelDE": "Alterszusammensetzung",
@@ -619,7 +619,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'saum_art',
       "labelEN": "hem type",
       "labelDE": "Saumart",
@@ -642,7 +642,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'saum_breite',
       "labelEN": "Hem width",
       "labelDE": "Saumbreite",
@@ -666,7 +666,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'hecken_hoehe',
       "labelEN": "Height",
       "labelDE": "Höhe",
@@ -688,7 +688,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'hecken_breite',
       "labelEN": "Width",
       "labelDE": "Breite",
@@ -711,7 +711,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'baumanteil',
       "labelEN": "Tree proportion",
       "labelDE": "Baumanteil",
@@ -730,7 +730,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'anzahl_gehoelz_arten',
       "labelEN": "Number of wood species",
       "labelDE": "Anzahl Gehölzarten",
@@ -752,7 +752,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'dominanzen',
       "labelEN": "Dominances",
       "labelDE": "Dominanzen",
@@ -772,7 +772,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      'type': 'dropdown',
+      'type': InputType.dropdown,
       'label': 'neophyten',
       "labelEN": "Neophytes",
       "labelDE": "Neophyten",
