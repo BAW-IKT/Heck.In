@@ -18,14 +18,16 @@ Future<List<DocumentSnapshot>> getAllDocuments() async {
   return documents;
 }
 
-Future<void> signInAnonymously() async {
-  // try {
-    UserCredential userCredential =
-        await FirebaseAuth.instance.signInAnonymously();
-    print('User ID: ${userCredential.user?.uid}');
-  // } catch (e) {
-  //   print('Error: $e');
-  // }
+Future<String> signInAnonymousUserAndGetUID() async{
+  FirebaseAuth auth = FirebaseAuth.instance;
+  User user;
+  if (auth.currentUser == null) {
+    UserCredential userCredential = await auth.signInAnonymously();
+    user = userCredential.user!;
+  } else {
+    user = auth.currentUser!;
+  }
+  return user.uid;
 }
 
 /// creates a document based on the given arguments
@@ -36,7 +38,7 @@ Future<void> writeDocument(
     Function(bool, String) onResult) async {
   try {
     // Sign in anonymously
-    await FirebaseAuth.instance.signInAnonymously();
+    String uid = await signInAnonymousUserAndGetUID();
 
     // Get a reference to the Firestore collection
     final collection = FirebaseFirestore.instance.collection(collectionName);
@@ -49,9 +51,7 @@ Future<void> writeDocument(
     List<String> downloadUrls = [];
     for (File image in images) {
       String imageName = path.basename(image.path);
-      // saves images into folder images/2023-05-07/NAME
-      Reference imageRef = FirebaseStorage.instance.ref().child(
-          'images/${timestamp.toString().split(" ")[0]}/${formData["hecken_name"]}/$imageName');
+      Reference imageRef = FirebaseStorage.instance.ref().child('$uid/$imageName');
       await imageRef.putFile(image);
       String downloadUrl = await imageRef.getDownloadURL();
       downloadUrls.add(downloadUrl);
@@ -65,6 +65,7 @@ Future<void> writeDocument(
     }
     documentData['images'] = downloadUrls;
     documentData['form_submit_timestamp'] = timestamp.toString();
+    documentData['uid'] = uid;
     await document.set(documentData);
 
     // Call the callback function with success status and message
