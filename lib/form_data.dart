@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hedge_profiler_flutter/form_utils.dart';
 import 'colors.dart';
 
 List<Map<String, dynamic>> getSections() {
@@ -48,6 +49,42 @@ Map<String, Color> getRadarGroupColors() {
     'Habitat': MyColors.green,
     'Kulturell': MyColors.orange,
   };
+}
+
+String getMapDescription(MapDescriptor descriptor, String currentLocale) {
+  String readableDescription = "";
+  switch (descriptor) {
+    case MapDescriptor.NULL:
+      break;
+    case MapDescriptor.arcanum:
+      readableDescription = currentLocale == "EN" ? "Arkanum Map" : "Arkanum Karte";
+      break;
+    case MapDescriptor.bodenkarte:
+      readableDescription = currentLocale == "EN" ? "Bodenkarte Map" : "Bodenkarte";
+      break;
+    case MapDescriptor.bodenkarteNutzbareFeldkapazitaet:
+      readableDescription = currentLocale == "EN" ? "Bodenkarte Map" : "Bodenkarte";
+      break;
+    case MapDescriptor.bodenkarteHumusBilanz:
+      readableDescription = currentLocale == "EN" ? "Bodenkarte Map" : "Bodenkarte";
+      break;
+    case MapDescriptor.geonodeLebensraumVernetzung:
+      readableDescription = currentLocale == "EN" ? "Habitat Connectivity Map" : "Lebensraum Vernetzungs Karte";
+      break;
+    case MapDescriptor.ecosystem:
+      readableDescription = currentLocale == "EN" ? "Ecosystem Map" : "Ökosystem Karte";
+      break;
+    case MapDescriptor.geoland:
+      readableDescription = currentLocale == "EN" ? "Geoland Map" : "Geoland Karte";
+      break;
+    case MapDescriptor.noeNaturschutz:
+      readableDescription = currentLocale == "EN" ? "NÖ Nature Conversation Map" : "NÖ Naturschutz Karte";
+      break;
+    case MapDescriptor.eeaProtectedAreas:
+      readableDescription = currentLocale == "EN" ? "EEA Protected Areas Map" : "EEA Schutzgebiete Karte";
+      break;
+  }
+  return readableDescription;
 }
 
 Map<String, String> getRadarDataGroups() {
@@ -117,8 +154,8 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'hecken_name',
       "labelEN": "Hedge name",
       "labelDE": "Hecken Name",
-      'descriptionEN': 'Enter the name of the hedge',
-      'descriptionDE': 'Geben Sie den Namen der Hecke ein',
+      // 'descriptionEN': 'Enter the name of the hedge',
+      // 'descriptionDE': 'Geben Sie den Namen der Hecke ein',
       'section': 'general',
       'borderColor': MyColors.orange,
       'controller': TextEditingController(),
@@ -128,8 +165,8 @@ List<Map<String, dynamic>> createFormFields() {
       'label': 'hecken_ort',
       "labelEN": "Place",
       "labelDE": "Ort",
-      'descriptionEN': 'Enter the location',
-      'descriptionDE': 'Geben Sie den Ort ein',
+      // 'descriptionEN': 'Enter the location',
+      // 'descriptionDE': 'Geben Sie den Ort ein',
       'section': 'general',
       'borderColor': MyColors.orange,
       'controller': TextEditingController(),
@@ -138,9 +175,10 @@ List<Map<String, dynamic>> createFormFields() {
       'type': 'text',
       'label': 'gutachter',
       "labelEN": "Reviewer",
-      "labelDE": "Gutachter",
+      "labelDE": "Gutachter:in",
       'descriptionEN': 'Enter the name of the reviewer',
       'descriptionDE': 'Geben Sie den Namen des Gutachters ein',
+      'descriptionAction': MapDescriptor.arcanum,
       'section': 'general',
       'borderColor': MyColors.orange,
       'controller': TextEditingController(),

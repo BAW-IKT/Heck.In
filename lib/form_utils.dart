@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hedge_profiler_flutter/colors.dart';
+import 'package:hedge_profiler_flutter/snackbar.dart';
 import 'dynamic_dropdowns.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void doNothing() {}
 
@@ -101,7 +104,8 @@ Widget buildSteppers(
     String sectionToBuild,
     String currentLocale,
     Function(String, String) onStaticWidgetChanged,
-    Function(String, String) onDynamicWidgetChanged) {
+    Function(String, String) onDynamicWidgetChanged,
+    Function(String) buildAndHandleToolTip) {
   return Center(
     child: StepperWidget(
       inputFields: inputFields,
@@ -111,6 +115,7 @@ Widget buildSteppers(
       currentLocale: currentLocale,
       onStaticWidgetChanged: onStaticWidgetChanged,
       onDynamicWidgetChanged: onDynamicWidgetChanged,
+      buildAndHandleToolTip: buildAndHandleToolTip,
     ),
   );
 }
@@ -166,7 +171,7 @@ Widget _createTextInput(
 
 Padding _paddedWidget(Widget widget) {
   return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
       child: widget);
 }
 
@@ -321,7 +326,15 @@ class ToolTipDialog extends StatelessWidget {
 
     return AlertDialog(
       title: Text(header),
-      content: Text(message),
+      // content: Text(message),
+      content: Linkify(
+        onOpen: (link) async {
+          if (!await launchUrl(Uri.parse(link.url))) {
+            showSnackbar(context, "Could not launch ${link.url}", success: false);
+          }
+        },
+        text: message,
+      ),
       actions: actionsList,
     );
   }
@@ -419,6 +432,7 @@ class StepperWidget extends StatefulWidget {
   final String currentLocale;
   final Function(String, String) onStaticWidgetChanged;
   final Function(String, String) onDynamicWidgetChanged;
+  final Function(String) buildAndHandleToolTip;
 
   const StepperWidget({
     Key? key,
@@ -429,6 +443,7 @@ class StepperWidget extends StatefulWidget {
     required this.currentLocale,
     required this.onStaticWidgetChanged,
     required this.onDynamicWidgetChanged,
+    required this.buildAndHandleToolTip,
   }) : super(key: key);
 
   @override
@@ -482,15 +497,12 @@ class StepperWidgetState extends State<StepperWidget> {
             _createNumberInputForStepper(field, borderColor: borderColor);
       }
 
-      // add to column with descriptive text
       Column column = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _paddedWidget(Text(field["description${widget.currentLocale}"])),
-          const SizedBox(height: 10),
           inputWidget!,
           const SizedBox(height: 16),
-        ],
+        ]
       );
 
       // add widget to defined subSection map if defined (if not, create own group based on label)
@@ -715,19 +727,17 @@ class StepperWidgetState extends State<StepperWidget> {
     String locale = widget.currentLocale;
     var dropdownItems =
         field['values$locale'].map<DropdownMenuItem<String>>((value) {
-      double dynamicTextSize = 12;
-      if (value.toString().length > 16) {
-        dynamicTextSize = 10;
-      }
-      if (value.toString().length > 24) {
-        dynamicTextSize = 7;
+      // shorten long text
+      String textShort = value;
+      if (value.length > 30) {
+        textShort = value.substring(0, 27) + "...";
       }
       return DropdownMenuItem<String>(
         value: value,
         child: Text(
-          value,
-          style: TextStyle(
-            fontSize: dynamicTextSize,
+          textShort,
+          style: const TextStyle(
+            fontSize: 13,
           ),
         ),
       );
@@ -745,73 +755,116 @@ class StepperWidgetState extends State<StepperWidget> {
       dropdownValue = field["selectedValue"];
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: DropdownButtonFormField(
-        value: dropdownValue,
-        decoration: InputDecoration(
-          enabledBorder: OutlineInputBorder(
-            borderSide: borderColor != null
-                ? BorderSide(color: borderColor)
-                : const BorderSide(),
-          ),
-          labelText: field['label$locale'],
-          labelStyle: TextStyle(
-            fontSize: field['label$locale'].length > 24 ? 14 : 16,
-          ),
-        ),
-        items: dropdownItems,
-        onChanged: (value) {
-          widget.onStaticWidgetChanged(field["label"], value.toString());
-          setState(() {
-            dropdownSelectedIndex[field["label"]] = value;
-          });
-        },
-      ),
-    );
+    DropdownButtonFormField dropdownButtonFormField = DropdownButtonFormField(
+              value: dropdownValue,
+              decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                  borderSide: borderColor != null
+                      ? BorderSide(color: borderColor)
+                      : const BorderSide(),
+                ),
+                labelText: field['label$locale'],
+                labelStyle: TextStyle(
+                  fontSize: field['label$locale'].length > 24 ? 14 : 16,
+                ),
+              ),
+              items: dropdownItems,
+              onChanged: (value) {
+                widget.onStaticWidgetChanged(field["label"], value.toString());
+                setState(() {
+                  dropdownSelectedIndex[field["label"]] = value;
+                });
+              },
+            );
+
+    return _wrapInputFieldInPaddingAndAddToolTip(dropdownButtonFormField, field);
   }
 
   Widget _createNumberInputForStepper(var field, {Color? borderColor}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: TextFormField(
-        controller: field['controller'],
-        decoration: InputDecoration(
-          enabledBorder: OutlineInputBorder(
-            borderSide: borderColor != null
-                ? BorderSide(color: borderColor)
-                : const BorderSide(),
-          ),
-          labelText: field['label${widget.currentLocale}'],
-        ),
-        keyboardType: TextInputType.number,
-        onChanged: (value) {
-          widget.onStaticWidgetChanged(field["label"], value);
-          setState(() {});
-        },
-      ),
-    );
+    TextFormField numberFormField = TextFormField(
+              controller: field['controller'],
+              decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                  borderSide: borderColor != null
+                      ? BorderSide(color: borderColor)
+                      : const BorderSide(),
+                ),
+                labelText: field['label${widget.currentLocale}'],
+              ),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                widget.onStaticWidgetChanged(field["label"], value);
+                setState(() {});
+              },
+            );
+    return _wrapInputFieldInPaddingAndAddToolTip(numberFormField, field);
   }
 
   Widget _createTextInputForStepper(var field, {Color? borderColor}) {
+    TextFormField textFormField = TextFormField(
+              controller: field['controller'],
+              decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                  borderSide: borderColor != null
+                      ? BorderSide(color: borderColor)
+                      : const BorderSide(),
+                ),
+                labelText: field['label${widget.currentLocale}'],
+              ),
+              keyboardType: TextInputType.text,
+              onChanged: (value) {
+                widget.onStaticWidgetChanged(field["label"], value);
+                setState(() {});
+              },
+            );
+    return _wrapInputFieldInPaddingAndAddToolTip(textFormField, field);
+  }
+
+  Padding _wrapInputFieldInPaddingAndAddToolTip(
+      Widget inputFieldWidget, var field) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: TextFormField(
-        controller: field['controller'],
-        decoration: InputDecoration(
-          enabledBorder: OutlineInputBorder(
-            borderSide: borderColor != null
-                ? BorderSide(color: borderColor)
-                : const BorderSide(),
-          ),
-          labelText: field['label${widget.currentLocale}'],
-        ),
-        keyboardType: TextInputType.text,
-        onChanged: (value) {
-          widget.onStaticWidgetChanged(field["label"], value);
-          setState(() {});
-        },
-      ),
+        padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 4.0),
+        child: Row(children: [
+          Expanded(child: inputFieldWidget),
+          if (_fieldHasToolTip(field)) _getToolTipIconButton(field)
+        ]));
+  }
+
+  Widget _getToolTipIconButton(var field) {
+    return IconButton(
+      icon: const Icon(Icons.info),
+      onPressed: () {
+        widget.buildAndHandleToolTip(field["label"]);
+      },
     );
   }
+
+  bool _fieldHasToolTip(var field) {
+    if (field.containsKey("descriptionEN")
+        && field.containsKey("descriptionDE")) {
+      return true;
+    }
+    return false;
+  }
+}
+
+enum MapDescriptor {
+  NULL,
+  arcanum,
+  bodenkarte,
+  bodenkarteNutzbareFeldkapazitaet,
+  bodenkarteHumusBilanz,
+  geonodeLebensraumVernetzung,
+  ecosystem,
+  geoland,
+  noeNaturschutz,
+  eeaProtectedAreas
+}
+
+// TODO: refactor
+enum InputType {
+  text,
+  number,
+  dropdown,
+  list
 }

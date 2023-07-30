@@ -691,29 +691,46 @@ class NameFormState extends State<NameForm> {
         Icons.map_outlined,
       ),
       onPressed: () {
-        buildAndHandleToolTip();
+        buildAndHandleToolTip("idk");
       },
     );
   }
 
-  void buildAndHandleToolTip() async {
+  void buildAndHandleToolTip(String originalFieldLabel) async {
+    var field = inputFields[inputFieldLabelToIndex[originalFieldLabel]!];
+    String navigateToButtonText = "";
+    MapDescriptor descriptor = MapDescriptor.NULL;
+    bool createGoToMapButton = false;
+    if (field.containsKey("descriptionAction")) {
+      descriptor = field["descriptionAction"];
+      navigateToButtonText = getMapDescription(descriptor, currentLocale);
+      createGoToMapButton = true;
+    }
     await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return ToolTipDialog(
-          header: currentLocale == "EN" ? "This is some header" : "Das ist ein header",
-          message: currentLocale == "EN" ? "This parameter is describing this and that. For more info, go to arcanum map." : "Dieser parameter beschreibt irgendwas, recht langer text etc.",
-          navigateToMapButtonText: currentLocale == "EN" ? "Go to Arcanum Map" :  "Gehe zur Arkanum Karte",
+          header: "Info: ${getLocalLabel(field)}",
+          message: getLocalDescription(field),
+          navigateToMapButtonText: navigateToButtonText,
           onNavigateToMap: () {
-            widget.webViewPageState.loadMapArcanum();
+            widget.webViewPageState.loadMapFromDescriptor(descriptor);
             Navigator.of(context).pop(true);
           },
           closeButtonText: currentLocale == "EN" ? "Close": "Schließen",
           onClose: () => Navigator.of(context).pop(false),
-          createGoToMapButton: true,
+          createGoToMapButton: createGoToMapButton,
         );
       },
     );
+  }
+
+  String getLocalLabel(var field) {
+    return currentLocale == "EN" ? field["labelEN"] : field["labelDE"];
+  }
+
+  String getLocalDescription(var field) {
+    return currentLocale == "EN" ? field["descriptionEN"] : field["descriptionDE"];
   }
 
   IconButton _buildRadarChartButton() {
@@ -950,7 +967,8 @@ class NameFormState extends State<NameForm> {
             section,
             currentLocale,
             onStaticWidgetChanged,
-            onDynamicDropdownsChanged),
+            onDynamicDropdownsChanged,
+            buildAndHandleToolTip),
         // buildFormFieldGrid(inputFields, section, currentLocale,
         //     onWidgetChanged: onStaticWidgetChanged, columns: columns),
         // buildDynamicFormFieldGrid(

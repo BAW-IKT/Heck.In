@@ -49,6 +49,8 @@ dependencies:
   flutter_launcher_icons: ^0.13.1
   fl_chart: ^0.63.0
   dev: ^1.0.0
+  flutter_linkify: ^6.0.0
+  url_launcher: ^6.1.12
 
 # build release with: flutter build apk --release
 

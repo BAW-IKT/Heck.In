@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:hedge_profiler_flutter/form_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -63,6 +64,7 @@ class WebViewPageState extends State<WebViewPage> {
   GlobalKey<NameFormState> _nameFormKey = GlobalKey<NameFormState>();
 
   String _currentUrlSynonym = '';
+  MapDescriptor _currentMapDescriptor = MapDescriptor.NULL;
   String _geoLastChange = 'never updated';
   String _geoLastKnown = 'no location available';
   String systemLocale = Platform.localeName.startsWith("de") ? "DE" : "EN";
@@ -367,6 +369,40 @@ class WebViewPageState extends State<WebViewPage> {
     }
   }
 
+  void loadMapFromDescriptor(MapDescriptor descriptor) {
+    switch (descriptor) {
+      case MapDescriptor.NULL:
+        break;
+      case MapDescriptor.arcanum:
+        loadMapArcanum();
+        break;
+      case MapDescriptor.bodenkarte:
+        loadMapBodenkarte();
+        break;
+      case MapDescriptor.bodenkarteNutzbareFeldkapazitaet:
+        loadMapBodenkarteNutzbareFeldkapazitaet();
+        break;
+      case MapDescriptor.bodenkarteHumusBilanz:
+        loadMapBodenkarteHumusBilanz();
+        break;
+      case MapDescriptor.geonodeLebensraumVernetzung:
+        loadMapGeonodeLebensraumverletzung();
+        break;
+      case MapDescriptor.ecosystem:
+        loadMapEcosystemAccounts();
+        break;
+      case MapDescriptor.geoland:
+        loadMapGeoland();
+        break;
+      case MapDescriptor.noeNaturschutz:
+        loadMapNoeNaturschutz();
+        break;
+      case MapDescriptor.eeaProtectedAreas:
+        loadMapEEAEuropa();
+        break;
+    }
+  }
+
   void loadMapArcanum() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var latitude = prefs.getString("geo_latitude");
@@ -375,7 +411,7 @@ class WebViewPageState extends State<WebViewPage> {
     String map = "europe-19century-secondsurvey";
     loadPageWrapper(
         "$stem/$map/?lon=$longitude&lat=$latitude&zoom=15",
-        "arcanum");
+        MapDescriptor.arcanum);
   }
 
   void loadMapBodenkarte() async {
@@ -384,7 +420,7 @@ class WebViewPageState extends State<WebViewPage> {
     var longitude = prefs.getString("geo_longitude");
     loadPageWrapper(
         "https://bodenkarte.at/#/center/$longitude,$latitude/zoom/15",
-        "bodenkarte");
+        MapDescriptor.bodenkarte);
   }
 
   void loadMapBodenkarteNutzbareFeldkapazitaet() async {
@@ -393,7 +429,7 @@ class WebViewPageState extends State<WebViewPage> {
     var longitude = prefs.getString("geo_longitude");
     loadPageWrapper(
         "https://bodenkarte.at/#/d/baw/l/nf,false,60,kb/center/$longitude,$latitude/zoom/15",
-        "bodenkarteNutzbareFeldkapazitaet");
+        MapDescriptor.bodenkarteNutzbareFeldkapazitaet);
   }
 
   void loadMapBodenkarteHumusBilanz() async {
@@ -402,48 +438,48 @@ class WebViewPageState extends State<WebViewPage> {
     var longitude = prefs.getString("geo_longitude");
     loadPageWrapper(
         "https://bodenkarte.at/#/d/bfa/l/hb,false,60,kb/center/$longitude,$latitude/zoom/15",
-        "bodenkarteHumusBilanz");
+        MapDescriptor.bodenkarteHumusBilanz);
   }
 
   void loadMapGeonodeLebensraumverletzung() {
     loadPageWrapper(
         "https://geonode.lebensraumvernetzung.at/maps/63/view#/",
-        "geonode");
+        MapDescriptor.geonodeLebensraumVernetzung);
   }
 
   void loadMapEcosystemAccounts() {
     loadPageWrapper(
         "https://ecosystem-accounts.jrc.ec.europa.eu/map",
-        "ecosystem");
+        MapDescriptor.ecosystem);
   }
 
   void loadMapGeoland() {
     loadPageWrapper(
         "https://www.geoland.at/webgisviewer/geoland/map/Geoland_Viewer/Geoland",
-        "geoland");
+        MapDescriptor.geoland);
   }
 
   void loadMapNoeNaturschutz() {
     loadPageWrapper(
         "https://atlas.noe.gv.at/atlas/portal/noe-atlas/map/Naturraum/Naturschutz",
-        "noe");
+        MapDescriptor.noeNaturschutz);
   }
 
   void loadMapEEAEuropa() {
     loadPageWrapper(
         "https://www.eea.europa.eu/data-and-maps/explore-interactive-maps/european-protected-areas-1",
-        "eea");
+        MapDescriptor.eeaProtectedAreas);
   }
 
-  void loadPageWrapper(String pageURL, String pageSynonym) async {
+  void loadPageWrapper(String pageURL, MapDescriptor mapDescriptor) async {
     if (mounted) {
       setState(() {
         _showNameForm = false;
       });
     }
-    if (_currentUrlSynonym != pageSynonym) {
+    if (_currentMapDescriptor != mapDescriptor) {
       setState(() {
-        _currentUrlSynonym = pageSynonym;
+        _currentMapDescriptor = mapDescriptor;
       });
       // loadPage(context, pageURL);
       _controller.loadRequest(Uri.parse(pageURL));
