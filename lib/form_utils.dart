@@ -172,6 +172,7 @@ Widget _createTextInput(
 
 Padding paddedWidget(Widget widget,
     {double horizontalPadding = 4.0, double verticalPadding = 4.0}) {
+  // TODO: refactor all Padding( calls
   return Padding(
       padding: EdgeInsets.symmetric(
           horizontal: horizontalPadding, vertical: verticalPadding),
@@ -333,10 +334,12 @@ class ToolTipDialog extends StatelessWidget {
       content: Linkify(
         onOpen: (link) async {
           if (!await launchUrl(Uri.parse(link.url))) {
-            showSnackbar(context, "Could not launch ${link.url}", success: false);
+            showSnackbar(context, "Could not launch ${link.url}",
+                success: false);
           }
         },
         text: message,
+        textAlign: TextAlign.justify,
       ),
       actions: actionsList,
     );
@@ -825,12 +828,12 @@ class StepperWidgetState extends State<StepperWidget> {
 
   Padding _wrapInputFieldInPaddingAndAddToolTip(
       Widget inputFieldWidget, var field) {
-    return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 4.0),
-        child: Row(children: [
-          Expanded(child: inputFieldWidget),
-          if (_fieldHasToolTip(field)) _getToolTipIconButton(field)
-        ]));
+    Widget inputFieldWithToolTip = Row(children: [
+      Expanded(child: inputFieldWidget),
+      if (_fieldHasToolTip(field)) _getToolTipIconButton(field)
+    ]);
+    return paddedWidget(inputFieldWithToolTip,
+        horizontalPadding: 0.0, verticalPadding: 4.0);
   }
 
   Widget _getToolTipIconButton(var field) {

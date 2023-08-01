@@ -696,7 +696,7 @@ class NameFormState extends State<NameForm> {
     String navigateToButtonText = "";
     MapDescriptor descriptor = MapDescriptor.NULL;
     bool createGoToMapButton = false;
-    if (field.containsKey("action")) {
+    if (field.containsKey("action") && field["action"] != null) {
       descriptor = field["action"];
       navigateToButtonText = getMapDescription(descriptor, currentLocale);
       createGoToMapButton = true;
