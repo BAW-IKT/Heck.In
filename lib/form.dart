@@ -19,11 +19,13 @@ import 'form_calc.dart';
 class NameForm extends StatefulWidget {
   final GlobalKey<NameFormState> formKey;
   final WebViewPageState webViewPageState;
+  final bool showForm;
 
   const NameForm({
     Key? key,
     required this.formKey,
-    required this.webViewPageState
+    required this.webViewPageState,
+    required this.showForm,
   }) : super(key: key);
 
   @override
@@ -629,6 +631,10 @@ class NameFormState extends State<NameForm> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.showForm) {
+      return Container();
+    }
+
     if (_selectedIndex != _selectedIndexCheck || _triggeredByMenu) {
       _selectedIndexCheck = _selectedIndex;
       _triggeredByMenu = false;
@@ -686,7 +692,8 @@ class NameFormState extends State<NameForm> {
         Icons.map_outlined,
       ),
       onPressed: () {
-        buildAndHandleToolTip("idk");
+        widget.webViewPageState.loadMapFromDescriptor(MapDescriptor.geoland);
+        // Navigator.of(context).pop(false);
       },
     );
   }
@@ -710,7 +717,7 @@ class NameFormState extends State<NameForm> {
           navigateToMapButtonText: navigateToButtonText,
           onNavigateToMap: () {
             widget.webViewPageState.loadMapFromDescriptor(descriptor);
-            Navigator.of(context).pop(true);
+            // Navigator.of(context).pop(true);
           },
           closeButtonText: currentLocale == "EN" ? "Close": "Schließen",
           onClose: () => Navigator.of(context).pop(false),
@@ -851,16 +858,7 @@ class NameFormState extends State<NameForm> {
                         color: Theme.of(context).colorScheme.error),
                     onPressed: () => _showClearDialog(),
                   ),
-                  // IconButton(
-                  //   icon: const Icon(Icons.photo_library),
-                  //   onPressed: () => _addImage(ImageSource.gallery),
-                  // ),
-                  // IconButton(
-                  //   icon: const Icon(Icons.add_a_photo),
-                  //   onPressed: () => _addImage(ImageSource.camera),
-                  // ),
-                  // const SizedBox(height: 50),
-                  _buildGoToMapDebugButton(),
+                  // _buildGoToMapDebugButton(),
                   _buildRadarChartButton(),
                   _buildAnimatedSubmitButton(),
                   const SizedBox(height: 50),

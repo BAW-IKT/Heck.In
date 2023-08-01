@@ -188,184 +188,222 @@ class WebViewPageState extends State<WebViewPage> {
         ),
       );
     } else {
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor: MyColors.topBarColor,
-          title: Text(
-              currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler"),
-        ),
-        drawer: Drawer(
-          child: Column(
+      return WillPopScope(
+        onWillPop: _onBackButtonPressed,
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: MyColors.topBarColor,
+            title: Text(
+                currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler"),
+          ),
+          drawer: _buildMainMenuDrawer(),
+          body: Stack(
             children: [
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    DrawerHeader(
-                      decoration: const BoxDecoration(
-                        color: MyColors.blue,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            currentLocale == "EN"
-                                ? "Hedge Profiler"
-                                : "Hecken Profiler",
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 30),
-                          _buildGeoStatusText(),
-                        ],
-                      ),
-                    ),
-                    ListTile(
-                      leading:
-                          const Icon(Icons.eco_rounded, color: MyColors.green),
-                      title: Text(currentLocale == "EN"
-                          ? "Rate Hedge"
-                          : "Hecke Bewerten"),
-                      onTap: () {
-                        setState(() {
-                          _showNameForm = true;
-                        });
-                        Navigator.pop(context);
-                      },
-                    ),
-                    ListTile(
-                      leading:
-                          const Icon(Icons.map_outlined, color: MyColors.coral),
-                      title: Text(currentLocale == "EN"
-                          ? "View Arcanum Map"
-                          : "Arcanum Karte Öffnen"),
-                      onTap: () {
-                        loadMapArcanum();
-                      },
-                    ),
-                    ListTile(
-                      leading:
-                          const Icon(Icons.map_outlined, color: MyColors.teal),
-                      title: Text(currentLocale == "EN"
-                          ? "View Bodenkarte"
-                          : "Bodenkarte Öffnen"),
-                      onTap: () {
-                        loadMapBodenkarte();
-                      },
-                    ),
-                    ListTile(
-                      leading:
-                          const Icon(Icons.map_outlined, color: MyColors.teal),
-                      title: Text(currentLocale == "EN"
-                          ? "View Bodenkarte (fieldcapacity)"
-                          : "Bodenkarte (Feldkapazität) Öffnen"),
-                      onTap: () {
-                        loadMapBodenkarteNutzbareFeldkapazitaet();
-                      },
-                    ),
-                    ListTile(
-                      leading:
-                          const Icon(Icons.map_outlined, color: MyColors.teal),
-                      title: Text(currentLocale == "EN"
-                          ? "View Bodenkarte (humus)"
-                          : "Bodenkarte (Humus) Öffnen"),
-                      onTap: () {
-                        loadMapBodenkarteHumusBilanz();
-                      },
-                    ),
-                    ListTile(
-                      leading:
-                          const Icon(Icons.map_outlined, color: MyColors.teal),
-                      title: Text(currentLocale == "EN"
-                          ? "View Geonode Map"
-                          : "Geonode Karte Öffnen"),
-                      onTap: () {
-                        loadMapGeonodeLebensraumverletzung();
-                      },
-                    ),
-                    ListTile(
-                      leading:
-                          const Icon(Icons.map_outlined, color: MyColors.teal),
-                      title: Text(currentLocale == "EN"
-                          ? "View Ecosystem Map"
-                          : "Ecosystem Karte Öffnen"),
-                      onTap: () {
-                        loadMapEcosystemAccounts();
-                      },
-                    ),
-                    ListTile(
-                      leading:
-                          const Icon(Icons.map_outlined, color: MyColors.teal),
-                      title: Text(currentLocale == "EN"
-                          ? "View NOE Atlas"
-                          : "NOE Atlas Öffnen"),
-                      onTap: () {
-                        loadMapNoeNaturschutz();
-                      },
-                    ),
-                    ListTile(
-                      leading:
-                          const Icon(Icons.map_outlined, color: MyColors.teal),
-                      title: Text(currentLocale == "EN"
-                          ? "View EEA Map"
-                          : "EEA Karte Öffnen"),
-                      onTap: () {
-                        loadMapEEAEuropa();
-                      },
-                    ),
-                  ],
-                ),
+              WebViewWidget(
+                controller: _controller,
               ),
-              Column(
-                children: [
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildLanguageToggleButton(),
-                        _buildGeoRefreshButton(),
-                        _buildDarkmodeToggleButton(),
-                      ]),
-                  const SizedBox(height: 30),
-                  Image.asset(
-                    'data/lsw_logo.png',
-                    fit: BoxFit.contain,
+              ValueListenableBuilder<double>(
+                valueListenable: _loadingPercentage,
+                builder: (context, value, child) {
+                  return value < 100
+                      ? LinearProgressIndicator(
+                          value: value / 100.0,
+                        )
+                      : const SizedBox.shrink();
+                },
+              ),
+              Offstage(
+                offstage: !_showNameForm,
+                // when _showNameForm is false, the Container will be off the screen
+                child: Positioned.fill(
+                  child: Container(
+                    color: MyColors.black.withOpacity(0.5),
+                    child: Center(
+                      child: NameForm(
+                        formKey: _nameFormKey,
+                        webViewPageState: this,
+                        showForm: _showNameForm,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 30)
-                ],
+                ),
               ),
             ],
           ),
         ),
-        body: Stack(
-          children: [
-            WebViewWidget(
-              controller: _controller,
-            ),
-            ValueListenableBuilder<double>(
-              valueListenable: _loadingPercentage,
-              builder: (context, value, child) {
-                return value < 100
-                    ? LinearProgressIndicator(
-                        value: value / 100.0,
-                      )
-                    : const SizedBox.shrink();
-              },
-            ),
-            if (_showNameForm)
-              Positioned.fill(
-                child: Container(
-                  color: MyColors.black.withOpacity(0.5),
-                  child: Center(
-                    child:
-                        NameForm(formKey: _nameFormKey, webViewPageState: this),
-                  ),
-                ),
-              ),
-          ],
-        ),
       );
+    }
+  }
+
+  Drawer _buildMainMenuDrawer() {
+    List<Widget> drawerChildren = [];
+    drawerChildren.add(_buildMainMenuDrawerHeader());
+    drawerChildren.add(_buildMainMenuDrawerRateHedgeListTile());
+    for (ListTile mapListTile in _buildMainMenuDrawerMapListTiles()) {
+      drawerChildren.add(mapListTile);
+    }
+
+    return Drawer(
+      child: Column(
+        children: [
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: drawerChildren,
+            ),
+          ),
+          _buildBottomPartForMainMenuDrawer(),
+        ],
+      ),
+    );
+  }
+
+  ListTile _buildMainMenuDrawerRateHedgeListTile() {
+    return ListTile(
+      leading: const Icon(Icons.eco_rounded, color: MyColors.green),
+      title: Text(currentLocale == "EN" ? "Rate Hedge" : "Hecke Bewerten"),
+      onTap: () {
+        setState(() {
+          _showNameForm = true;
+        });
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  List<ListTile> _buildMainMenuDrawerMapListTiles() {
+    return [
+      ListTile(
+        leading: const Icon(Icons.map_outlined, color: MyColors.coral),
+        title: Text(getMapDescription(MapDescriptor.arcanum, currentLocale,
+            appendMenuPrePostfixes: true)),
+        onTap: () {
+          loadMapArcanum();
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        title: Text(getMapDescription(MapDescriptor.bodenkarte, currentLocale,
+            appendMenuPrePostfixes: true)),
+        onTap: () {
+          loadMapBodenkarte();
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        title: Text(getMapDescription(
+            MapDescriptor.bodenkarteNutzbareFeldkapazitaet, currentLocale,
+            appendMenuPrePostfixes: true)),
+        onTap: () {
+          loadMapBodenkarteNutzbareFeldkapazitaet();
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        title: Text(getMapDescription(
+            MapDescriptor.bodenkarteHumusBilanz, currentLocale,
+            appendMenuPrePostfixes: true)),
+        onTap: () {
+          loadMapBodenkarteHumusBilanz();
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        title: Text(getMapDescription(
+            MapDescriptor.geonodeLebensraumVernetzung, currentLocale,
+            appendMenuPrePostfixes: true)),
+        onTap: () {
+          loadMapGeonodeLebensraumverletzung();
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        title: Text(getMapDescription(MapDescriptor.ecosystem, currentLocale,
+            appendMenuPrePostfixes: true)),
+        onTap: () {
+          loadMapEcosystemAccounts();
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        title: Text(getMapDescription(MapDescriptor.geoland, currentLocale,
+            appendMenuPrePostfixes: true)),
+        onTap: () {
+          loadMapGeoland();
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        title: Text(getMapDescription(
+            MapDescriptor.noeNaturschutz, currentLocale,
+            appendMenuPrePostfixes: true)),
+        onTap: () {
+          loadMapNoeNaturschutz();
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        title: Text(getMapDescription(
+            MapDescriptor.eeaProtectedAreas, currentLocale,
+            appendMenuPrePostfixes: true)),
+        onTap: () {
+          loadMapEEAEuropa();
+        },
+      )
+    ];
+  }
+
+  DrawerHeader _buildMainMenuDrawerHeader() {
+    return DrawerHeader(
+      decoration: const BoxDecoration(
+        color: MyColors.blue,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler",
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 30),
+          _buildGeoStatusText(),
+        ],
+      ),
+    );
+  }
+
+  Column _buildBottomPartForMainMenuDrawer() {
+    return Column(
+      children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+          _buildLanguageToggleButton(),
+          _buildGeoRefreshButton(),
+          _buildDarkmodeToggleButton(),
+        ]),
+        const SizedBox(height: 30),
+        Image.asset(
+          'data/lsw_logo.png',
+          fit: BoxFit.contain,
+        ),
+        const SizedBox(height: 30)
+      ],
+    );
+  }
+
+  Future<bool> _onBackButtonPressed() async {
+    if (!_showNameForm) {
+      // If _showNameForm is false, toggle it to true and rebuild the widget
+      setState(() {
+        _showNameForm = true;
+      });
+      // Cancel the back button action (Do not minimize the app)
+      return false;
+    } else {
+      // If _showNameForm is true, execute the default back button action
+      return true;
     }
   }
 

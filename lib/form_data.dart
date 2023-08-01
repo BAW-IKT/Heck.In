@@ -72,7 +72,8 @@ Map<String, Color> getRadarGroupColors() {
   };
 }
 
-String getMapDescription(MapDescriptor descriptor, String currentLocale) {
+String getMapDescription(MapDescriptor descriptor, String currentLocale,
+    {appendMenuPrePostfixes = false}) {
   String readableDescription = "";
   switch (descriptor) {
     case MapDescriptor.NULL:
@@ -104,6 +105,13 @@ String getMapDescription(MapDescriptor descriptor, String currentLocale) {
     case MapDescriptor.eeaProtectedAreas:
       readableDescription = currentLocale == "EN" ? "EEA Protected Areas Map" : "EEA Schutzgebiete Karte";
       break;
+  }
+  if (appendMenuPrePostfixes) {
+    if (currentLocale == "EN") {
+      readableDescription = "View $readableDescription";
+    } else {
+      readableDescription = "$readableDescription Öffnen";
+    }
   }
   return readableDescription;
 }
