@@ -821,8 +821,7 @@ class NameFormState extends State<NameForm> {
                     : MyColors.orange),
             label: Text(sections[imgIndex]["label$currentLocale"])));
       } else {
-        navigationRailDestinations
-            .add(_buildNavigationRailDestination(section));
+        navigationRailDestinations.add(_buildNavigationRailDestination(section));
       }
     }
 
@@ -968,61 +967,85 @@ class NameFormState extends State<NameForm> {
   }
 
   Widget _buildImagePage(FormSection section) {
+
+
     return Column(
       children: [
         createHeader(originalToLocale[section.toString()]!),
         const Divider(),
-        Row(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _buildImageGrid(),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(
-              width: 90,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: MyColors.green,
-                        width: 2.0,
-                      ),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.photo_library),
-                      onPressed: () => _addImage(ImageSource.gallery),
-                    ),
-                  ),
-                  Text(currentLocale == "EN" ? "Gallery" : "Gallerie"),
-                  const SizedBox(height: 20),
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: MyColors.green,
-                        width: 2.0,
-                      ),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.add_a_photo),
-                      onPressed: () => _addImage(ImageSource.camera),
-                    ),
-                  ),
-                  Text(currentLocale == "EN" ? "Add Foto" : "Neues Foto"),
-                ],
-              ),
-            ),
-          ],
-        )
+        paddedWidget(_buildSingleTextInputForAnmerkungInImageSection()),
+        const Divider(),
+        paddedWidget(_buildImageGridAndButtonBarForImageSection()),
       ],
+    );
+  }
+
+  TextFormField _buildSingleTextInputForAnmerkungInImageSection() {
+    String anmerkungenLabel = "anmerkungen_kommentare";
+    int anmerkungenIdx = inputFieldLabelToIndex[anmerkungenLabel]!;
+    var anmerkungenField = inputFields[anmerkungenIdx];
+    return TextFormField(
+      controller: anmerkungenField["controller"],
+      decoration: InputDecoration(
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: anmerkungenField["borderColor"],
+          ),
+        ),
+        labelText: anmerkungenField["label$currentLocale"],
+      ),
+      keyboardType: TextInputType.text,
+      onChanged: (value) {
+        onStaticWidgetChanged(anmerkungenLabel, value);
+      },
+    );
+  }
+
+  Row _buildImageGridAndButtonBarForImageSection() {
+    return Row(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildImageGrid(),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 90,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildDecoratedImageIconButton(
+                  Icons.photo_library, () => _addImage(ImageSource.gallery)),
+              Text(currentLocale == "EN" ? "Gallery" : "Gallerie"),
+              const SizedBox(height: 20),
+              _buildDecoratedImageIconButton(
+                  Icons.add_a_photo, () => _addImage(ImageSource.camera)),
+              Text(currentLocale == "EN" ? "Add Foto" : "Neues Foto"),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Container _buildDecoratedImageIconButton(
+      IconData iconData, VoidCallback onPressed) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: MyColors.green,
+          width: 2.0,
+        ),
+      ),
+      child: IconButton(
+        icon: Icon(iconData),
+        onPressed: onPressed,
+      ),
     );
   }
 

@@ -170,9 +170,11 @@ Widget _createTextInput(
   );
 }
 
-Padding _paddedWidget(Widget widget) {
+Padding paddedWidget(Widget widget,
+    {double horizontalPadding = 4.0, double verticalPadding = 4.0}) {
   return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+      padding: EdgeInsets.symmetric(
+          horizontal: horizontalPadding, vertical: verticalPadding),
       child: widget);
 }
 
@@ -537,7 +539,7 @@ class StepperWidgetState extends State<StepperWidget> {
       Column column = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _paddedWidget(Text(field["description${widget.currentLocale}"])),
+          paddedWidget(Text(field["description${widget.currentLocale}"])),
           const SizedBox(height: 10),
           DynamicDropdowns(
             key: widget.dropdownKeys[index],
