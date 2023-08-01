@@ -57,12 +57,14 @@ class NameFormState extends State<NameForm> {
   bool _triggeredByMenu = false;
   final ValueNotifier<bool> _isNavigationRailVisible =
       ValueNotifier<bool>(true);
-  Map<String, ValueNotifier<bool>> sectionNotifiers = {
-    "general": ValueNotifier<bool>(false),
-    "physical": ValueNotifier<bool>(false),
-    "environmental": ValueNotifier<bool>(false),
-    "biodiversity": ValueNotifier<bool>(false),
-  };
+  Map<FormSection, ValueNotifier<bool>> sectionNotifiers = {};
+
+  // Map<FormSection, ValueNotifier<bool>> sectionNotifiers = {
+  //   "general": ValueNotifier<bool>(false),
+  //   "physical": ValueNotifier<bool>(false),
+  //   "environmental": ValueNotifier<bool>(false),
+  //   "biodiversity": ValueNotifier<bool>(false),
+  // };
 
   final Map<String, String> _radarDataToGroup = getRadarDataGroups();
   final Map<String, Color> _radarGroupColors = getRadarGroupColors();
@@ -84,7 +86,14 @@ class NameFormState extends State<NameForm> {
   @override
   void initState() {
     super.initState();
+    populateSectionNotifiers();
     initializeForm();
+  }
+
+  void populateSectionNotifiers() {
+    for (FormSection section in FormSection.values) {
+      sectionNotifiers.putIfAbsent(section, () => ValueNotifier<bool>(false));
+    }
   }
 
   Future<void> initializeForm() async {
@@ -127,7 +136,7 @@ class NameFormState extends State<NameForm> {
     await _prePopulateDynamicInputFields();
 
     // update sectionNotifiers
-    for (String section in sectionNotifiers.keys) {
+    for (FormSection section in sectionNotifiers.keys) {
       _setSectionNotifiers(section);
     }
   }
@@ -238,29 +247,15 @@ class NameFormState extends State<NameForm> {
     }
 
     // validate all widgets of that section are checked
-    String widgetGroup = inputFields[widgetIndex]["section"];
+    FormSection widgetGroup = inputFields[widgetIndex]["section"];
     _setSectionNotifiers(widgetGroup);
-    // bool allFilledOut = true;
-    // for (var inputField in inputFields) {
-    //   if (inputField["section"] == widgetGroup &&
-    //       (!inputField.containsKey("selectedValue") ||
-    //           inputField["selectedValue"] == null ||
-    //           inputField["selectedValue"] == "")) {
-    //     allFilledOut = false;
-    //   }
-    // }
-    // if (allFilledOut) {
-    //   sectionNotifiers[widgetGroup]?.value = true;
-    // } else {
-    //   sectionNotifiers[widgetGroup]?.value = false;
-    // }
 
     print("$widgetLabel $originalValue");
   }
 
   /// validates all widgets of a section are checked
   /// and sets sectionNotifier accordingly
-  void _setSectionNotifiers(String section) {
+  void _setSectionNotifiers(FormSection section) {
     bool allFilledOut = true;
     for (var inputField in inputFields) {
       if (inputField["section"] == section &&
@@ -294,7 +289,7 @@ class NameFormState extends State<NameForm> {
         return ConfirmationDialog(
           message: 'Are you sure you want to clear the form data?',
           onConfirm: () {
-            for (String section in sectionNotifiers.keys) {
+            for (FormSection section in sectionNotifiers.keys) {
               sectionNotifiers[section]?.value = false;
             }
             Navigator.of(context).pop(true);
@@ -710,7 +705,7 @@ class NameFormState extends State<NameForm> {
       context: context,
       builder: (BuildContext context) {
         return ToolTipDialog(
-          header: "Info: ${getLocalLabel(field)}",
+          header: getLocalLabel(field),
           message: getLocalDescription(field),
           navigateToMapButtonText: navigateToButtonText,
           onNavigateToMap: () {
@@ -764,7 +759,8 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  NavigationRailDestination _buildNavigationRailDestination(String section,
+  NavigationRailDestination _buildNavigationRailDestination(
+      FormSection section,
       {Color colorDone = MyColors.green,
       Color colorIncomplete = MyColors.orange}) {
     ValueListenable<bool> listener =
@@ -805,9 +801,28 @@ class NameFormState extends State<NameForm> {
   Widget _buildSideBar() {
     int imgIndex = 0;
     for (int i = 0; i < sections.length; i++) {
-      if (sections[i]["label"] == "images") {
+      if (sections[i]["label"] == FormSection.images) {
         imgIndex = i;
         break;
+      }
+    }
+
+    List<NavigationRailDestination> navigationRailDestinations = [];
+    for (FormSection section in FormSection.values) {
+      if (section == FormSection.images) {
+        navigationRailDestinations.add(NavigationRailDestination(
+            icon: Icon(sections[imgIndex]["icon"],
+                color: _selectedImages.isNotEmpty
+                    ? MyColors.green
+                    : MyColors.orange),
+            selectedIcon: Icon(sections[imgIndex]["iconActive"],
+                color: _selectedImages.isNotEmpty
+                    ? MyColors.green
+                    : MyColors.orange),
+            label: Text(sections[imgIndex]["label$currentLocale"])));
+      } else {
+        navigationRailDestinations
+            .add(_buildNavigationRailDestination(section));
       }
     }
 
@@ -829,22 +844,7 @@ class NameFormState extends State<NameForm> {
                   });
                 },
                 labelType: NavigationRailLabelType.selected,
-                destinations: [
-                  _buildNavigationRailDestination("general"),
-                  _buildNavigationRailDestination("physical"),
-                  _buildNavigationRailDestination("environmental"),
-                  _buildNavigationRailDestination("biodiversity"),
-                  NavigationRailDestination(
-                      icon: Icon(sections[imgIndex]["icon"],
-                          color: _selectedImages.isNotEmpty
-                              ? MyColors.green
-                              : MyColors.orange),
-                      selectedIcon: Icon(sections[imgIndex]["iconActive"],
-                          color: _selectedImages.isNotEmpty
-                              ? MyColors.green
-                              : MyColors.orange),
-                      label: Text(sections[imgIndex]["label$currentLocale"])),
-                ],
+                destinations: navigationRailDestinations,
                 trailing: Column(children: [
                   const SizedBox(height: 50),
                   IconButton(
@@ -880,6 +880,24 @@ class NameFormState extends State<NameForm> {
     final dynamicColumns =
         determineRequiredColumnsDynamicDropdowns(mediaQueryData);
 
+    int indexedStackCounter = 0;
+    List<SizedBox> indexedStackChildren = [];
+    for (FormSection section in FormSection.values) {
+      Widget thisChild;
+      if (section == FormSection.images) {
+        thisChild = _buildImagePage(section);
+      } else {
+        thisChild = _buildMenuPage(section, columns, dynamicColumns);
+      }
+      indexedStackChildren.add(
+        SizedBox(
+          height: _selectedIndex == indexedStackCounter ? null : 1,
+          child: thisChild,
+        )
+      );
+      indexedStackCounter++;
+    }
+
     return Scaffold(
       body: Material(
         child: Form(
@@ -894,32 +912,8 @@ class NameFormState extends State<NameForm> {
                     children: [
                       IndexedStack(
                         index: _selectedIndex,
-                        children: [
-                          SizedBox(
-                            height: _selectedIndex == 0 ? null : 1,
-                            child: _buildMenuPage(
-                                "general", columns, dynamicColumns),
-                          ),
-                          SizedBox(
-                            height: _selectedIndex == 1 ? null : 1,
-                            child: _buildMenuPage(
-                                "physical", columns, dynamicColumns),
-                          ),
-                          SizedBox(
-                            height: _selectedIndex == 2 ? null : 1,
-                            child: _buildMenuPage(
-                                "environmental", columns, dynamicColumns),
-                          ),
-                          SizedBox(
-                            height: _selectedIndex == 3 ? null : 1,
-                            child: _buildMenuPage(
-                                "biodiversity", columns, dynamicColumns),
-                          ),
-                          SizedBox(
-                            height: _selectedIndex == 4 ? null : 1,
-                            child: _buildImagePage("images"),
-                          ),
-                        ],
+                        // children: indexedStackChildren,
+                        children: indexedStackChildren
                       ),
                     ],
                   ),
@@ -952,12 +946,12 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  Widget _buildMenuPage(String section, var columns, var dynamicColumns) {
+  Widget _buildMenuPage(FormSection section, var columns, var dynamicColumns) {
     int sectionIdx =
         sections.indexWhere((element) => element["label"] == section);
     return Column(
       children: [
-        createHeader(originalToLocale[section]!),
+        createHeader(originalToLocale[section.toString()]!),
         const Divider(),
         buildSteppers(
             inputFields,
@@ -969,24 +963,14 @@ class NameFormState extends State<NameForm> {
             onStaticWidgetChanged,
             onDynamicDropdownsChanged,
             buildAndHandleToolTip),
-        // buildFormFieldGrid(inputFields, section, currentLocale,
-        //     onWidgetChanged: onStaticWidgetChanged, columns: columns),
-        // buildDynamicFormFieldGrid(
-        //   children: dynamicFields,
-        //   section: section,
-        //   dropdownKeys: _dropdownsKeys,
-        //   onDropdownChanged: onDynamicDropdownsChanged,
-        //   currentLocale: currentLocale,
-        //   columns: dynamicColumns,
-        // ),
       ],
     );
   }
 
-  Widget _buildImagePage(String section) {
+  Widget _buildImagePage(FormSection section) {
     return Column(
       children: [
-        createHeader(originalToLocale[section]!),
+        createHeader(originalToLocale[section.toString()]!),
         const Divider(),
         Row(
           children: [
@@ -1001,9 +985,6 @@ class NameFormState extends State<NameForm> {
             ),
             SizedBox(
               width: 90,
-              // // Adjust the width according to your sidebar requirements
-              // color: Colors.grey,
-              // Set the desired background color for the sidebar
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [

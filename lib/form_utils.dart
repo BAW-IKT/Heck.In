@@ -4,6 +4,7 @@ import 'package:hedge_profiler_flutter/snackbar.dart';
 import 'dynamic_dropdowns.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'form_data.dart';
 
 void doNothing() {}
 
@@ -101,7 +102,7 @@ Widget buildSteppers(
     List<Map<String, dynamic>> dynamicFields,
     List<GlobalKey<DynamicDropdownsState>> dropdownKeys,
     GlobalKey<StepperWidgetState> stepperKey,
-    String sectionToBuild,
+    FormSection sectionToBuild,
     String currentLocale,
     Function(String, String) onStaticWidgetChanged,
     Function(String, String) onDynamicWidgetChanged,
@@ -383,7 +384,7 @@ class LocaleMap {
     }
 
     for (Map<String, dynamic> sec in sections) {
-      map[sec["label$locale"]] = sec["label"];
+      map[sec["label$locale"]] = sec["label"].toString();
     }
 
     return map;
@@ -417,7 +418,7 @@ class LocaleMap {
       }
     }
     for (Map<String, dynamic> sec in sections) {
-      map[sec["label"]] = sec["label$locale"];
+      map[sec["label"].toString()] = sec["label$locale"];
     }
 
     return map;
@@ -428,7 +429,7 @@ class StepperWidget extends StatefulWidget {
   final List<Map<String, dynamic>> inputFields;
   final List<Map<String, dynamic>> dynamicFields;
   final List<GlobalKey<DynamicDropdownsState>> dropdownKeys;
-  final String sectionToBuild;
+  final FormSection sectionToBuild;
   final String currentLocale;
   final Function(String, String) onStaticWidgetChanged;
   final Function(String, String) onDynamicWidgetChanged;
@@ -848,23 +849,3 @@ class StepperWidgetState extends State<StepperWidget> {
   }
 }
 
-enum MapDescriptor {
-  NULL,
-  arcanum,
-  bodenkarte,
-  bodenkarteNutzbareFeldkapazitaet,
-  bodenkarteHumusBilanz,
-  geonodeLebensraumVernetzung,
-  ecosystem,
-  geoland,
-  noeNaturschutz,
-  eeaProtectedAreas
-}
-
-// TODO: refactor
-enum InputType {
-  text,
-  number,
-  dropdown,
-  list
-}
