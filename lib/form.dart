@@ -8,13 +8,14 @@ import 'package:permission_handler/permission_handler.dart';
 import 'colors.dart';
 import 'dynamic_dropdowns.dart';
 import 'form_data.dart';
-import 'dart:io';
 import 'form_utils.dart';
+import 'form_calc.dart';
+import 'form_stepper.dart';
+import 'dart:io';
 import 'main.dart' show WebViewPageState;
 import 'utils_db.dart' as db;
 import 'snackbar.dart';
 import 'radar_chart.dart';
-import 'form_calc.dart';
 
 class NameForm extends StatefulWidget {
   final GlobalKey<NameFormState> formKey;
@@ -76,6 +77,8 @@ class NameFormState extends State<NameForm> {
   Map<String, String> localeToOriginal = {};
   Map<String, String> originalToLocale = {};
 
+  Map<String, InputType> labelToInputType = {};
+
   // top menu stuff
   String selectedMenuItem = "";
   List<String> menuItems = [];
@@ -125,10 +128,17 @@ class NameFormState extends State<NameForm> {
     menuItems =
         sections.map((s) => s["label$currentLocale"].toString()).toList();
 
+    _popupateLabelToInputTypeMap();
     _populateInputs();
     _checkPermissions();
     _getLostImageData();
     _loadPersistedImages();
+  }
+
+  void _popupateLabelToInputTypeMap() {
+    for (var field in inputFields) {
+      labelToInputType.putIfAbsent(field["label"], () => field["type"]);
+    }
   }
 
   /// wrapper to populate input fields (static and dynamic) and
@@ -152,14 +162,24 @@ class NameFormState extends State<NameForm> {
         currentLocale == "" ? prefs.getString("locale") : currentLocale;
 
     for (var field in inputFields) {
-      String? storedValue = prefs.getString(field["label"]) ?? "";
-      if (field["type"] == InputType.text || field["type"] == InputType.number) {
-        field["controller"].text = storedValue;
-        field["selectedValue"] = storedValue;
-      } else if (field["type"] == InputType.dropdown) {
-        int valueIndex = field["values"].indexOf(storedValue);
-        String localValue = field["values$locale"][valueIndex];
-        field["selectedValue"] = localValue;
+      InputType inputType = field["type"];
+      if (inputType == InputType.text
+          || inputType == InputType.number
+          || inputType == InputType.dropdown) {
+        String? storedValue = prefs.getString(field["label"]) ?? "";
+        if (inputType == InputType.text || inputType == InputType.number) {
+          field["controller"].text = storedValue;
+          field["selectedValue"] = storedValue;
+        } else {
+          // dropdowns need the localized string as value
+          int valueIndex = field["values"].indexOf(storedValue);
+          String localValue = field["values$locale"][valueIndex];
+          field["selectedValue"] = localValue;
+        }
+      } else {
+        // lists dont have strings in StoredPreferences, but a list of strings
+        List<String>? storedValues = prefs.getStringList(field["label"]) ?? [];
+        field["selectedValues"] = storedValues;
       }
     }
   }
@@ -233,26 +253,40 @@ class NameFormState extends State<NameForm> {
   }
 
   /// action triggered by static widgets onChanged events
-  void onStaticWidgetChanged(String widgetLabel, String widgetValue) async {
+  void onWidgetChanged(String widgetLabel, String widgetValue,
+      {removeValue = false}) async {
+
+    InputType inputType = labelToInputType[widgetLabel]!;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
     // refresh inputFields for graph etc.
     int widgetIndex = inputFieldLabelToIndex[widgetLabel]!;
-    String? originalValue = localeToOriginal[widgetValue];
-    inputFields[widgetIndex]["selectedValue"] = widgetValue;
+    // String? originalValue = localeToOriginal[widgetValue];
 
-    // write to shared preferences
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    if (originalValue == null) {
-      // in case of number widget
-      prefs.setString(widgetLabel, widgetValue);
+    if (inputType == InputType.dropdown || inputType == InputType.text) {
+      widgetValue = localeToOriginal[widgetValue]!;
+    }
+
+    if (inputType == InputType.list) {
+      if (removeValue) {
+        inputFields[widgetIndex]["selectedValues"].remove(widgetValue);
+      } else {
+        if (!inputFields[widgetIndex].containsKey("selectedValues")) {
+          inputFields[widgetIndex]["selectedValues"] = [];
+        }
+        inputFields[widgetIndex]["selectedValues"].add(widgetValue);
+      }
+      prefs.setStringList(widgetLabel, inputFields[widgetIndex]["selectedValues"]);
     } else {
-      prefs.setString(widgetLabel, originalValue);
+      inputFields[widgetIndex]["selectedValue"] = widgetValue;
+      prefs.setString(widgetLabel, widgetValue);
     }
 
     // validate all widgets of that section are checked
     FormSection widgetGroup = inputFields[widgetIndex]["section"];
     _setSectionNotifiers(widgetGroup);
 
-    print("$widgetLabel $originalValue");
+    print("$widgetLabel $widgetValue");
   }
 
   /// validates all widgets of a section are checked
@@ -260,11 +294,15 @@ class NameFormState extends State<NameForm> {
   void _setSectionNotifiers(FormSection section) {
     bool allFilledOut = true;
     for (var inputField in inputFields) {
-      if (inputField["section"] == section &&
-          (!inputField.containsKey("selectedValue") ||
-              inputField["selectedValue"] == null ||
-              inputField["selectedValue"] == "")) {
-        allFilledOut = false;
+      if (inputField["section"] == section) {
+        if (inputField["type"] == InputType.list &&
+            (!inputField.containsKey("selectedValues") || inputField["selectedValues"].length == 0)) {
+          allFilledOut = false;
+        } else {
+          if (!inputField.containsKey("selectedValue") || inputField["selectedValue"] == null || inputField["selectedValue"] == "") {
+            allFilledOut = false;
+          }
+        }
       }
     }
     for (var dynamicField in dynamicFields) {
@@ -537,7 +575,6 @@ class NameFormState extends State<NameForm> {
         if (inputField["type"] == InputType.dropdown &&
             inputField.containsKey("valueMap") &&
             inputField["valueMap"].containsKey(group)) {
-          // if (inputField["selectedValue"] == "") {
           String? selVal = prefs.getString(inputField["label"]);
           if (selVal == "" || selVal == null) {
             _radarChartDataFull[group][inputField["label"]] = 0;
@@ -683,18 +720,6 @@ class NameFormState extends State<NameForm> {
           },
         ),
       ],
-    );
-  }
-
-  IconButton _buildGoToMapDebugButton() {
-    return IconButton(
-      icon: const Icon(
-        Icons.map_outlined,
-      ),
-      onPressed: () {
-        widget.webViewPageState.loadMapFromDescriptor(MapDescriptor.geoland);
-        // Navigator.of(context).pop(false);
-      },
     );
   }
 
@@ -957,7 +982,7 @@ class NameFormState extends State<NameForm> {
             _stepperKeys[sectionIdx],
             section,
             currentLocale,
-            onStaticWidgetChanged,
+            onWidgetChanged,
             onDynamicDropdownsChanged,
             buildAndHandleToolTip),
       ],
@@ -965,8 +990,6 @@ class NameFormState extends State<NameForm> {
   }
 
   Widget _buildImagePage(FormSection section) {
-
-
     return Column(
       children: [
         createHeader(originalToLocale[section.toString()]!),
@@ -994,7 +1017,7 @@ class NameFormState extends State<NameForm> {
       ),
       keyboardType: TextInputType.text,
       onChanged: (value) {
-        onStaticWidgetChanged(anmerkungenLabel, value);
+        onWidgetChanged(anmerkungenLabel, value);
       },
     );
   }

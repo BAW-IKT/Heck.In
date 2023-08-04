@@ -72,8 +72,7 @@ Map<String, Color> getRadarGroupColors() {
   };
 }
 
-String getMapDescription(MapDescriptor descriptor, String currentLocale,
-    {appendMenuPrePostfixes = false}) {
+String getMapDescription(MapDescriptor descriptor, String currentLocale) {
   String readableDescription = "";
   switch (descriptor) {
     case MapDescriptor.NULL:
@@ -106,14 +105,16 @@ String getMapDescription(MapDescriptor descriptor, String currentLocale,
       readableDescription = currentLocale == "EN" ? "EEA Protected Areas Map" : "EEA Schutzgebiete Karte";
       break;
   }
-  if (appendMenuPrePostfixes) {
-    if (currentLocale == "EN") {
-      readableDescription = "View $readableDescription";
-    } else {
-      readableDescription = "$readableDescription Öffnen";
-    }
-  }
   return readableDescription;
+}
+
+String getMapDescriptionForMenu(MapDescriptor descriptor, String currentLocale) {
+  String description = getMapDescription(descriptor, currentLocale);
+  if (currentLocale == "EN") {
+    return "View $description";
+  } else {
+    return "$description Öffnen";
+  }
 }
 
 Map<String, String> getRadarDataGroups() {
@@ -854,6 +855,22 @@ List<Map<String, dynamic>> createFormFields() {
         'Nahrungsquelle': [null, 1, 2, 3, 4, 5],
         'Kulturerbe': [null, 5, 4, 3, 2, 1]
       },
+    },
+    {
+      "type": InputType.list,
+      "label": "testwidget",
+      "labelEN": "Test Widget",
+      "labelDE": "Test Widget GER",
+      "descriptionEN": """This is a test!!""",
+      "descriptionDE": """Das ist ein test!!!""",
+      "action": null,
+      "section": FormSection.map_soil,
+      "subSectionEN": "TestSubSection",
+      "subSectionDE": "TestSubSektion",
+      "borderColor": MyColors.red,
+      "values": const ["siedlung_strasse", "gruenland_ext", "gruenland_int", "acker", "unbefestigter_weg", "brache"],
+      "valuesEN": const ["settlement/road", "grassland ext", "grassland int", "arable land", "unpaved road", "fallow land"],
+      "valuesDE": const ["Siedlung/Straße", "Grünland ext.", "Grünland int.", "Acker", "unbefestigter Weg", "Brache"],
     },
   ];
 }

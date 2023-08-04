@@ -63,7 +63,6 @@ class WebViewPageState extends State<WebViewPage> {
   bool _showNameForm = true;
   GlobalKey<NameFormState> _nameFormKey = GlobalKey<NameFormState>();
 
-  String _currentUrlSynonym = '';
   MapDescriptor _currentMapDescriptor = MapDescriptor.NULL;
   String _geoLastChange = 'never updated';
   String _geoLastKnown = 'no location available';
@@ -275,77 +274,72 @@ class WebViewPageState extends State<WebViewPage> {
     return [
       ListTile(
         leading: const Icon(Icons.map_outlined, color: MyColors.coral),
-        title: Text(getMapDescription(MapDescriptor.arcanum, currentLocale,
-            appendMenuPrePostfixes: true)),
+        title: Text(
+            getMapDescriptionForMenu(MapDescriptor.arcanum, currentLocale)),
         onTap: () {
           loadMapArcanum();
         },
       ),
       ListTile(
         leading: const Icon(Icons.map_outlined, color: MyColors.teal),
-        title: Text(getMapDescription(MapDescriptor.bodenkarte, currentLocale,
-            appendMenuPrePostfixes: true)),
+        title: Text(
+            getMapDescriptionForMenu(MapDescriptor.bodenkarte, currentLocale)),
         onTap: () {
           loadMapBodenkarte();
         },
       ),
       ListTile(
         leading: const Icon(Icons.map_outlined, color: MyColors.teal),
-        title: Text(getMapDescription(
-            MapDescriptor.bodenkarteNutzbareFeldkapazitaet, currentLocale,
-            appendMenuPrePostfixes: true)),
+        title: Text(getMapDescriptionForMenu(
+            MapDescriptor.bodenkarteNutzbareFeldkapazitaet, currentLocale)),
         onTap: () {
           loadMapBodenkarteNutzbareFeldkapazitaet();
         },
       ),
       ListTile(
         leading: const Icon(Icons.map_outlined, color: MyColors.teal),
-        title: Text(getMapDescription(
-            MapDescriptor.bodenkarteHumusBilanz, currentLocale,
-            appendMenuPrePostfixes: true)),
+        title: Text(getMapDescriptionForMenu(
+            MapDescriptor.bodenkarteHumusBilanz, currentLocale)),
         onTap: () {
           loadMapBodenkarteHumusBilanz();
         },
       ),
       ListTile(
         leading: const Icon(Icons.map_outlined, color: MyColors.teal),
-        title: Text(getMapDescription(
-            MapDescriptor.geonodeLebensraumVernetzung, currentLocale,
-            appendMenuPrePostfixes: true)),
+        title: Text(getMapDescriptionForMenu(
+            MapDescriptor.geonodeLebensraumVernetzung, currentLocale)),
         onTap: () {
           loadMapGeonodeLebensraumverletzung();
         },
       ),
       ListTile(
         leading: const Icon(Icons.map_outlined, color: MyColors.teal),
-        title: Text(getMapDescription(MapDescriptor.ecosystem, currentLocale,
-            appendMenuPrePostfixes: true)),
+        title: Text(
+            getMapDescriptionForMenu(MapDescriptor.ecosystem, currentLocale)),
         onTap: () {
           loadMapEcosystemAccounts();
         },
       ),
       ListTile(
         leading: const Icon(Icons.map_outlined, color: MyColors.teal),
-        title: Text(getMapDescription(MapDescriptor.geoland, currentLocale,
-            appendMenuPrePostfixes: true)),
+        title: Text(
+            getMapDescriptionForMenu(MapDescriptor.geoland, currentLocale)),
         onTap: () {
           loadMapGeoland();
         },
       ),
       ListTile(
         leading: const Icon(Icons.map_outlined, color: MyColors.teal),
-        title: Text(getMapDescription(
-            MapDescriptor.noeNaturschutz, currentLocale,
-            appendMenuPrePostfixes: true)),
+        title: Text(getMapDescriptionForMenu(
+            MapDescriptor.noeNaturschutz, currentLocale)),
         onTap: () {
           loadMapNoeNaturschutz();
         },
       ),
       ListTile(
         leading: const Icon(Icons.map_outlined, color: MyColors.teal),
-        title: Text(getMapDescription(
-            MapDescriptor.eeaProtectedAreas, currentLocale,
-            appendMenuPrePostfixes: true)),
+        title: Text(getMapDescriptionForMenu(
+            MapDescriptor.eeaProtectedAreas, currentLocale)),
         onTap: () {
           loadMapEEAEuropa();
         },
