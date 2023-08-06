@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hedge_profiler_flutter/colors.dart';
+import 'package:hedge_profiler_flutter/input_dropdown.dart';
 import 'dynamic_dropdowns.dart';
 import 'form_data.dart';
 import 'form_utils.dart';
@@ -348,60 +349,18 @@ class StepperWidgetState extends State<StepperWidget> {
   }
 
   Widget _createDropdownInput(var field, {Color? borderColor}) {
-    String locale = widget.currentLocale;
-    var dropdownItems =
-        field['values$locale'].map<DropdownMenuItem<String>>((value) {
-      // shorten long text
-      String textShort = value;
-      if (value.length > 30) {
-        textShort = value.substring(0, 27) + "...";
-      }
-      return DropdownMenuItem<String>(
-        value: value,
-        child: Text(
-          textShort,
-          style: const TextStyle(
-            fontSize: 13,
-          ),
-        ),
-      );
-    }).toList();
+    DropdownInput dropdownInput = DropdownInput(
+        field: field,
+        onValueChange: (label, value) {
+          widget.onWidgetChanged(label, value);
+          setState(() {
 
-    String dropdownValue;
-    if (!field["values${widget.currentLocale}"]
-        .contains(field["selectedValue"])) {
-      String otherLanguage = locale == "EN" ? "DE" : "EN";
-      int dropdownValueIndex =
-          field["values$otherLanguage"].indexOf(field["selectedValue"]);
-      dropdownValue =
-          field["values${widget.currentLocale}"][dropdownValueIndex];
-    } else {
-      dropdownValue = field["selectedValue"];
-    }
+          });
+        },
+        currentLocale: widget.currentLocale,
+        borderColor: borderColor);
 
-    DropdownButtonFormField dropdownButtonFormField = DropdownButtonFormField(
-              value: dropdownValue,
-              decoration: InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderSide: borderColor != null
-                      ? BorderSide(color: borderColor)
-                      : const BorderSide(),
-                ),
-                labelText: field['label$locale'],
-                labelStyle: TextStyle(
-                  fontSize: field['label$locale'].length > 24 ? 14 : 16,
-                ),
-              ),
-              items: dropdownItems,
-              onChanged: (value) {
-                widget.onWidgetChanged(field["label"], value.toString());
-                setState(() {
-                  dropdownSelectedIndex[field["label"]] = value;
-                });
-              },
-            );
-
-    return _addPaddingAndToolTipToInputField(dropdownButtonFormField, field);
+    return _addPaddingAndToolTipToInputField(dropdownInput, field);
   }
 
   Widget _createNumberInput(var field, {Color? borderColor}) {

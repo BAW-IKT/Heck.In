@@ -263,8 +263,10 @@ class NameFormState extends State<NameForm> {
     int widgetIndex = inputFieldLabelToIndex[widgetLabel]!;
     // String? originalValue = localeToOriginal[widgetValue];
 
-    if (inputType == InputType.dropdown || inputType == InputType.text) {
-      widgetValue = localeToOriginal[widgetValue]!;
+    if (inputType == InputType.dropdown) {
+      if (widgetValue.isNotEmpty) {
+        widgetValue = localeToOriginal[widgetValue]!;
+      }
     }
 
     if (inputType == InputType.list) {
@@ -292,6 +294,7 @@ class NameFormState extends State<NameForm> {
   /// validates all widgets of a section are checked
   /// and sets sectionNotifier accordingly
   void _setSectionNotifiers(FormSection section) {
+    // TODO: refactor this and _checkIfAllFieldsAreFilled in form_stepper.dart into a single function, reduce complexity
     bool allFilledOut = true;
     for (var inputField in inputFields) {
       if (inputField["section"] == section) {

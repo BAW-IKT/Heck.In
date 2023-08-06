@@ -857,6 +857,7 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
+      // TODO: remove entity, change dynamicdropdown entities to list, remove dynamicdropdown code
       "type": InputType.list,
       "label": "testwidget",
       "labelEN": "Test Widget",
