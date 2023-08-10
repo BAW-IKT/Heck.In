@@ -1,29 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:hedge_profiler_flutter/colors.dart';
 import 'package:hedge_profiler_flutter/input_dropdown.dart';
-import 'dynamic_dropdowns.dart';
 import 'form_data.dart';
 import 'form_utils.dart';
 
 Widget buildSteppers(
     List<Map<String, dynamic>> inputFields,
-    List<Map<String, dynamic>> dynamicFields,
-    List<GlobalKey<DynamicDropdownsState>> dropdownKeys,
     GlobalKey<StepperWidgetState> stepperKey,
     FormSection sectionToBuild,
     String currentLocale,
     Function(String, String, {bool removeValue}) onWidgetChanged,
-    Function(String, String) onDynamicWidgetChanged,
     Function(String) buildAndHandleToolTip) {
   return Center(
     child: StepperWidget(
       inputFields: inputFields,
-      dynamicFields: dynamicFields,
-      dropdownKeys: dropdownKeys,
       sectionToBuild: sectionToBuild,
       currentLocale: currentLocale,
       onWidgetChanged: onWidgetChanged,
-      onDynamicWidgetChanged: onDynamicWidgetChanged,
       buildAndHandleToolTip: buildAndHandleToolTip,
     ),
   );
@@ -31,23 +24,17 @@ Widget buildSteppers(
 
 class StepperWidget extends StatefulWidget {
   final List<Map<String, dynamic>> inputFields;
-  final List<Map<String, dynamic>> dynamicFields;
-  final List<GlobalKey<DynamicDropdownsState>> dropdownKeys;
   final FormSection sectionToBuild;
   final String currentLocale;
   final Function(String, String, {bool removeValue}) onWidgetChanged;
-  final Function(String, String) onDynamicWidgetChanged;
   final Function(String) buildAndHandleToolTip;
 
   const StepperWidget({
     Key? key,
     required this.inputFields,
-    required this.dynamicFields,
-    required this.dropdownKeys,
     required this.sectionToBuild,
     required this.currentLocale,
     required this.onWidgetChanged,
-    required this.onDynamicWidgetChanged,
     required this.buildAndHandleToolTip,
   }) : super(key: key);
 
@@ -57,8 +44,7 @@ class StepperWidget extends StatefulWidget {
 
 class StepperWidgetState extends State<StepperWidget> {
   int _index = 0;
-  Map<String, dynamic> dropdownSelectedIndex = {};
-  List<GlobalKey> _scrollKeys = []; // Add this line
+  List<GlobalKey> _scrollKeys = [];
   final ScrollController _scrollController = ScrollController();
 
   List<Step> steps = [];
@@ -74,9 +60,7 @@ class StepperWidgetState extends State<StepperWidget> {
   void initState() {
     super.initState();
     // Initialize _scrollKeys with a GlobalKey for each step
-    _scrollKeys = List.generate(
-        widget.inputFields.length + widget.dynamicFields.length,
-        (_) => GlobalKey());
+    _scrollKeys = List.generate(widget.inputFields.length, (_) => GlobalKey());
   }
 
   void resetStepsAndSections() {
@@ -100,55 +84,6 @@ class StepperWidgetState extends State<StepperWidget> {
 
       // add widget to defined subSection map if defined (if not, create own group based on label)
       _mapWidgetToSubSections(field, thisInput);
-    }
-
-    // Build steps from dynamicFields
-    for (var field in widget.dynamicFields) {
-      if (field["section"] != widget.sectionToBuild) {
-        continue;
-      }
-      int index = widget.dynamicFields.indexOf(field);
-
-      // build column with descriptive text
-      Column column = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          paddedWidget(Text(field["description${widget.currentLocale}"])),
-          const SizedBox(height: 10),
-          DynamicDropdowns(
-            key: widget.dropdownKeys[index],
-            values: field["values${widget.currentLocale}"],
-            headerText: field["headerText${widget.currentLocale}"],
-            originalHeader: field["headerText"],
-            borderColor: field["borderColor"],
-            onChanged: widget.onDynamicWidgetChanged,
-            originalValues: field["values"],
-            minDropdownCount: field["minDropdownCount"] ?? 0,
-            maxDropdownCount: field["maxDropdownCount"] ?? 6,
-            setStateParent: setStepperWidgetState,
-          ),
-          const SizedBox(height: 16),
-        ],
-      );
-
-      // add widget to defined subSection map if defined (if not, create own group based on label)
-      if (!field.containsKey("subSection${widget.currentLocale}")) {
-        String fieldLabel = field["headerText${widget.currentLocale}"];
-        subSections[fieldLabel] = [column];
-        subSectionToOriginales[fieldLabel] = [field["headerText"]];
-      } else {
-        String subSection = field["subSection${widget.currentLocale}"];
-        if (!subSections.containsKey(subSection)) {
-          subSections[subSection] = [column];
-        } else {
-          subSections[subSection].add(column);
-        }
-        if (!subSectionToOriginales.containsKey(subSection)) {
-          subSectionToOriginales[subSection] = [field["headerText"]];
-        } else {
-          subSectionToOriginales[subSection]?.add(field["headerText"]);
-        }
-      }
     }
 
     // build steps
@@ -323,25 +258,17 @@ class StepperWidgetState extends State<StepperWidget> {
       for (var inputField in widget.inputFields) {
         if (inputField["label"] == originalLabel) {
           if (inputField["type"] == InputType.list) {
-            if (!inputField.containsKey("selectedValues") || inputField["selectedValues"].length == 0) {
+            if (!inputField.containsKey("selectedValues") ||
+                inputField["selectedValues"].length == 0) {
               return false;
             }
           } else {
-            if (!inputField.containsKey("selectedValue") || inputField["selectedValue"] == null || inputField["selectedValue"] == "") {
+            if (!inputField.containsKey("selectedValue") ||
+                inputField["selectedValue"] == null ||
+                inputField["selectedValue"] == "") {
               return false;
             }
           }
-        }
-      }
-
-      for (var dynamicField in widget.dynamicFields) {
-        if (dynamicField["headerText"] == originalLabel &&
-            (!dynamicField.containsKey("selectedValues") ||
-                dynamicField["selectedValues"].length == 0 ||
-                dynamicField["selectedValues"]
-                    .values
-                    .any((value) => value == ""))) {
-          return false;
         }
       }
     }

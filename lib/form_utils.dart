@@ -5,18 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 void doNothing() {}
 
-int determineRequiredColumnsDynamicDropdowns(var mediaQueryData) {
-  final screenWidth = mediaQueryData.size.width;
-  int columns = 1;
-  if (screenWidth > 960) {
-    columns = 3;
-  } else if (screenWidth > 720) {
-    columns = 2;
-  }
-  return columns;
-}
-
-int determineRequiredColumns(var mediaQueryData) {
+int determineRequiredColumnsFromScreenWidth(var mediaQueryData) {
   final screenWidth = mediaQueryData.size.width;
   int columns = 1;
   if (screenWidth > 960) {
@@ -150,15 +139,12 @@ class ToolTipDialog extends StatelessWidget {
 
 class LocaleMap {
   List<Map<String, dynamic>> formFields = [];
-  List<Map<String, dynamic>> dynamicFormFields = [];
   List<Map<String, dynamic>> sections = [];
 
   void initialize(
       List<Map<String, dynamic>> formFields,
-      List<Map<String, dynamic>> dynamicFormFields,
       List<Map<String, dynamic>> sections) {
     this.formFields = formFields;
-    this.dynamicFormFields = dynamicFormFields;
     this.sections = sections;
   }
 
@@ -178,15 +164,6 @@ class LocaleMap {
           }
           map[field["values$locale"][i]] = field["values"][i];
         }
-      }
-    }
-    for (Map<String, dynamic> dynField in dynamicFormFields) {
-      map[dynField["headerText$locale"]] = dynField["headerText"];
-      for (int i = 0; i < dynField["values"].length; i++) {
-        if (dynField["values"][i] == "") {
-          continue;
-        }
-        map[dynField["values$locale"][i]] = dynField["values"][i];
       }
     }
 
@@ -215,15 +192,7 @@ class LocaleMap {
         }
       }
     }
-    for (Map<String, dynamic> dynField in dynamicFormFields) {
-      map[dynField["headerText"]] = dynField["headerText$locale"];
-      for (int i = 0; i < dynField["values"].length; i++) {
-        if (dynField["values"][i] == "") {
-          continue;
-        }
-        map[dynField["values"][i]] = dynField["values$locale"][i];
-      }
-    }
+
     for (Map<String, dynamic> sec in sections) {
       map[sec["label"].toString()] = sec["label$locale"];
     }

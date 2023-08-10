@@ -857,58 +857,20 @@ List<Map<String, dynamic>> createFormFields() {
       },
     },
     {
-      // TODO: remove entity, change dynamicdropdown entities to list, remove dynamicdropdown code
       "type": InputType.list,
-      "label": "testwidget",
-      "labelEN": "Test Widget",
-      "labelDE": "Test Widget GER",
-      "descriptionEN": """This is a test!!""",
-      "descriptionDE": """Das ist ein test!!!""",
+      "label": "nachbar_flaechen",
+      "labelEN": "Neighboring areas",
+      "labelDE": "Nachbarflächen",
+      "descriptionEN": """Select the type of neighboring areas""",
+      "descriptionDE": """Wählen Sie die Art der Nachbarflächen aus""",
       "action": null,
-      "section": FormSection.map_soil,
-      "subSectionEN": "TestSubSection",
-      "subSectionDE": "TestSubSektion",
-      "borderColor": MyColors.red,
-      "values": const ["siedlung_strasse", "gruenland_ext", "gruenland_int", "acker", "unbefestigter_weg", "brache"],
-      "valuesEN": const ["settlement/road", "grassland ext", "grassland int", "arable land", "unpaved road", "fallow land"],
-      "valuesDE": const ["Siedlung/Straße", "Grünland ext.", "Grünland int.", "Acker", "unbefestigter Weg", "Brache"],
-    },
-  ];
-}
-
-List<String> getSectionsFromLocale(String locale) {
-  return getSections()
-      .map((section) => section["label$locale"].toString())
-      .toList();
-}
-
-/// this section defines the data for dynamic dropdown fields
-/// labels must be unique across all static & dynamic widgets!
-/// optional fields for definition of widgets:
-///    - minDropdownCount [int]: lower threshold of dropdowns created with -
-///    - maxDropdownCount [int]: upper threshold of dropdowns created with +
-/// example usage to create widgets:
-///    buildDynamicFormFieldGrid(
-///      children: dynamicFields,
-///      section: 'general',
-///      dropdownKeys: _dropdownsKeys,
-///      onDropdownChanged: onDynamicDropdownsChanged,
-///      columns: dynamicColumns,
-///    ),
-List<Map<String, dynamic>> createDynamicFormFields() {
-  return [
-    // gelaende fields
-    {
-      'headerText': 'nachbar_flaechen',
-      "headerTextEN": "Neighboring areas",
-      "headerTextDE": "Nachbarflächen",
-      'descriptionEN': 'Select the type of neighboring areas',
-      'descriptionDE': 'Wählen Sie die Art der Nachbarflächen aus',
-      'borderColor': MyColors.coral,
-      'values': const ['', 'siedlung_strasse', 'gruenland_ext', 'gruenland_int', 'acker', 'unbefestigter_weg', 'brache'],
-      'valuesEN': const ['', 'settlement/road', 'grassland ext', 'grassland int', 'arable land', 'unpaved road', 'fallow land'],
-      'valuesDE': const ['', 'Siedlung/Straße', 'Grünland ext.', 'Grünland int.', 'Acker', 'unbefestigter Weg', 'Brache'],
-      'section': FormSection.location,
+      "section": FormSection.location,
+      "subSectionEN": "Neighboring Areas",
+      "subSectionDE": "Nachbarflächen",
+      "borderColor": MyColors.coral,
+      "values": const ['siedlung_strasse', 'gruenland_ext', 'gruenland_int', 'acker', 'unbefestigter_weg', 'brache'],
+      "valuesEN": const ['settlement/road', 'grassland ext', 'grassland int', 'arable land', 'unpaved road', 'fallow land'],
+      "valuesDE": const ['Siedlung/Straße', 'Grünland ext.', 'Grünland int.', 'Acker', 'unbefestigter Weg', 'Brache'],
       'valueMap': {
         'Ertragssteigerung': [null, 0, 1, 1, 1, 0, 0],
         'Nähr- & Schadstoffkreisläufe': [null, 4, 1, 2, 5, 1, 1],
@@ -917,76 +879,81 @@ List<Map<String, dynamic>> createDynamicFormFields() {
       },
     },
     {
-      'headerText': 'nutzungs_spuren',
-      "headerTextEN": "Traces of use",
-      "headerTextDE": "Nutzungsspuren",
-      'descriptionEN': 'Indicate any visible traces of use',
-      'descriptionDE': 'Geben Sie sichtbare Nutzungsspuren an',
-      'borderColor': MyColors.coral,
-      'values': const ['', 'keine_ersichtlich', 'bienen_stoecke', 'obst', 'gelagerte_holzstapel', 'andere_nutzung', 'brache'],
-      'valuesEN': const ['', 'none apparent', 'bee hives', 'fruit', 'stored wood piles', 'other use', 'fallow'],
-      'valuesDE': const ['', 'keine ersichtlich', 'Bienenstöcke', 'Obst', 'gelagerte Holzstapel', 'andere Nutzung', 'Brache'],
-      'section': FormSection.usage,
+      "type": InputType.list,
+      "label": "nutzungs_spuren",
+      "labelEN": "Traces of use",
+      "labelDE": "Nutzungsspuren",
+      "descriptionEN": """Indicate any visible traces of use""",
+      "descriptionDE": """Geben Sie sichtbare Nutzungsspuren an""",
+      "action": null,
+      "section": FormSection.usage,
       "subSectionEN": "Position and Characteristics",
       "subSectionDE": "Position und Eigenschaften",
+      "borderColor": MyColors.coral,
+      "values": const ['keine_ersichtlich', 'bienen_stoecke', 'obst', 'gelagerte_holzstapel', 'andere_nutzung', 'brache'],
+      "valuesEN": const ['none apparent', 'bee hives', 'fruit', 'stored wood piles', 'other use', 'fallow'],
+      "valuesDE": const ['keine ersichtlich', 'Bienenstöcke', 'Obst', 'gelagerte Holzstapel', 'andere Nutzung', 'Brache'],
       'valueMap': {
         'Rohstoffe': [null, 0, 1, 1, 1, 1],
         'Bestäubung': [null, 0, 1, 0, 0, 0],
       },
-      'maxDropdownCount': 4,
     },
     {
-      'headerText': 'zusatz_strukturen',
-      "headerTextEN": "Additional structures",
-      "headerTextDE": "Zusatzstrukturen",
-      'descriptionEN': 'Choose any additional structures present',
-      'descriptionDE': 'Wählen Sie zusätzliche Strukturen aus',
-      'borderColor': MyColors.coral,
-      'values': const ['', 'jagd_zb_hochstand', 'erholung_zb_bank', 'bildung_zb_schautafel', 'kulturdenkmal', 'nichts'],
-      'valuesEN': const ['', 'hunting, e.g. high stand', 'recreation, e.g. bench', 'education, e.g. display board', 'cultural monument', 'nothing'],
-      'valuesDE': const ['', 'Jagd, z.B. Hochstand', 'Erholung, z.B. Bank', 'Bildung, z.B. Schautafel', 'Kulturdenkmal', 'nichts'],
-      'section': FormSection.usage,
+      "type": InputType.list,
+      "label": "zusatz_strukturen",
+      "labelEN": "Additional structures",
+      "labelDE": "Zusatzstrukturen",
+      "descriptionEN": """Choose any additional structures present""",
+      "descriptionDE": """Wählen Sie zusätzliche Strukturen aus""",
+      "action": null,
+      "section": FormSection.usage,
       "subSectionEN": "Position and Characteristics",
       "subSectionDE": "Position und Eigenschaften",
+      "borderColor": MyColors.coral,
+      "values": const ['jagd_zb_hochstand', 'erholung_zb_bank', 'bildung_zb_schautafel', 'kulturdenkmal', 'nichts'],
+      "valuesEN": const ['hunting, e.g. high stand', 'recreation, e.g. bench', 'education, e.g. display board', 'cultural monument', 'nothing'],
+      "valuesDE": const ['Jagd, z.B. Hochstand', 'Erholung, z.B. Bank', 'Bildung, z.B. Schautafel', 'Kulturdenkmal', 'nichts'],
       'valueMap': {
         'Rohstoffe': [null, 1, 0, 0, 0, 0],
         'Erholung & Tourismus': [null, 0.5, 1, 1, 0.5, 0],
         'Kulturerbe': [null, 0, 0, 0, 1, 0],
       },
-      'maxDropdownCount': 4,
     },
     {
-      'headerText': 'management',
-      "headerTextEN": "Management",
-      "headerTextDE": "Management",
-      'descriptionEN': 'Select the type of land management activities',
-      'descriptionDE': 'Wählen Sie die Art der Bewirtschaftung aus',
-      'borderColor': MyColors.coral,
-      'values': const ['', 'nichts_sichtbar', 'baum_strauch_nachgepflanzt', 'seitenschnitt_sichtbar', 'auf_stock_gesetzt', 'einzelbaum_strauch_rueckschnitte', 'einzelstamm_entnahme'],
-      'valuesEN': const ['', 'nothing visible', 'tree/shrub replanted', 'side cut visible', 'stocked', 'single tree/shrub pruning', 'single trunk removal'],
-      'valuesDE': const ['', 'nichts sichtbar', 'Baum/Strauch nachgepflanzt', 'Seitenschnitt sichtbar', 'auf Stock gesetzt', 'Einzelbaum/-strauch Rückschnitte', 'Einzelstamm Entnahme'],
-      'section': FormSection.usage,
+      "type": InputType.list,
+      "label": "management",
+      "labelEN": "Management",
+      "labelDE": "Management",
+      "descriptionEN": """Select the type of land management activities""",
+      "descriptionDE": """Wählen Sie die Art der Bewirtschaftung aus""",
+      "action": null,
+      "section": FormSection.usage,
       "subSectionEN": "Management and Connectivity",
       "subSectionDE": "Management und Vernetzung",
+      "borderColor": MyColors.coral,
+      "values": const ['nichts_sichtbar', 'baum_strauch_nachgepflanzt', 'seitenschnitt_sichtbar', 'auf_stock_gesetzt', 'einzelbaum_strauch_rueckschnitte', 'einzelstamm_entnahme'],
+      "valuesEN": const ['nothing visible', 'tree/shrub replanted', 'side cut visible', 'stocked', 'single tree/shrub pruning', 'single trunk removal'],
+      "valuesDE": const ['nichts sichtbar', 'Baum/Strauch nachgepflanzt', 'Seitenschnitt sichtbar', 'auf Stock gesetzt', 'Einzelbaum/-strauch Rückschnitte', 'Einzelstamm Entnahme'],
       'valueMap': {
         'Rohstoffe': [null, 0, 0, -1, 2, 0, 1],
         'Bestäubung': [null, 1, 0, -1, 1, 1, 0],
       },
-      'maxDropdownCount': 5,
     },
     {
-      'headerText': 'sonder_form',
-      "headerTextEN": "Special form",
-      "headerTextDE": "Sonderform",
-      'descriptionEN': 'Specify if there are any special forms of vegetation',
-      'descriptionDE': 'Geben Sie an, ob es besondere Vegetationsformen gibt',
-      'borderColor': MyColors.coral,
-      'values': const ['', 'keine_sonderform', 'lesesteinhecke', 'hecke_auf_hochrain', 'boeschungs_hecke', 'grabenhecke'],
-      'valuesEN': const ['', 'no special shape', 'reading stone hedge', 'hedge on high ground', 'slope hedge', 'ditch hedge'],
-      'valuesDE': const ['', 'keine Sonderform', 'Lesesteinhecke', 'Hecke auf Hochrain', 'Böschungshecke', 'Grabenhecke'],
-      'section': FormSection.structure,
+      "type": InputType.list,
+      "label": "sonder_form",
+      "labelEN": "Special form",
+      "labelDE": "Sonderform",
+      "descriptionEN": """Specify if there are any special forms of vegetation""",
+      "descriptionDE": """Geben Sie an, ob es besondere Vegetationsformen gibt""",
+      "action": null,
+      "section": FormSection.structure,
       "subSectionEN": "Position and Characteristics",
       "subSectionDE": "Position und Eigenschaften",
+      "borderColor": MyColors.coral,
+      "values": const ['keine_sonderform', 'lesesteinhecke', 'hecke_auf_hochrain', 'boeschungs_hecke', 'grabenhecke'],
+      "valuesEN": const ['no special shape', 'reading stone hedge', 'hedge on high ground', 'slope hedge', 'ditch hedge'],
+      "valuesDE": const ['keine Sonderform', 'Lesesteinhecke', 'Hecke auf Hochrain', 'Böschungshecke', 'Grabenhecke'],
       'valueMap': {
         'Nähr- & Schadstoffkreisläufe': [null, 0, 1, 1, 0, 0],
         'Bestäubung': [null, 0, 1, 1, 1, 1],
@@ -994,9 +961,14 @@ List<Map<String, dynamic>> createDynamicFormFields() {
         'Fortpflanzungs- & Ruhestätte': [null, 0, 1, 1, 1, 1],
         'Kulturerbe': [null, 0, 1, 1, 1, 1],
       },
-      'maxDropdownCount': 4,
     },
   ];
+}
+
+List<String> getSectionsFromLocale(String locale) {
+  return getSections()
+      .map((section) => section["label$locale"].toString())
+      .toList();
 }
 
 enum MapDescriptor {

@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'colors.dart';
-import 'dynamic_dropdowns.dart';
 import 'form_data.dart';
 import 'form_utils.dart';
 import 'form_calc.dart';
@@ -40,10 +39,7 @@ class NameFormState extends State<NameForm> {
   final ValueNotifier<bool> _isSaving = ValueNotifier<bool>(false);
   List<Map<String, dynamic>> inputFields = [];
   Map<String, int> inputFieldLabelToIndex = {};
-  List<Map<String, dynamic>> dynamicFields = [];
-  Map<String, int> dynamicFieldLabelToIndex = {};
   List<Map<String, dynamic>> sections = getSections();
-  List<GlobalKey<DynamicDropdownsState>> _dropdownsKeys = [];
   List<GlobalKey<StepperWidgetState>> _stepperKeys = [];
 
   FormCalc calc = FormCalc();
@@ -109,18 +105,9 @@ class NameFormState extends State<NameForm> {
       inputFieldLabelToIndex[inputFields[i]["label"]] = i;
     }
 
-    dynamicFields = createDynamicFormFields();
-
-    for (var i = 0; i < dynamicFields.length; i++) {
-      dynamicFieldLabelToIndex[dynamicFields[i]["headerText"]] = i;
-    }
-
-    localeMap.initialize(inputFields, dynamicFields, sections);
+    localeMap.initialize(inputFields, sections);
     localeToOriginal = localeMap.getLocaleToOriginal(currentLocale);
     originalToLocale = localeMap.getOriginalToLocale(currentLocale);
-
-    _dropdownsKeys = List.generate(
-        dynamicFields.length, (_) => GlobalKey<DynamicDropdownsState>());
 
     _stepperKeys =
         List.generate(sections.length, (_) => GlobalKey<StepperWidgetState>());
@@ -128,24 +115,22 @@ class NameFormState extends State<NameForm> {
     menuItems =
         sections.map((s) => s["label$currentLocale"].toString()).toList();
 
-    _popupateLabelToInputTypeMap();
+    _populateLabelToInputTypeMap();
     _populateInputs();
     _checkPermissions();
     _getLostImageData();
     _loadPersistedImages();
   }
 
-  void _popupateLabelToInputTypeMap() {
+  void _populateLabelToInputTypeMap() {
     for (var field in inputFields) {
       labelToInputType.putIfAbsent(field["label"], () => field["type"]);
     }
   }
 
-  /// wrapper to populate input fields (static and dynamic) and
-  /// to refresh section notifiers
+  /// wrapper to populate input fields and to refresh section notifiers
   void _populateInputs() async {
     await _populateStaticInputFields();
-    await _prePopulateDynamicInputFields();
 
     // update sectionNotifiers
     for (FormSection section in sectionNotifiers.keys) {
@@ -154,8 +139,6 @@ class NameFormState extends State<NameForm> {
   }
 
   /// populate input fields on page init;
-  /// dynamic fields are populated in DynamicDropdowns class
-  /// from SharedPreferences
   Future<void> _populateStaticInputFields() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? locale =
@@ -182,74 +165,6 @@ class NameFormState extends State<NameForm> {
         field["selectedValues"] = storedValues;
       }
     }
-  }
-
-  /// pre-populates the selectedValues of dynamic dropdowns for making sure
-  /// they are available on app reload for stepper verifications
-  Future<void> _prePopulateDynamicInputFields() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    for (var dynamicField in dynamicFields) {
-      // if already populated, do nothing
-      if (dynamicField.containsKey("selectedValues")) {
-        continue;
-      }
-
-      String header = dynamicField["headerText"];
-
-      // get matching keys from shared preferences
-      List<String> matchingKeys =
-          prefs.getKeys().where((key) => key.startsWith("${header}_")).toList();
-      if (matchingKeys.isNotEmpty) {
-        dynamicField["selectedValues"] = {};
-
-        for (String key in matchingKeys) {
-          String val = prefs.get(key).toString();
-
-          // split at last "_"
-          int lastUnderscoreIndex = key.lastIndexOf("_");
-          // String keyClean = key.substring(0, lastUnderscoreIndex);
-          String keyIndex = key.substring(lastUnderscoreIndex + 1);
-
-          // add to map
-          dynamicField["selectedValues"][keyIndex] = val;
-        }
-      }
-    }
-  }
-
-  /// action triggered by DynamicDropdowns onChanged events (select + remove)
-  void onDynamicDropdownsChanged(
-      String dropdownKey, String dropdownValue) async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    String cleanDropdownKey = dropdownKey.split("_")[0];
-    String dropdownPostfix = dropdownKey.split("_")[1];
-    String? originalDropdownKey = localeToOriginal[cleanDropdownKey];
-    String concatKeyForStorage = "$originalDropdownKey" "_$dropdownPostfix";
-
-    int? dynamicIndex = dynamicFieldLabelToIndex[originalDropdownKey];
-    if (!dynamicFields[dynamicIndex!].containsKey("selectedValues")) {
-      dynamicFields[dynamicIndex]["selectedValues"] = {};
-    }
-
-    // in case dropdown gets removed, remove key/val from preferences
-    if (dropdownValue == "") {
-      if (sharedPreferences.get(originalDropdownKey!) != null) {
-        sharedPreferences.remove(originalDropdownKey);
-      }
-      dynamicFields[dynamicIndex]["selectedValues"][dropdownPostfix] = "";
-    } else if (dropdownValue == "ADD") {
-      dynamicFields[dynamicIndex]["selectedValues"][dropdownPostfix] = "";
-    } else if (dropdownValue == "REMOVE") {
-      dynamicFields[dynamicIndex]["selectedValues"].remove(dropdownPostfix);
-    } else {
-      // otherwise, add/update preferences with dropdown values
-      dynamicFields[dynamicIndex]["selectedValues"][dropdownPostfix] =
-          dropdownValue;
-      String? originalValue = localeToOriginal[dropdownValue];
-      sharedPreferences.setString(concatKeyForStorage, originalValue!);
-    }
-
-    _setSectionNotifiers(dynamicFields[dynamicIndex]["section"]);
   }
 
   /// action triggered by static widgets onChanged events
@@ -308,17 +223,7 @@ class NameFormState extends State<NameForm> {
         }
       }
     }
-    for (var dynamicField in dynamicFields) {
-      if (dynamicField["section"] == section &&
-          (!dynamicField.containsKey("selectedValues") ||
-              dynamicField["selectedValues"].length == 0 ||
-              dynamicField["selectedValues"]
-                  .values
-                  .any((value) => value == ""))) {
-        allFilledOut = false;
-      }
-    }
-    // print(allFilledOut);
+
     allFilledOut
         ? sectionNotifiers[section]?.value = true
         : sectionNotifiers[section]?.value = false;
@@ -351,11 +256,6 @@ class NameFormState extends State<NameForm> {
       prefs.setString("geo_longitude", lon.toString());
       prefs.setString("geo_last_change", geoLastChange.toString());
       _populateInputs();
-
-      // trigger rebuild of dynamic dropdowns
-      for (GlobalKey<DynamicDropdownsState> dropdownKey in _dropdownsKeys) {
-        dropdownKey.currentState?.rebuild();
-      }
     }
   }
 
@@ -592,38 +492,39 @@ class NameFormState extends State<NameForm> {
     }
 
     // iterate over dynamic fields, collect values via shared prefs
-    for (var dynamicField in dynamicFields) {
-      for (String group in _radarChartDataFull.keys) {
-        if (dynamicField.containsKey("valueMap") &&
-            dynamicField["valueMap"].containsKey(group)) {
-          int maxDropdownCount = 6;
-          if (dynamicField.containsKey("maxDropdownCount")) {
-            maxDropdownCount = dynamicField["maxDropdownCount"];
-          }
-
-          // iterate over nested dropdowns
-          // double scoreSum = 0;
-          List<double> nestedScores = [];
-          for (int i = 1; i <= maxDropdownCount; i++) {
-            // get stored value from shared prefs, if existent
-            String? selectedValue =
-                prefs.getString(dynamicField["headerText"] + "_$i");
-            int dropdownValueIndex =
-                dynamicField["values"].indexOf(selectedValue ?? '');
-            double? dropdownScore =
-                dynamicField["valueMap"][group][dropdownValueIndex]?.toDouble();
-            if (dropdownScore != null) {
-              nestedScores.add(dropdownScore);
-              // sum up values
-              // scoreSum += dropdownScore;
-            }
-          }
-
-          // write to map
-          _radarChartDataFull[group][dynamicField["headerText"]] = nestedScores;
-        }
-      }
-    }
+    // TODO: this data is now missing, include like above for InputType.list
+    // for (var dynamicField in dynamicFields) {
+    //   for (String group in _radarChartDataFull.keys) {
+    //     if (dynamicField.containsKey("valueMap") &&
+    //         dynamicField["valueMap"].containsKey(group)) {
+    //       int maxDropdownCount = 6;
+    //       if (dynamicField.containsKey("maxDropdownCount")) {
+    //         maxDropdownCount = dynamicField["maxDropdownCount"];
+    //       }
+    //
+    //       // iterate over nested dropdowns
+    //       // double scoreSum = 0;
+    //       List<double> nestedScores = [];
+    //       for (int i = 1; i <= maxDropdownCount; i++) {
+    //         // get stored value from shared prefs, if existent
+    //         String? selectedValue =
+    //             prefs.getString(dynamicField["headerText"] + "_$i");
+    //         int dropdownValueIndex =
+    //             dynamicField["values"].indexOf(selectedValue ?? '');
+    //         double? dropdownScore =
+    //             dynamicField["valueMap"][group][dropdownValueIndex]?.toDouble();
+    //         if (dropdownScore != null) {
+    //           nestedScores.add(dropdownScore);
+    //           // sum up values
+    //           // scoreSum += dropdownScore;
+    //         }
+    //       }
+    //
+    //       // write to map
+    //       _radarChartDataFull[group][dynamicField["headerText"]] = nestedScores;
+    //     }
+    //   }
+    // }
 
     // write to _radarChartDataListsReduced, based on the name of the lists, calculate mean or sum
     for (var fullData in _radarChartDataFull.entries) {
@@ -663,7 +564,7 @@ class NameFormState extends State<NameForm> {
   Future<String> refreshCurrentLocale() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? locale = prefs.getString("locale");
-    localeMap.initialize(inputFields, dynamicFields, sections);
+    localeMap.initialize(inputFields, sections);
     localeToOriginal = localeMap.getLocaleToOriginal(currentLocale);
     originalToLocale = localeMap.getOriginalToLocale(currentLocale);
     return locale ?? "EN";
@@ -808,8 +709,7 @@ class NameFormState extends State<NameForm> {
       }
     }
 
-    String railLabel =
-        sections[sectionIdx]["label$currentLocale"].split(" ")[0];
+    String railLabel = sections[sectionIdx]["label$currentLocale"].split(" ")[0];
     return NavigationRailDestination(
       icon: ValueListenableBuilder<bool>(
         valueListenable: listener,
@@ -899,11 +799,8 @@ class NameFormState extends State<NameForm> {
   }
 
   Widget _buildFormPage() {
-    // Determine amount of columns based on screen width and orientation
     final mediaQueryData = MediaQuery.of(context);
-    final columns = determineRequiredColumns(mediaQueryData);
-    final dynamicColumns =
-        determineRequiredColumnsDynamicDropdowns(mediaQueryData);
+    final columns = determineRequiredColumnsFromScreenWidth(mediaQueryData);
 
     int indexedStackCounter = 0;
     List<SizedBox> indexedStackChildren = [];
@@ -912,7 +809,7 @@ class NameFormState extends State<NameForm> {
       if (section == FormSection.images) {
         thisChild = _buildImagePage(section);
       } else {
-        thisChild = _buildMenuPage(section, columns, dynamicColumns);
+        thisChild = _buildMenuPage(section, columns);
       }
       indexedStackChildren.add(
         SizedBox(
@@ -971,7 +868,7 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  Widget _buildMenuPage(FormSection section, var columns, var dynamicColumns) {
+  Widget _buildMenuPage(FormSection section, var columns) {
     int sectionIdx =
         sections.indexWhere((element) => element["label"] == section);
     return Column(
@@ -980,13 +877,10 @@ class NameFormState extends State<NameForm> {
         const Divider(),
         buildSteppers(
             inputFields,
-            dynamicFields,
-            _dropdownsKeys,
             _stepperKeys[sectionIdx],
             section,
             currentLocale,
             onWidgetChanged,
-            onDynamicDropdownsChanged,
             buildAndHandleToolTip),
       ],
     );
