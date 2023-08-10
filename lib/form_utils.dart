@@ -22,7 +22,6 @@ int determineRequiredColumnsFromScreenWidth(var mediaQueryData) {
 
 Padding paddedWidget(Widget widget,
     {double horizontalPadding = 4.0, double verticalPadding = 4.0}) {
-  // TODO: refactor all Padding( calls
   return Padding(
       padding: EdgeInsets.symmetric(
           horizontal: horizontalPadding, vertical: verticalPadding),

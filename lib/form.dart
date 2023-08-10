@@ -473,93 +473,96 @@ class NameFormState extends State<NameForm> {
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // iterate over static fields, get values for each group based on _radarDataToGroup
+    updateRadarDataFull(prefs);
+    updateRadarDataReduced();
+
+    // perform calculations, update _radarChartData
+    _radarChartData = calc.performCalculations(_radarChartDataListsReduced);
+  }
+
+  void updateRadarDataFull(SharedPreferences prefs) {
     for (var inputField in inputFields) {
       for (String group in _radarChartDataFull.keys) {
-        if (inputField["type"] == InputType.dropdown &&
-            inputField.containsKey("valueMap") &&
+        if (isDropdownInputType(inputField) &&
             inputField["valueMap"].containsKey(group)) {
-          String? selVal = prefs.getString(inputField["label"]);
-          if (selVal == "" || selVal == null) {
-            _radarChartDataFull[group][inputField["label"]] = 0;
-          } else {
-            int dropdownValueIndex = inputField["values"].indexOf(selVal);
-            var dropdownScore =
-                inputField["valueMap"][group][dropdownValueIndex];
-            _radarChartDataFull[group][inputField["label"]] = dropdownScore;
-          }
+          processDropdownInputType(inputField, group, prefs);
+        } else if (isListInputType(inputField) &&
+            inputField["valueMap"].containsKey(group)) {
+          processListInputType(inputField, group);
         }
       }
     }
+  }
 
-    // iterate over dynamic fields, collect values via shared prefs
-    // TODO: this data is now missing, include like above for InputType.list
-    // for (var dynamicField in dynamicFields) {
-    //   for (String group in _radarChartDataFull.keys) {
-    //     if (dynamicField.containsKey("valueMap") &&
-    //         dynamicField["valueMap"].containsKey(group)) {
-    //       int maxDropdownCount = 6;
-    //       if (dynamicField.containsKey("maxDropdownCount")) {
-    //         maxDropdownCount = dynamicField["maxDropdownCount"];
-    //       }
-    //
-    //       // iterate over nested dropdowns
-    //       // double scoreSum = 0;
-    //       List<double> nestedScores = [];
-    //       for (int i = 1; i <= maxDropdownCount; i++) {
-    //         // get stored value from shared prefs, if existent
-    //         String? selectedValue =
-    //             prefs.getString(dynamicField["headerText"] + "_$i");
-    //         int dropdownValueIndex =
-    //             dynamicField["values"].indexOf(selectedValue ?? '');
-    //         double? dropdownScore =
-    //             dynamicField["valueMap"][group][dropdownValueIndex]?.toDouble();
-    //         if (dropdownScore != null) {
-    //           nestedScores.add(dropdownScore);
-    //           // sum up values
-    //           // scoreSum += dropdownScore;
-    //         }
-    //       }
-    //
-    //       // write to map
-    //       _radarChartDataFull[group][dynamicField["headerText"]] = nestedScores;
-    //     }
-    //   }
-    // }
-
-    // write to _radarChartDataListsReduced, based on the name of the lists, calculate mean or sum
+  void updateRadarDataReduced() {
     for (var fullData in _radarChartDataFull.entries) {
       String group = fullData.key;
       if (!_radarChartDataListsReduced.containsKey(group)) {
         _radarChartDataListsReduced[group] = {};
       }
       for (var score in fullData.value.entries) {
-        String scoreKey = score.key;
-        var scoreValue = score.value;
-        if (scoreValue is List) {
-          // calculate sum of list values
-          double scoreSum = 0;
-          for (double singleScore in scoreValue) {
-            scoreSum = scoreSum + singleScore;
-          }
+        processScoreEntry(group, score);
+      }
+    }
+  }
 
-          // in case of nachbar_flaechen, calculate mean of list values
-          if (scoreKey == "nachbar_flaechen") {
-            scoreSum = scoreSum / scoreValue.length;
-            if (scoreSum.isNaN) {
-              scoreSum = 0;
-            }
-          }
-          _radarChartDataListsReduced[group][scoreKey] = scoreSum;
-        } else {
-          // append without modification
-          _radarChartDataListsReduced[group][scoreKey] = scoreValue;
-        }
+  bool isDropdownInputType(Map inputField) {
+    return inputField["type"] == InputType.dropdown &&
+        inputField.containsKey("valueMap");
+  }
+
+  bool isListInputType(Map inputField) {
+    return inputField["type"] == InputType.list &&
+        inputField.containsKey("valueMap");
+  }
+
+  void processDropdownInputType(
+      Map inputField, String group, SharedPreferences prefs) {
+    String? selVal = prefs.getString(inputField["label"]);
+    if (selVal == "" || selVal == null) {
+      _radarChartDataFull[group][inputField["label"]] = 0;
+    } else {
+      int dropdownValueIndex = inputField["values"].indexOf(selVal);
+      var dropdownScore = inputField["valueMap"][group][dropdownValueIndex];
+      _radarChartDataFull[group][inputField["label"]] = dropdownScore;
+    }
+  }
+
+  void processListInputType(Map inputField, String group) {
+    List<double> nestedScores = [];
+    int valueIdx = 0;
+    for (String value in inputField["values"]) {
+      if (inputField["selectedValues"].contains(value)) {
+        double thisScore =
+            inputField["valueMap"][group][valueIdx + 1].toDouble();
+        nestedScores.add(thisScore);
+      }
+      valueIdx++;
+    }
+    _radarChartDataFull[group][inputField["label"]] = nestedScores;
+  }
+
+  void processScoreEntry(String group, MapEntry score) {
+    String scoreKey = score.key;
+    var scoreValue = score.value;
+    if (scoreValue is List) {
+      processListScoreEntry(group, scoreKey, scoreValue);
+    } else {
+      _radarChartDataListsReduced[group][scoreKey] = scoreValue;
+    }
+  }
+
+  void processListScoreEntry(String group, String scoreKey, List scoreValue) {
+    double scoreSum = scoreValue.fold(0, (prev, curr) => prev + curr);
+
+    if (scoreKey == "nachbar_flaechen") {
+      scoreSum /= scoreValue.length;
+      if (scoreSum.isNaN) {
+        scoreSum = 0;
       }
     }
 
-    // perform calculations, update _radarChartData
-    _radarChartData = calc.performCalculations(_radarChartDataListsReduced);
+    _radarChartDataListsReduced[group][scoreKey] = scoreSum;
   }
 
   Future<String> refreshCurrentLocale() async {
