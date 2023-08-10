@@ -23,25 +23,24 @@ class _DropdownInputState extends State<DropdownInput> {
   @override
   void initState() {
     super.initState();
-    dropdownValue = _initialDropdownValue();
+    dropdownValue = _getLocalizedInitialDropdownValue();
   }
 
-  String _initialDropdownValue() {
-    if (!widget.field["values${widget.currentLocale}"]
-        .contains(widget.field["selectedValue"])) {
-      String otherLanguage = widget.currentLocale == "EN" ? "DE" : "EN";
-      int dropdownValueIndex = widget.field["values$otherLanguage"]
-          .indexOf(widget.field["selectedValue"]);
-      if (dropdownValueIndex != -1) {
-        return widget.field["values${widget.currentLocale}"]
-            [dropdownValueIndex];
-      } else {
-        throw Exception(
-            'The selectedValue ${widget.field["selectedValue"]} could not be found in either language\'s values');
+  String _getLocalizedInitialDropdownValue() {
+    String selected = "";
+    if (widget.field.containsKey("selectedValue")) {
+      selected = widget.field["selectedValue"];
+
+      /// on first build (app launch) the selected value is in the current
+      /// locale; on rebuild (e.g. after language switch), the selected value
+      /// is from the "values" list and needs to be translated to locale again
+      int idxInValues = widget.field["values"].indexOf(selected);
+      if (idxInValues > 0) {
+        selected = widget.field["values${widget.currentLocale}"][idxInValues];
       }
-    } else {
-      return widget.field["selectedValue"];
+
     }
+    return selected;
   }
 
   @override
