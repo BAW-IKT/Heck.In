@@ -213,9 +213,10 @@ class NameFormState extends State<NameForm> {
     bool allFilledOut = true;
     for (var inputField in inputFields) {
       if (inputField["section"] == section) {
-        if (inputField["type"] == InputType.list &&
-            (!inputField.containsKey("selectedValues") || inputField["selectedValues"].length == 0)) {
-          allFilledOut = false;
+        if (inputField["type"] == InputType.list) {
+          if (!inputField.containsKey("selectedValues") || inputField["selectedValues"].length == 0) {
+            allFilledOut = false;
+          }
         } else {
           if (!inputField.containsKey("selectedValue") || inputField["selectedValue"] == null || inputField["selectedValue"] == "") {
             allFilledOut = false;
