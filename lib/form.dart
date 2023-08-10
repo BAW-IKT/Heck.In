@@ -123,7 +123,7 @@ class NameFormState extends State<NameForm> {
   }
 
   void _populateLabelToInputTypeMap() {
-    for (var field in inputFields) {
+    for (Map field in inputFields) {
       labelToInputType.putIfAbsent(field["label"], () => field["type"]);
     }
   }
@@ -144,7 +144,7 @@ class NameFormState extends State<NameForm> {
     String? locale =
         currentLocale == "" ? prefs.getString("locale") : currentLocale;
 
-    for (var field in inputFields) {
+    for (Map field in inputFields) {
       InputType inputType = field["type"];
       if (inputType == InputType.text
           || inputType == InputType.number
@@ -629,7 +629,7 @@ class NameFormState extends State<NameForm> {
   }
 
   void buildAndHandleToolTip(String originalFieldLabel) async {
-    var field = inputFields[inputFieldLabelToIndex[originalFieldLabel]!];
+    Map field = inputFields[inputFieldLabelToIndex[originalFieldLabel]!];
     String navigateToButtonText = "";
     MapDescriptor descriptor = MapDescriptor.NULL;
     bool createGoToMapButton = false;
@@ -657,11 +657,11 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  String getLocalLabel(var field) {
+  String getLocalLabel(Map field) {
     return currentLocale == "EN" ? field["labelEN"] : field["labelDE"];
   }
 
-  String getLocalDescription(var field) {
+  String getLocalDescription(Map field) {
     return currentLocale == "EN" ? field["descriptionEN"] : field["descriptionDE"];
   }
 
@@ -831,7 +831,8 @@ class NameFormState extends State<NameForm> {
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       IndexedStack(
                         index: _selectedIndex,
@@ -873,6 +874,8 @@ class NameFormState extends State<NameForm> {
     int sectionIdx =
         sections.indexWhere((element) => element["label"] == section);
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         createHeader(originalToLocale[section.toString()]!),
         const Divider(),

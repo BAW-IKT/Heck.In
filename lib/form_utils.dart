@@ -201,3 +201,18 @@ class LocaleMap {
   }
 }
 
+void validateSelectedValueOfDropdownFieldMatchesCurrentLocale(
+    String locale, Map field) {
+  String selectedValue = field["selectedValue"];
+  if (selectedValue.isNotEmpty) {
+    if (!field["values$locale"].contains(selectedValue)) {
+      String otherLocale = locale == "EN" ? "DE" : "EN";
+      int idxFromOtherLocalesList =
+          field["values$otherLocale"].indexOf(selectedValue);
+      if (idxFromOtherLocalesList != -1) {
+        field["selectedValue"] =
+        field["values$locale"][idxFromOtherLocalesList];
+      }
+    }
+  }
+}

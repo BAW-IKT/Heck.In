@@ -11,14 +11,12 @@ Widget buildSteppers(
     String currentLocale,
     Function(String, String, {bool removeValue}) onWidgetChanged,
     Function(String) buildAndHandleToolTip) {
-  return Center(
-    child: StepperWidget(
-      inputFields: inputFields,
-      sectionToBuild: sectionToBuild,
-      currentLocale: currentLocale,
-      onWidgetChanged: onWidgetChanged,
-      buildAndHandleToolTip: buildAndHandleToolTip,
-    ),
+  return StepperWidget(
+    inputFields: inputFields,
+    sectionToBuild: sectionToBuild,
+    currentLocale: currentLocale,
+    onWidgetChanged: onWidgetChanged,
+    buildAndHandleToolTip: buildAndHandleToolTip,
   );
 }
 
@@ -74,7 +72,7 @@ class StepperWidgetState extends State<StepperWidget> {
     resetStepsAndSections();
 
     // Build steps from inputFields
-    for (var field in widget.inputFields) {
+    for (Map<String, dynamic> field in widget.inputFields) {
       if (field["section"] != widget.sectionToBuild) {
         continue;
       }
@@ -151,7 +149,7 @@ class StepperWidgetState extends State<StepperWidget> {
                   ElevatedButton(
                     onPressed: details.onStepCancel,
                     child:
-                        Text(widget.currentLocale == "EN" ? "Back" : "Zurück"),
+                    Text(widget.currentLocale == "EN" ? "Back" : "Zurück"),
                   ),
                 const SizedBox(width: 4),
                 if (_index < steps.length - 1)
@@ -183,7 +181,7 @@ class StepperWidgetState extends State<StepperWidget> {
     );
   }
 
-  Widget _createInput(var field) {
+  Widget _createInput(Map<String, dynamic> field) {
     Color? borderColor = field["borderColor"];
     InputType inputType = field["type"];
     Widget widget;
@@ -204,7 +202,7 @@ class StepperWidgetState extends State<StepperWidget> {
     return widgetWithBottomPadding(widget);
   }
 
-  void _mapWidgetToSubSections(var field, Widget thisInput) {
+  void _mapWidgetToSubSections(Map field, Widget thisInput) {
     if (!field.containsKey("subSection${widget.currentLocale}")) {
       String fieldLabel = field["label${widget.currentLocale}"];
       subSections[fieldLabel] = [thisInput];
@@ -275,8 +273,9 @@ class StepperWidgetState extends State<StepperWidget> {
     return true;
   }
 
-  Widget _createDropdownInput(var field, {Color? borderColor}) {
+  Widget _createDropdownInput(Map<String, dynamic> field, {Color? borderColor}) {
     DropdownInput dropdownInput = DropdownInput(
+        key: UniqueKey(),
         field: field,
         onValueChange: (label, value) {
           widget.onWidgetChanged(label, value);
@@ -287,78 +286,110 @@ class StepperWidgetState extends State<StepperWidget> {
         currentLocale: widget.currentLocale,
         borderColor: borderColor);
 
+    validateSelectedValueOfDropdownFieldMatchesCurrentLocale(widget.currentLocale, field);
     return _addPaddingAndToolTipToInputField(dropdownInput, field);
   }
 
-  Widget _createNumberInput(var field, {Color? borderColor}) {
+  Widget _createNumberInput(Map field, {Color? borderColor}) {
     TextFormField numberFormField = TextFormField(
-              controller: field['controller'],
-              decoration: InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderSide: borderColor != null
-                      ? BorderSide(color: borderColor)
-                      : const BorderSide(),
-                ),
-                labelText: field['label${widget.currentLocale}'],
-              ),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                widget.onWidgetChanged(field["label"], value);
-                setState(() {});
-              },
-            );
+      controller: field['controller'],
+      decoration: InputDecoration(
+        enabledBorder: OutlineInputBorder(
+          borderSide: borderColor != null
+              ? BorderSide(color: borderColor)
+              : const BorderSide(),
+        ),
+        labelText: field['label${widget.currentLocale}'],
+      ),
+      keyboardType: TextInputType.number,
+      onChanged: (value) {
+        widget.onWidgetChanged(field["label"], value);
+        setState(() {});
+      },
+    );
     return _addPaddingAndToolTipToInputField(numberFormField, field);
   }
 
-  Widget _createTextInput(var field, {Color? borderColor}) {
+  Widget _createTextInput(Map field, {Color? borderColor}) {
     TextFormField textFormField = TextFormField(
-              controller: field['controller'],
-              decoration: InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderSide: borderColor != null
-                      ? BorderSide(color: borderColor)
-                      : const BorderSide(),
-                ),
-                labelText: field['label${widget.currentLocale}'],
-              ),
-              keyboardType: TextInputType.text,
-              onChanged: (value) {
-                widget.onWidgetChanged(field["label"], value);
-                setState(() {});
-              },
-            );
+      controller: field['controller'],
+      decoration: InputDecoration(
+        enabledBorder: OutlineInputBorder(
+          borderSide: borderColor != null
+              ? BorderSide(color: borderColor)
+              : const BorderSide(),
+        ),
+        labelText: field['label${widget.currentLocale}'],
+      ),
+      keyboardType: TextInputType.text,
+      onChanged: (value) {
+        widget.onWidgetChanged(field["label"], value);
+        setState(() {});
+      },
+    );
     return _addPaddingAndToolTipToInputField(textFormField, field);
   }
 
-  Widget _createListInput(var field, {Color? borderColor}) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      shrinkWrap: true,
-      itemCount: field['values'].length,
-      itemBuilder: (context, i) {
-        String checkboxLabel = field['values${widget.currentLocale}'][i];
-        return CheckboxListTile(
-          title: Text(checkboxLabel),
-          // initially, the checkbox is checked if its value exists in the saved values
-          value: field["selectedValues"].contains(field["values"][i]),
-          onChanged: (bool? value) {
-            bool remove = false;
-            if (value == true) {
-            } else {
-              remove = true;
-            }
+  Widget _createListInput(Map field, {Color? borderColor}) {
+    int listTileCount = field['values'].length;
 
-            widget.onWidgetChanged(field['label'], field['values'][i],
-                removeValue: remove);
-            setState(() {});
-          },
-          controlAffinity: ListTileControlAffinity.leading,
-        );
+    bool fieldHasUniqueHeader = field['label${widget.currentLocale}'] !=
+        field["subSection${widget.currentLocale}"];
+    bool fieldHasToolTip = _fieldHasToolTip(field);
+    bool appendHeaderRow = fieldHasToolTip || fieldHasUniqueHeader;
+
+    if (appendHeaderRow) {
+      listTileCount++;
+    }
+
+    Widget headerRow = _getHeaderRow(
+        field, fieldHasUniqueHeader, fieldHasToolTip, borderColor);
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(0.0),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: listTileCount,
+      itemBuilder: (context, builderIndex) {
+        if (builderIndex == 0 && appendHeaderRow) {
+          return headerRow;
+        } else {
+          int valueIndex = appendHeaderRow ? builderIndex - 1 : builderIndex;
+          String checkboxLabel = field['values${widget.currentLocale}'][valueIndex];
+          String machineReadableValue = field["values"][valueIndex];
+          return CheckboxListTile(
+            title: Text(checkboxLabel),
+            contentPadding: EdgeInsets.zero,
+            value: field["selectedValues"].contains(machineReadableValue),
+            onChanged: (bool? value) {
+              widget.onWidgetChanged(field['label'], machineReadableValue, removeValue: value != true);
+              setState(() {});
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+            activeColor: borderColor,
+          );
+        }
       },
     );
   }
 
-  Padding _addPaddingAndToolTipToInputField(Widget inputField, var field) {
+  Widget _getHeaderRow(Map field, bool fieldHasUniqueHeader,
+      bool fieldHasToolTip, Color? borderColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (fieldHasUniqueHeader)
+          Text(
+            field['label${widget.currentLocale}'],
+            style: TextStyle(color: borderColor),
+          ),
+        if (fieldHasToolTip)
+          _getToolTipIconButton(field),
+      ],
+    );
+  }
+
+  Padding _addPaddingAndToolTipToInputField(Widget inputField, Map field) {
     Widget inputFieldWithToolTip = Row(children: [
       Expanded(child: inputField),
       if (_fieldHasToolTip(field)) _getToolTipIconButton(field)
@@ -367,7 +398,7 @@ class StepperWidgetState extends State<StepperWidget> {
         horizontalPadding: 0.0, verticalPadding: 4.0);
   }
 
-  Widget _getToolTipIconButton(var field) {
+  Widget _getToolTipIconButton(Map field) {
     return IconButton(
       icon: const Icon(Icons.info),
       onPressed: () {
@@ -376,11 +407,7 @@ class StepperWidgetState extends State<StepperWidget> {
     );
   }
 
-  bool _fieldHasToolTip(var field) {
-    if (field.containsKey("descriptionEN")
-        && field.containsKey("descriptionDE")) {
-      return true;
-    }
-    return false;
+  bool _fieldHasToolTip(Map field) {
+    return field["descriptionEN"] != null && field["descriptionDE"] != null;
   }
 }

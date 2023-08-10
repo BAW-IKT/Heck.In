@@ -7,11 +7,12 @@ class DropdownInput extends StatefulWidget {
   final Function(String, String) onValueChange;
 
   DropdownInput({
+    Key? key,
     required this.field,
     required this.onValueChange,
     required this.currentLocale,
     this.borderColor,
-  });
+  }) : super(key: key);
 
   @override
   _DropdownInputState createState() => _DropdownInputState();
