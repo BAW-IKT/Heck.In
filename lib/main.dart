@@ -214,17 +214,21 @@ class WebViewPageState extends State<WebViewPage> {
               Offstage(
                 offstage: !_showNameForm,
                 // when _showNameForm is false, the Container will be off the screen
-                child: Positioned.fill(
-                  child: Container(
-                    color: MyColors.black.withOpacity(0.5),
-                    child: Center(
-                      child: NameForm(
-                        formKey: _nameFormKey,
-                        webViewPageState: this,
-                        showForm: _showNameForm,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Container(
+                        color: MyColors.black.withOpacity(0.5),
+                        child: Center(
+                          child: NameForm(
+                            formKey: _nameFormKey,
+                            webViewPageState: this,
+                            showForm: _showNameForm,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ],
