@@ -4,28 +4,13 @@ import 'package:hedge_profiler_flutter/input_dropdown.dart';
 import 'form_data.dart';
 import 'form_utils.dart';
 
-Widget buildSteppers(
-    List<Map<String, dynamic>> inputFields,
-    GlobalKey<StepperWidgetState> stepperKey,
-    FormSection sectionToBuild,
-    String currentLocale,
-    Function(String, String, {bool removeValue}) onWidgetChanged,
-    Function(String) buildAndHandleToolTip) {
-  return StepperWidget(
-    inputFields: inputFields,
-    sectionToBuild: sectionToBuild,
-    currentLocale: currentLocale,
-    onWidgetChanged: onWidgetChanged,
-    buildAndHandleToolTip: buildAndHandleToolTip,
-  );
-}
-
 class StepperWidget extends StatefulWidget {
   final List<Map<String, dynamic>> inputFields;
   final FormSection sectionToBuild;
   final String currentLocale;
   final Function(String, String, {bool removeValue}) onWidgetChanged;
   final Function(String) buildAndHandleToolTip;
+  final VoidCallback onSectionChange;
 
   const StepperWidget({
     Key? key,
@@ -34,6 +19,7 @@ class StepperWidget extends StatefulWidget {
     required this.currentLocale,
     required this.onWidgetChanged,
     required this.buildAndHandleToolTip,
+    required this.onSectionChange,
   }) : super(key: key);
 
   @override
@@ -70,114 +56,123 @@ class StepperWidgetState extends State<StepperWidget> {
   @override
   Widget build(BuildContext context) {
     resetStepsAndSections();
-
-    // Build steps from inputFields
-    for (Map<String, dynamic> field in widget.inputFields) {
-      if (field["section"] != widget.sectionToBuild) {
-        continue;
-      }
-
-      // create widget
-      Column thisInput = widgetWithBottomPadding(_createInput(field));
-
-      // add widget to defined subSection map if defined (if not, create own group based on label)
-      _mapWidgetToSubSections(field, thisInput);
-    }
-
-    // build steps
+    _addInputFieldsToSections();
     List<bool> stepCompletionStatus = _buildStepsAndGetCompletionStatusList();
 
     return Stepper(
       currentStep: _index,
       physics: const ClampingScrollPhysics(),
-      onStepCancel: () {
-        if (_index > 0) {
-          setState(() {
-            _index -= 1;
-          });
-        }
-      },
-      onStepContinue: () {
-        if (_index < steps.length - 1) {
-          setState(() {
-            _index += 1;
-          });
-
-          // Scroll to the top of the content of the current step
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final RenderBox? renderBox = _scrollKeys[_index]
-                .currentContext
-                ?.findRenderObject() as RenderBox?;
-            if (renderBox != null) {
-              final offset = renderBox.localToGlobal(Offset.zero);
-              _scrollController.animateTo(offset.dy,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut);
-            }
-          });
-        }
-      },
-      onStepTapped: (int index) {
-        setState(() {
-          _index = index;
-        });
-
-        // Scroll to the top of the content of the current step
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final RenderBox? renderBox = _scrollKeys[index]
-              .currentContext
-              ?.findRenderObject() as RenderBox?;
-          if (renderBox != null) {
-            final offset = renderBox.localToGlobal(Offset.zero);
-            _scrollController.animateTo(offset.dy,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut);
-          }
-        });
-      },
+      onStepCancel: _decrementStepIndex,
+      onStepContinue: _incrementStepIndex,
+      onStepTapped: _setStepIndex,
       steps: steps,
-      controlsBuilder: (BuildContext context, ControlsDetails details) {
-        // bool isLastStep = _index == steps.length - 1;
-        bool isStepComplete = stepCompletionStatus[_index];
+      controlsBuilder: (BuildContext context, ControlsDetails details) =>
+          _buildControls(context, details, stepCompletionStatus),
+    );
+  }
 
-        return Stack(
+  void _addInputFieldsToSections() {
+    for (Map<String, dynamic> field in widget.inputFields) {
+      if (field["section"] != widget.sectionToBuild) continue;
+
+      Column thisInput = widgetWithBottomPadding(_createInput(field));
+      _mapWidgetToSubSections(field, thisInput);
+    }
+  }
+
+  void _scrollToCurrentStep() {
+    // Scroll to the top of the content of the current step
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final RenderBox? renderBox =
+          _scrollKeys[_index].currentContext?.findRenderObject() as RenderBox?;
+      if (renderBox != null) {
+        final offset = renderBox.localToGlobal(Offset.zero);
+        _scrollController.animateTo(offset.dy,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut);
+      }
+    });
+  }
+
+  void _decrementStepIndex() {
+    if (_index <= 0) return;
+    setState(() {
+      _index -= 1;
+    });
+  }
+
+  void _incrementStepIndex() {
+    if (_index >= steps.length - 1) return;
+    setState(() {
+      _index += 1;
+    });
+    _scrollToCurrentStep();
+  }
+
+  void _setStepIndex(int index) {
+    setState(() {
+      _index = index;
+    });
+    _scrollToCurrentStep();
+  }
+
+  Widget _buildControls(BuildContext context, ControlsDetails details,
+      List<bool> stepCompletionStatus) {
+    bool isStepComplete = stepCompletionStatus[_index];
+    bool isLastStep = _index == steps.length - 1;
+    return Stack(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (_index > 0)
-                  ElevatedButton(
-                    onPressed: details.onStepCancel,
-                    child:
-                    Text(widget.currentLocale == "EN" ? "Back" : "Zurück"),
-                  ),
-                const SizedBox(width: 4),
-                if (_index < steps.length - 1)
-                  ElevatedButton(
-                    onPressed: details.onStepContinue,
-                    child: Text(
-                      widget.currentLocale == "EN" ? "Next" : "Weiter",
-                      style: TextStyle(
-                          color: isStepComplete
-                              ? MyColors.green
-                              : MyColors.orange),
-                    ),
-                  ),
-              ],
-            ),
-            Positioned(
-              left: 5,
-              top: 0,
-              bottom: 0,
-              child: Icon(
-                isStepComplete ? Icons.check_circle : Icons.pending,
-                color: isStepComplete ? MyColors.green : MyColors.orange,
-                size: 20,
-              ),
-            ),
+            if (_index > 0) _buildBackButton(details),
+            const SizedBox(width: 4),
+            if (!isLastStep) _buildNextButton(details, isStepComplete),
+            if (isLastStep) _buildNextSectionButton(details, isStepComplete),
           ],
-        );
-      },
+        ),
+        Positioned(
+          left: 5,
+          top: 0,
+          bottom: 0,
+          child: Icon(
+            isStepComplete ? Icons.check_circle : Icons.pending,
+            color: isStepComplete ? MyColors.green : MyColors.orange,
+            size: 20,
+          ),
+        ),
+      ],
+    );
+  }
+
+  ElevatedButton _buildBackButton(ControlsDetails details) {
+    return ElevatedButton(
+      onPressed: details.onStepCancel,
+      child: Text(widget.currentLocale == "EN" ? "Back" : "Zurück"),
+    );
+  }
+
+  ElevatedButton _buildNextButton(
+      ControlsDetails details, bool isStepComplete) {
+    return ElevatedButton(
+      onPressed: details.onStepContinue,
+      child: Text(
+        widget.currentLocale == "EN" ? "Next" : "Weiter",
+        style:
+            TextStyle(color: isStepComplete ? MyColors.green : MyColors.orange),
+      ),
+    );
+  }
+
+  ElevatedButton _buildNextSectionButton(
+      ControlsDetails details, bool isStepComplete) {
+    return ElevatedButton(
+      onPressed: widget.onSectionChange,
+      child: Text(
+        widget.currentLocale == "EN" ? "Next >" : "Weiter >",
+        style:
+            TextStyle(color: isStepComplete ? MyColors.green : MyColors.grey),
+      ),
     );
   }
 

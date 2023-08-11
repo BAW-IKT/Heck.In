@@ -40,7 +40,6 @@ class NameFormState extends State<NameForm> {
   List<Map<String, dynamic>> inputFields = [];
   Map<String, int> inputFieldLabelToIndex = {};
   List<Map<String, dynamic>> sections = getSections();
-  List<GlobalKey<StepperWidgetState>> _stepperKeys = [];
 
   FormCalc calc = FormCalc();
 
@@ -108,9 +107,6 @@ class NameFormState extends State<NameForm> {
     localeMap.initialize(inputFields, sections);
     localeToOriginal = localeMap.getLocaleToOriginal(currentLocale);
     originalToLocale = localeMap.getOriginalToLocale(currentLocale);
-
-    _stepperKeys =
-        List.generate(sections.length, (_) => GlobalKey<StepperWidgetState>());
 
     menuItems =
         sections.map((s) => s["label$currentLocale"].toString()).toList();
@@ -874,21 +870,24 @@ class NameFormState extends State<NameForm> {
   }
 
   Widget _buildMenuPage(FormSection section, var columns) {
-    int sectionIdx =
-        sections.indexWhere((element) => element["label"] == section);
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         createHeader(originalToLocale[section.toString()]!),
         const Divider(),
-        buildSteppers(
-            inputFields,
-            _stepperKeys[sectionIdx],
-            section,
-            currentLocale,
-            onWidgetChanged,
-            buildAndHandleToolTip),
+        StepperWidget(
+          inputFields: inputFields,
+          sectionToBuild: section,
+          currentLocale: currentLocale,
+          onWidgetChanged: onWidgetChanged,
+          buildAndHandleToolTip: buildAndHandleToolTip,
+          onSectionChange: () {
+            setState(() {
+              _selectedIndex += 1;
+            });
+          },
+        ),
       ],
     );
   }
