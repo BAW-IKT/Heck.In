@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hedge_profiler_flutter/colors.dart';
 import 'package:hedge_profiler_flutter/input_dropdown.dart';
+import 'package:hedge_profiler_flutter/snackbar.dart';
 import 'form_data.dart';
 import 'form_utils.dart';
 
@@ -119,6 +120,7 @@ class StepperWidgetState extends State<StepperWidget> {
   Widget _buildControls(BuildContext context, ControlsDetails details,
       List<bool> stepCompletionStatus) {
     bool isStepComplete = stepCompletionStatus[_index];
+    bool allStepsComplete = stepCompletionStatus.every((bool value) => value);
     bool isLastStep = _index == steps.length - 1;
     return Stack(
       children: [
@@ -128,7 +130,7 @@ class StepperWidgetState extends State<StepperWidget> {
             if (_index > 0) _buildBackButton(details),
             const SizedBox(width: 4),
             if (!isLastStep) _buildNextButton(details, isStepComplete),
-            if (isLastStep) _buildNextSectionButton(details, isStepComplete),
+            if (isLastStep) _buildNextSectionButton(details, allStepsComplete),
           ],
         ),
         Positioned(
@@ -165,15 +167,35 @@ class StepperWidgetState extends State<StepperWidget> {
   }
 
   ElevatedButton _buildNextSectionButton(
-      ControlsDetails details, bool isStepComplete) {
+      ControlsDetails details, bool allStepsComplete) {
     return ElevatedButton(
-      onPressed: widget.onSectionChange,
+      onPressed: () {
+        if (allStepsComplete) {
+          widget.onSectionChange;
+        } else {
+          _buildSnackbarForMissingSteps();
+        }
+      },
       child: Text(
         widget.currentLocale == "EN" ? "Next >" : "Weiter >",
         style:
-            TextStyle(color: isStepComplete ? MyColors.green : MyColors.grey),
+            TextStyle(color: allStepsComplete ? MyColors.green : MyColors.grey),
       ),
     );
+  }
+
+  void _buildSnackbarForMissingSteps() {
+    List<String?> incompleteStepsList = steps
+        .where((step) => step.state != StepState.complete)
+        .map((step) => (step.title as Text).data)
+        .toList();
+    String incompleteSteps = incompleteStepsList.join(", ");
+    showSnackbar(
+        context,
+        widget.currentLocale == "EN"
+            ? "Please fill out all fields first (incomplete: $incompleteSteps)"
+            : "Bitte zuerst alle Felder ausfüllen (unvollständig: $incompleteSteps)",
+        success: false);
   }
 
   Widget _createInput(Map<String, dynamic> field) {
