@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 class DropdownInput extends StatefulWidget {
@@ -39,7 +40,6 @@ class _DropdownInputState extends State<DropdownInput> {
       if (idxInValues > 0) {
         selected = widget.field["values${widget.currentLocale}"][idxInValues];
       }
-
     }
     return selected;
   }
@@ -49,20 +49,24 @@ class _DropdownInputState extends State<DropdownInput> {
     String locale = widget.currentLocale;
     var dropdownItems =
         widget.field['values$locale'].map<DropdownMenuItem<String>>((value) {
-      String textShort =
-          value.length > 30 ? value.substring(0, 27) + "..." : value;
       return DropdownMenuItem<String>(
         value: value,
-        child: Text(
-          textShort,
-          style: const TextStyle(
-            fontSize: 13,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2.0),
+          child: AutoSizeText(
+            value,
+            style: const TextStyle(fontSize: 13),
+            maxLines: 1,
+            minFontSize: 8,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       );
     }).toList();
 
     return DropdownButtonFormField(
+      isExpanded: true,
       value: dropdownValue,
       decoration: InputDecoration(
         enabledBorder: OutlineInputBorder(
@@ -71,9 +75,6 @@ class _DropdownInputState extends State<DropdownInput> {
               : const BorderSide(),
         ),
         labelText: widget.field['label$locale'],
-        labelStyle: TextStyle(
-          fontSize: widget.field['label$locale'].length > 24 ? 14 : 16,
-        ),
       ),
       items: dropdownItems,
       onChanged: (value) {
