@@ -171,7 +171,7 @@ class StepperWidgetState extends State<StepperWidget> {
     return ElevatedButton(
       onPressed: () {
         if (allStepsComplete) {
-          widget.onSectionChange;
+          widget.onSectionChange();
         } else {
           _buildSnackbarForMissingSteps();
         }

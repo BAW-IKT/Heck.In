@@ -167,6 +167,8 @@ class NameFormState extends State<NameForm> {
   void onWidgetChanged(String widgetLabel, String widgetValue,
       {removeValue = false}) async {
 
+
+
     InputType inputType = labelToInputType[widgetLabel]!;
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -199,7 +201,19 @@ class NameFormState extends State<NameForm> {
     FormSection widgetGroup = inputFields[widgetIndex]["section"];
     _setSectionNotifiers(widgetGroup);
 
+    _decideToBuildBottomWidgetBar();
+
     print("$widgetLabel $widgetValue");
+  }
+
+  void _decideToBuildBottomWidgetBar() {
+    bool sectionNotifiersExceptImagesAllTrue = sectionNotifiers.entries
+        .where((entry) => entry.key != FormSection.images)
+        .map((entry) => entry.value)
+        .every((ValueNotifier<bool> notifier) => notifier.value == true);
+    bool imagesExist = _selectedImages.isNotEmpty ? true : false;
+    bool readyToBuildBottomBar = sectionNotifiersExceptImagesAllTrue && imagesExist;
+    print('ready to build bottom bar: $readyToBuildBottomBar');
   }
 
   /// validates all widgets of a section are checked
