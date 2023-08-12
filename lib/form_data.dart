@@ -117,6 +117,25 @@ String getMapDescriptionForMenu(MapDescriptor descriptor, String currentLocale) 
   }
 }
 
+String getImageDescriptorPath(ImageDescriptor descriptor) {
+  switch (descriptor) {
+    case ImageDescriptor.kwb_noe4:
+      return "data/kwb_noe4.png";
+    case ImageDescriptor.kwb_noe_regionen:
+      return "data/kwb_noe_Regionen.png";
+  }
+}
+
+String getImageDescriptorDescription(ImageDescriptor descriptor,
+    String currentLocale) {
+  switch (descriptor) {
+    case ImageDescriptor.kwb_noe4:
+      return currentLocale == "EN" ? "Water balance map" : "Wasserbilanz Karte";
+    case ImageDescriptor.kwb_noe_regionen:
+      return currentLocale == "EN" ? "Hedge region map" : "Heckenregion Karte";
+  }
+}
+
 Map<String, String> getRadarDataGroups() {
   return {
     'Rohstoffe': 'Bereitstellend',
@@ -335,7 +354,7 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "klimatische Wasserbilanz",
       "descriptionEN": """Select the climatic water balance color""",
       "descriptionDE": """Der wesentliche Unterschied in den klimatischen Gegebenheiten innerhalb Österreichs liegt im Wasserhaushalt, der stark je nach Gebiet variiert und von vielen Faktoren, wie z.B. Niederschlagsmenge, Verdunstung, Bodenbeschaffenheit und Topografie abhängt. Die klimatische Wasserbilanz ist hierfür der aussagekräftigste Indikator, sie gibt die Differenz zwischen Jahresniederschlag und potenzieller Verdunstung wieder. Die Karte der klimatischen Wasserbilanz für Niederösterreich befindet sich in Anhang 2.""",
-      "action": null,
+      "action": ImageDescriptor.kwb_noe4,
       "section": FormSection.map_location,
       "subSectionEN": "Climate and Water",
       "subSectionDE": "Klima und Wasser",
@@ -371,7 +390,7 @@ List<Map<String, dynamic>> createFormFields() {
       'type': InputType.dropdown,
       'label': 'in_wildtierkorridor',
       "labelEN": "In wildlife corridor",
-      "labelDE": "in WildtDie Umsetzung der Grünraumvernetzung ist in Österreich auf Länderebene unterschiedlich weit entwickelt. Während in manchen Bundesländern wie der Steiermark Grünkorridore per Verordnung abgesichert sind, gibt es solcherlei rechtliche Absicherung in anderen Bundesländern nicht (BMK 2020). Seit 2018 gibt es jedoch einen österreichweiten Vorschlag für überregionale Lebensraumvernetzung, der über die Web-Applikation der Lebensraumvernetzung Österreich, einem Informationsportal des BMK (mit Unterstützung von Bund (BML) und Europäischer Union. Darin liegen die Korridore in Linienform vor. Für die Bewertung der Korridorabschnitte wurde jedoch mit einem Pufferbereich gerechnet, die für die Indikatoraufnahme herangezogen wird. Liegt die Hecke innerhalb des Puffers, wird davon ausgegangen, dass sich die Hecke in einem Wildtierkorridor befindet. Aufzurufen sind die Daten unter https://geonode.lebensraumvernetzung.at/maps/63/view#/. Links unter Ebenen ist die Bewertung LRVA durch das Auge zu aktivieren.or",
+      "labelDE": "in Wildtierkorridor",
       "action": MapDescriptor.geonodeLebensraumVernetzung,
       "descriptionEN": """Select if the location is in a wildlife corridor""",
       "descriptionDE": """Die Erfassung der Bevölkerungsdichte (Einwohner:innen/km²) erfolgt über https://ecosystem-accounts.jrc.ec.europa.eu/map. Zunächst wird mittels des quadratischen Kartensymbols am linken Rand als Basis Layer colorful (bright) ausgewählt und die Opazität mithilfe des Reglers ganz hoch stellen. Im nächsten Schritt in der Zeile oberhalb des Kartenbildes die Sparte Cultural (links) auswählen. Darunter erscheint die Auswahlmöglichkeit Nature-based recreation. Anklicken und im aufgehenden Fenster die Option Demand wählen. Links über der Legende kann mithilfe des blauen Reglers die Opazität verändert werden. Die Orientierung erfolgt über die Kartenbeschriftung, Orts-/ Koordinatensuche ist nicht möglich. Erfassung der Nachfrage anhand der eingeblendeten Farbe am Standort der Hecke und Einordnung entsprechend der Legende. Sofern sich die Hecke genau an der Grenze zwischen zwei Gebieten mit unterschiedlich hoher Bevölkerungsdichte befindet, ist der höhere Wert zu wählen.""",
@@ -393,7 +412,7 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "traditionelle Heckenregion",
       "descriptionEN": """Select if it is a traditional hedge region or not""",
       "descriptionDE": """Niederösterreich verzeichnet einige Regionen, die eine lange Heckentradition haben. In anderen Regionen ist dies nicht der Fall. Anhand der Kulturlandschaftsgliederung Österreichs (Wrbka et al. 2002) wurden traditionelle Heckenregionen herausgearbeitet. In Bewertung der Ökosystemleistung findet sich eine Karte der Heckenregionen in Niederösterreich. Für andere Bundesländer/Länder sind hier Anpassungen notwendig. Als Testbild z.B.: https://upload.wikimedia.org/wikipedia/commons/9/98/Heckeng%C3%A4u.jpg""",
-      "action": null,
+      "action": ImageDescriptor.kwb_noe_regionen,
       "section": FormSection.map_location,
       "subSectionEN": "Landscape and Population",
       "subSectionDE": "Landschaft und Bevölkerung",
@@ -982,6 +1001,11 @@ enum MapDescriptor {
   geoland,
   noeNaturschutz,
   eeaProtectedAreas
+}
+
+enum ImageDescriptor {
+  kwb_noe4,
+  kwb_noe_regionen
 }
 
 enum InputType {

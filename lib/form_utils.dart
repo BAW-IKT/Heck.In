@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hedge_profiler_flutter/snackbar.dart';
-import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:photo_view/photo_view.dart';
 
 void doNothing() {}
 
@@ -85,31 +83,31 @@ class ConfirmationDialog extends StatelessWidget {
 class ToolTipDialog extends StatelessWidget {
   final String header;
   final String message;
-  final String navigateToMapButtonText;
-  final VoidCallback onNavigateToMap;
+  final String navigateToButtonText;
+  final VoidCallback onNavigateTo;
   final String closeButtonText;
   final VoidCallback onClose;
-  final bool createGoToMapButton;
+  final bool createNavigateToButton;
 
   const ToolTipDialog(
       {Key? key,
       required this.header,
       required this.message,
-      required this.navigateToMapButtonText,
-      required this.onNavigateToMap,
+      required this.navigateToButtonText,
+      required this.onNavigateTo,
       required this.closeButtonText,
       required this.onClose,
-      required this.createGoToMapButton})
+      required this.createNavigateToButton})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     List<Widget> actionsList = [];
 
-    if (createGoToMapButton) {
+    if (createNavigateToButton) {
       actionsList.add(
         TextButton(
-            onPressed: onNavigateToMap, child: Text(navigateToMapButtonText)),
+            onPressed: onNavigateTo, child: Text(navigateToButtonText)),
       );
     }
 
@@ -120,17 +118,17 @@ class ToolTipDialog extends StatelessWidget {
 
     return AlertDialog(
       title: Text(header),
-      // content: Text(message),
-      content: Linkify(
-        onOpen: (link) async {
-          if (!await launchUrl(Uri.parse(link.url))) {
-            showSnackbar(context, "Could not launch ${link.url}",
-                success: false);
-          }
-        },
-        text: message,
-        textAlign: TextAlign.justify,
-      ),
+      content: Text(message),
+      // content: Linkify(
+      //   onOpen: (link) async {
+      //     if (!await launchUrl(Uri.parse(link.url))) {
+      //       showSnackbar(context, "Could not launch ${link.url}",
+      //           success: false);
+      //     }
+      //   },
+      //   text: message,
+      //   textAlign: TextAlign.justify,
+      // ),
       actions: actionsList,
     );
   }
@@ -213,5 +211,20 @@ void validateSelectedValueOfDropdownFieldMatchesCurrentLocale(
         field["values$locale"][idxFromOtherLocalesList];
       }
     }
+  }
+}
+
+class ImageView extends StatelessWidget {
+  final String imagePath;
+
+  const ImageView({super.key, required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: PhotoView(
+        imageProvider: AssetImage(imagePath),
+      )
+    );
   }
 }

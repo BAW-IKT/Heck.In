@@ -643,31 +643,58 @@ class NameFormState extends State<NameForm> {
 
   void buildAndHandleToolTip(String originalFieldLabel) async {
     Map field = inputFields[inputFieldLabelToIndex[originalFieldLabel]!];
-    String navigateToButtonText = "";
-    MapDescriptor descriptor = MapDescriptor.NULL;
-    bool createGoToMapButton = false;
-    if (field.containsKey("action") && field["action"] != null) {
-      descriptor = field["action"];
-      navigateToButtonText = getMapDescription(descriptor, currentLocale);
-      createGoToMapButton = true;
-    }
+    bool createNavigateToButton =
+        field.containsKey("action") && field["action"] != null;
+    String navigateToButtonText =
+        createNavigateToButton ? _getNavigateToButtonText(field) : "";
+    VoidCallback navigateFunction =
+        createNavigateToButton ? _getNavigateFunction(field) : () {};
+
     await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return ToolTipDialog(
           header: getLocalLabel(field),
           message: getLocalDescription(field),
-          navigateToMapButtonText: navigateToButtonText,
-          onNavigateToMap: () {
-            widget.webViewPageState.loadMapFromDescriptor(descriptor);
-            // Navigator.of(context).pop(true);
-          },
-          closeButtonText: currentLocale == "EN" ? "Close": "Schließen",
+          navigateToButtonText: navigateToButtonText,
+          onNavigateTo: navigateFunction,
+          closeButtonText: currentLocale == "EN" ? "Close" : "Schließen",
           onClose: () => Navigator.of(context).pop(false),
-          createGoToMapButton: createGoToMapButton,
+          createNavigateToButton: createNavigateToButton,
         );
       },
     );
+  }
+
+  VoidCallback _getNavigateFunction(Map field) {
+    if (field["action"] is MapDescriptor) {
+      return () {
+        widget.webViewPageState.loadMapFromDescriptor(field["action"]);
+        // Navigator.of(context).pop(true);
+      };
+    } else if (field["action"] is ImageDescriptor) {
+      String imagePath = getImageDescriptorPath(field["action"]);
+      return () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ImageView(imagePath: imagePath),
+          ),
+        );
+      };
+    } else {
+      return () {};
+    }
+  }
+
+  String _getNavigateToButtonText(Map field) {
+    if (field["action"] is MapDescriptor) {
+      return getMapDescription(field["action"], currentLocale);
+    } else if (field["action"] is ImageDescriptor) {
+      return getImageDescriptorDescription(field["action"], currentLocale);
+    } else {
+      return "";
+    }
   }
 
   String getLocalLabel(Map field) {
