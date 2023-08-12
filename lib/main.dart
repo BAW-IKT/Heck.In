@@ -142,7 +142,7 @@ class WebViewPageState extends State<WebViewPage> {
           prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
       String lat = prefs.getString("geo_latitude") ?? "n/a";
       String lon = prefs.getString("geo_longitude") ?? "n/a";
-      _geoLastKnown = "lat: $lat\nlon: $lon";
+      _geoLastKnown = "$lat,$lon";
     });
 
     // wait for refresh of coords
@@ -171,7 +171,7 @@ class WebViewPageState extends State<WebViewPage> {
           prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
       String lat = prefs.getString("geo_latitude") ?? "n/a";
       String lon = prefs.getString("geo_longitude") ?? "n/a";
-      _geoLastKnown = "lat: $lat\nlon: $lon";
+      _geoLastKnown = "$lat,$lon";
       _isLoading = false;
     });
   }
