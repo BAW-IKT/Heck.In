@@ -91,7 +91,9 @@ flutter:
 
   # run flutter pub get after new images are added
   assets:
-    - data/
+    - data/lsw_logo.png
+    - data/kwb_noe4.png
+    - data/kwb_noe_Regionen.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

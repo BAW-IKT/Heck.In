@@ -54,15 +54,8 @@ class NameFormState extends State<NameForm> {
   int _selectedIndexCheck = 0;
   bool _triggeredByMenu = false;
   final ValueNotifier<bool> _isNavigationRailVisible =
-      ValueNotifier<bool>(true);
+      ValueNotifier<bool>(false);
   Map<FormSection, ValueNotifier<bool>> sectionNotifiers = {};
-
-  // Map<FormSection, ValueNotifier<bool>> sectionNotifiers = {
-  //   "general": ValueNotifier<bool>(false),
-  //   "physical": ValueNotifier<bool>(false),
-  //   "environmental": ValueNotifier<bool>(false),
-  //   "biodiversity": ValueNotifier<bool>(false),
-  // };
 
   final Map<String, String> _radarDataToGroup = getRadarDataGroups();
   final Map<String, Color> _radarGroupColors = getRadarGroupColors();
@@ -75,8 +68,10 @@ class NameFormState extends State<NameForm> {
   Map<String, InputType> labelToInputType = {};
 
   // top menu stuff
-  String selectedMenuItem = "";
+  // String selectedMenuItem = "";
   List<String> menuItems = [];
+
+  final ValueNotifier<bool> _showBottomBarNotifier = ValueNotifier<bool>(false);
 
   @override
   void dispose() {
@@ -213,7 +208,10 @@ class NameFormState extends State<NameForm> {
         .every((ValueNotifier<bool> notifier) => notifier.value == true);
     bool imagesExist = _selectedImages.isNotEmpty ? true : false;
     bool readyToBuildBottomBar = sectionNotifiersExceptImagesAllTrue && imagesExist;
+    _showBottomBarNotifier.value = sectionNotifiersExceptImagesAllTrue && imagesExist;
+
     print('ready to build bottom bar: $readyToBuildBottomBar');
+    print('ready to build bottom bar: ${_showBottomBarNotifier.value}');
   }
 
   /// validates all widgets of a section are checked
@@ -240,8 +238,32 @@ class NameFormState extends State<NameForm> {
         : sectionNotifiers[section]?.value = false;
   }
 
+  void _promptToClearImageAndFormData() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return ConfirmationDialog(
+          message: currentLocale == "EN"
+              ? "Are you sure you want to clear the entire form data and delete the images?"
+              : "Sind sie sicher, dass sie die gesamten Eingaben inklusive der aufgenommenen Bilder löschen möchten?",
+          onConfirm: () {
+            for (FormSection section in sectionNotifiers.keys) {
+              sectionNotifiers[section]?.value = false;
+            }
+            Navigator.of(context).pop(true);
+          },
+          onCancel: () => Navigator.of(context).pop(false),
+        );
+      },
+    );
+    if (confirmed == true) {
+      _clearFormData();
+      _clearImages();
+    }
+  }
+
   /// action for Clear button
-  void _clearInputStorage() async {
+  void _promptToClearFormData() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -258,16 +280,20 @@ class NameFormState extends State<NameForm> {
       },
     );
     if (confirmed == true) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      Object? lat = prefs.get("geo_latitude");
-      Object? lon = prefs.get("geo_longitude");
-      Object? geoLastChange = prefs.get("geo_last_change");
-      prefs.clear();
-      prefs.setString("geo_latitude", lat.toString());
-      prefs.setString("geo_longitude", lon.toString());
-      prefs.setString("geo_last_change", geoLastChange.toString());
-      _populateInputs();
+      _clearFormData();
     }
+  }
+
+  void _clearFormData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    Object? lat = prefs.get("geo_latitude");
+    Object? lon = prefs.get("geo_longitude");
+    Object? geoLastChange = prefs.get("geo_last_change");
+    prefs.clear();
+    prefs.setString("geo_latitude", lat.toString());
+    prefs.setString("geo_longitude", lon.toString());
+    prefs.setString("geo_last_change", geoLastChange.toString());
+    _populateInputs();
   }
 
   /// get form and image data and persist to database
@@ -296,9 +322,9 @@ class NameFormState extends State<NameForm> {
   }
 
   Future<void> _loadPersistedImages() async {
-    // final directory = await getApplicationDocumentsDirectory();
-    final directory = await getExternalStorageDirectory();
-    final imagesDirectory = Directory('${directory?.path}/Pictures');
+    final directory = await getApplicationDocumentsDirectory();
+    // final directory = await getExternalStorageDirectory();
+    final imagesDirectory = Directory('${directory.path}/Pictures');
     if (await imagesDirectory.exists()) {
       final files = await imagesDirectory.list().toList();
       _selectedImages = files.map((file) => File(file.path)).toList();
@@ -307,9 +333,9 @@ class NameFormState extends State<NameForm> {
   }
 
   Future<void> _persistImages() async {
-    // final directory = await getApplicationDocumentsDirectory();
-    final directory = await getExternalStorageDirectory();
-    final imagesDirectory = Directory('${directory?.path}/Pictures');
+    final directory = await getApplicationDocumentsDirectory();
+    // final directory = await getExternalStorageDirectory();
+    final imagesDirectory = Directory('${directory.path}/Pictures');
     if (!await imagesDirectory.exists()) {
       await imagesDirectory.create();
     }
@@ -329,6 +355,7 @@ class NameFormState extends State<NameForm> {
       });
       _persistImages();
     }
+    _decideToBuildBottomWidgetBar();
   }
 
   void _removeImage(int index) async {
@@ -361,10 +388,11 @@ class NameFormState extends State<NameForm> {
       });
       await image.delete();
       _persistImages();
+      _decideToBuildBottomWidgetBar();
     }
   }
 
-  Future<void> _clearImages() async {
+  Future<void> _promptToClearImages() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -376,20 +404,26 @@ class NameFormState extends State<NameForm> {
       },
     );
     if (confirmed == true) {
-      for (final image in _selectedImages) {
-        await image.delete();
-      }
-      _selectedImages.clear();
-      final directory = await getExternalStorageDirectory();
-      final imagesDirectory = Directory('${directory?.path}/Pictures');
-      if (await imagesDirectory.exists()) {
-        await imagesDirectory.delete(recursive: true);
-      }
-      setState(() {});
+      _clearImages();
     }
   }
 
-  void _showClearDialog() {
+  void _clearImages() async {
+    for (final image in _selectedImages) {
+      await image.delete();
+    }
+    _selectedImages.clear();
+    // final directory = await getExternalStorageDirectory();
+    final directory = await getApplicationDocumentsDirectory();
+    final imagesDirectory = Directory('${directory.path}/Pictures');
+    if (await imagesDirectory.exists()) {
+      await imagesDirectory.delete(recursive: true);
+    }
+    setState(() {});
+    _decideToBuildBottomWidgetBar();
+  }
+
+  void _showClearDialogWithOptionsForFormAndImages() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -412,7 +446,7 @@ class NameFormState extends State<NameForm> {
                       style: TextStyle(color: MyColors.red)),
                   onPressed: () {
                     Navigator.of(context).pop();
-                    _clearImages();
+                    _promptToClearImages();
                   },
                 ),
                 OutlinedButton(
@@ -420,7 +454,7 @@ class NameFormState extends State<NameForm> {
                       const Text('Form', style: TextStyle(color: MyColors.red)),
                   onPressed: () {
                     Navigator.of(context).pop();
-                    _clearInputStorage();
+                    _promptToClearFormData();
                   },
                 ),
               ],
@@ -711,25 +745,27 @@ class NameFormState extends State<NameForm> {
         Icons.analytics_outlined,
         color: Color.fromRGBO(0, 96, 205, 1),
       ),
-      onPressed: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return FutureBuilder(
-              future: updateRadarChartData(),
-              builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  return RadarChartDialog(
-                    data: _radarChartData,
-                    dataToGroup: _radarDataToGroup,
-                    groupColors: _radarGroupColors,
-                    currentLocale: currentLocale,
-                  );
-                } else {
-                  return const CircularProgressIndicator(); // or any other loading indicator
-                }
-              },
-            );
+      onPressed: _openRadarChart,
+    );
+  }
+
+  void _openRadarChart() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return FutureBuilder(
+          future: updateRadarChartData(),
+          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return RadarChartDialog(
+                data: _radarChartData,
+                dataToGroup: _radarDataToGroup,
+                groupColors: _radarGroupColors,
+                currentLocale: currentLocale,
+              );
+            } else {
+              return const CircularProgressIndicator(); // or any other loading indicator
+            }
           },
         );
       },
@@ -801,9 +837,11 @@ class NameFormState extends State<NameForm> {
       }
     }
 
-    return Container(color: MyColors.sideBarBackground, child: Row(children: [
-      const VerticalDivider(thickness: 1, width: 1),
-      SingleChildScrollView(
+    return Container(
+      color: MyColors.sideBarBackground,
+      child: Row(children: [
+        const VerticalDivider(thickness: 1, width: 1),
+        SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(
                 minHeight: MediaQuery.of(context).size.height - 120),
@@ -820,23 +858,24 @@ class NameFormState extends State<NameForm> {
                 },
                 labelType: NavigationRailLabelType.selected,
                 destinations: navigationRailDestinations,
-                trailing: Column(children: [
-                  const SizedBox(height: 50),
-                  IconButton(
-                    icon: Icon(Icons.clear,
-                        color: Theme.of(context).colorScheme.error),
-                    onPressed: () => _showClearDialog(),
-                  ),
-                  // _buildGoToMapDebugButton(),
-                  _buildRadarChartButton(),
-                  _buildAnimatedSubmitButton(),
-                  const SizedBox(height: 50),
-                ]),
+                // trailing: Column(children: [
+                //   const SizedBox(height: 50),
+                //   IconButton(
+                //     icon: Icon(Icons.clear,
+                //         color: Theme.of(context).colorScheme.error),
+                //     onPressed: () => _showClearDialogWithOptionsForFormAndImages(),
+                //   ),
+                //   // _buildGoToMapDebugButton(),
+                //   _buildRadarChartButton(),
+                //   _buildAnimatedSubmitButton(),
+                //   const SizedBox(height: 50),
+                // ]),
               ),
+            ),
           ),
         ),
-      ),
-    ]),);
+      ]),
+    );
   }
 
   Widget _buildFormPage() {
@@ -894,6 +933,17 @@ class NameFormState extends State<NameForm> {
           ),
         ),
       ),
+      bottomNavigationBar: ValueListenableBuilder<bool>(
+        valueListenable: _showBottomBarNotifier,
+        builder: (context, value, child) {
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 350),
+            // opacity: value ? 1.0 : 0.0,
+            height: value ? 60.0 : 0.0,
+            child: value ? _buildBottomNavBar() : const SizedBox.shrink(),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _isNavigationRailVisible.value = !_isNavigationRailVisible.value;
@@ -907,6 +957,49 @@ class NameFormState extends State<NameForm> {
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildBottomNavBar() {
+    return BottomNavigationBar(
+      //Define your own attributes for the bottom navigation bar here
+      items: <BottomNavigationBarItem>[
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.analytics_outlined, color: MyColors.green),
+          label: currentLocale == "EN" ? "View result" : "Ergebnis ansehen",
+        ),
+        BottomNavigationBarItem(
+          icon: ValueListenableBuilder<bool>(
+            valueListenable: _isSaving,
+            builder: (context, value, child) {
+              return value
+                  // Show the progress indicator when saving
+                  ? const CircularProgressIndicator()
+                  // Show the send and archive icon when not saving
+                  : const Icon(Icons.send_and_archive, color: MyColors.green);
+            },
+          ),
+          label: currentLocale == "EN" ? "Save result" : "Ergebnis speichern",
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.delete, color: MyColors.red),
+          label: currentLocale == "EN" ? "Reset Form" : "Formular löschen",
+        ),
+        // Add more items here
+      ],
+      onTap: (index) {
+        switch (index) {
+          case 0:
+            _openRadarChart();
+            break;
+          case 1:
+            _saveFormData();
+            break;
+          case 2:
+            _promptToClearImageAndFormData();
+            break;
+        }
+      },
     );
   }
 
