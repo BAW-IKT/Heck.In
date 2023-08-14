@@ -197,8 +197,6 @@ class NameFormState extends State<NameForm> {
     _setSectionNotifiers(widgetGroup);
 
     _decideToBuildBottomWidgetBar();
-
-    print("$widgetLabel $widgetValue");
   }
 
   void _decideToBuildBottomWidgetBar() {
@@ -207,11 +205,8 @@ class NameFormState extends State<NameForm> {
         .map((entry) => entry.value)
         .every((ValueNotifier<bool> notifier) => notifier.value == true);
     bool imagesExist = _selectedImages.isNotEmpty ? true : false;
-    bool readyToBuildBottomBar = sectionNotifiersExceptImagesAllTrue && imagesExist;
-    _showBottomBarNotifier.value = sectionNotifiersExceptImagesAllTrue && imagesExist;
-
-    print('ready to build bottom bar: $readyToBuildBottomBar');
-    print('ready to build bottom bar: ${_showBottomBarNotifier.value}');
+    _showBottomBarNotifier.value =
+        sectionNotifiersExceptImagesAllTrue && imagesExist;
   }
 
   /// validates all widgets of a section are checked
@@ -222,11 +217,14 @@ class NameFormState extends State<NameForm> {
     for (var inputField in inputFields) {
       if (inputField["section"] == section) {
         if (inputField["type"] == InputType.list) {
-          if (!inputField.containsKey("selectedValues") || inputField["selectedValues"].length == 0) {
+          if (!inputField.containsKey("selectedValues") ||
+              inputField["selectedValues"].length == 0) {
             allFilledOut = false;
           }
         } else {
-          if (!inputField.containsKey("selectedValue") || inputField["selectedValue"] == null || inputField["selectedValue"] == "") {
+          if (!inputField.containsKey("selectedValue") ||
+              inputField["selectedValue"] == null ||
+              inputField["selectedValue"] == "") {
             allFilledOut = false;
           }
         }
@@ -258,7 +256,7 @@ class NameFormState extends State<NameForm> {
     );
     if (confirmed == true) {
       _clearFormData();
-      _clearImages();
+      _clearImages(goToFirstSectionAfterwards: true);
     }
   }
 
@@ -408,7 +406,7 @@ class NameFormState extends State<NameForm> {
     }
   }
 
-  void _clearImages() async {
+  void _clearImages({goToFirstSectionAfterwards = false}) async {
     for (final image in _selectedImages) {
       await image.delete();
     }
@@ -421,6 +419,9 @@ class NameFormState extends State<NameForm> {
     }
     setState(() {});
     _decideToBuildBottomWidgetBar();
+    if (goToFirstSectionAfterwards) {
+      _selectedIndex = 0;
+    }
   }
 
   void _showClearDialogWithOptionsForFormAndImages() {
@@ -680,16 +681,16 @@ class NameFormState extends State<NameForm> {
     bool createNavigateToButton =
         field.containsKey("action") && field["action"] != null;
     String navigateToButtonText =
-        createNavigateToButton ? _getNavigateToButtonText(field) : "";
+        createNavigateToButton ? _getDescriptiveButtonTextFromFieldAction(field) : "";
     VoidCallback navigateFunction =
-        createNavigateToButton ? _getNavigateFunction(field) : () {};
+        createNavigateToButton ? _getFunctionFromFieldAction(field) : () {};
 
     await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return ToolTipDialog(
-          header: getLocalLabel(field),
-          message: getLocalDescription(field),
+          header: _getLocalizedFieldLabel(field),
+          message: _getLocalizedFieldDescription(field),
           navigateToButtonText: navigateToButtonText,
           onNavigateTo: navigateFunction,
           closeButtonText: currentLocale == "EN" ? "Close" : "Schließen",
@@ -700,7 +701,7 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  VoidCallback _getNavigateFunction(Map field) {
+  VoidCallback _getFunctionFromFieldAction(Map field) {
     if (field["action"] is MapDescriptor) {
       return () {
         widget.webViewPageState.loadMapFromDescriptor(field["action"]);
@@ -721,7 +722,7 @@ class NameFormState extends State<NameForm> {
     }
   }
 
-  String _getNavigateToButtonText(Map field) {
+  String _getDescriptiveButtonTextFromFieldAction(Map field) {
     if (field["action"] is MapDescriptor) {
       return getMapDescription(field["action"], currentLocale);
     } else if (field["action"] is ImageDescriptor) {
@@ -731,12 +732,14 @@ class NameFormState extends State<NameForm> {
     }
   }
 
-  String getLocalLabel(Map field) {
+  String _getLocalizedFieldLabel(Map field) {
     return currentLocale == "EN" ? field["labelEN"] : field["labelDE"];
   }
 
-  String getLocalDescription(Map field) {
-    return currentLocale == "EN" ? field["descriptionEN"] : field["descriptionDE"];
+  String _getLocalizedFieldDescription(Map field) {
+    return currentLocale == "EN"
+        ? field["descriptionEN"]
+        : field["descriptionDE"];
   }
 
   IconButton _buildRadarChartButton() {
@@ -811,6 +814,37 @@ class NameFormState extends State<NameForm> {
   }
 
   Widget _buildSideBar() {
+    return Container(
+      color: MyColors.sideBarBackground,
+      child: Row(children: [
+        const VerticalDivider(thickness: 1, width: 1),
+        SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - 120),
+            child: IntrinsicHeight(
+              child: NavigationRail(
+                backgroundColor: Colors.transparent,
+                selectedIndex: _selectedIndex,
+                groupAlignment: -1.0,
+                onDestinationSelected: (int index) {
+                  _triggeredByMenu = true;
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
+                labelType: NavigationRailLabelType.selected,
+                destinations: _buildNavigationRailDestinations(),
+                // trailing: _buildTrailingNavigationRailDestinations(),
+              ),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  List<NavigationRailDestination> _buildNavigationRailDestinations() {
     int imgIndex = 0;
     for (int i = 0; i < sections.length; i++) {
       if (sections[i]["label"] == FormSection.images) {
@@ -833,73 +867,33 @@ class NameFormState extends State<NameForm> {
                     : MyColors.orange),
             label: Text(sections[imgIndex]["label$currentLocale"])));
       } else {
-        navigationRailDestinations.add(_buildNavigationRailDestination(section));
+        navigationRailDestinations
+            .add(_buildNavigationRailDestination(section));
       }
     }
+    return navigationRailDestinations;
+  }
 
-    return Container(
-      color: MyColors.sideBarBackground,
-      child: Row(children: [
-        const VerticalDivider(thickness: 1, width: 1),
-        SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height - 120),
-            child: IntrinsicHeight(
-              child: NavigationRail(
-                backgroundColor: Colors.transparent,
-                selectedIndex: _selectedIndex,
-                groupAlignment: -1.0,
-                onDestinationSelected: (int index) {
-                  _triggeredByMenu = true;
-                  setState(() {
-                    _selectedIndex = index;
-                  });
-                },
-                labelType: NavigationRailLabelType.selected,
-                destinations: navigationRailDestinations,
-                // trailing: Column(children: [
-                //   const SizedBox(height: 50),
-                //   IconButton(
-                //     icon: Icon(Icons.clear,
-                //         color: Theme.of(context).colorScheme.error),
-                //     onPressed: () => _showClearDialogWithOptionsForFormAndImages(),
-                //   ),
-                //   // _buildGoToMapDebugButton(),
-                //   _buildRadarChartButton(),
-                //   _buildAnimatedSubmitButton(),
-                //   const SizedBox(height: 50),
-                // ]),
-              ),
-            ),
-          ),
-        ),
-      ]),
-    );
+  Widget _buildTrailingNavigationRailDestinations() {
+    return Column(children: [
+      const SizedBox(height: 50),
+      IconButton(
+        icon: Icon(Icons.clear,
+            color: Theme
+                .of(context)
+                .colorScheme
+                .error),
+        onPressed: () => _showClearDialogWithOptionsForFormAndImages(),
+        // onPressed: () => _clearImages(goToFirstSectionAfterwards: true),
+      ),
+      // _buildGoToMapDebugButton(),
+      _buildRadarChartButton(),
+      _buildAnimatedSubmitButton(),
+      const SizedBox(height: 50),
+    ]);
   }
 
   Widget _buildFormPage() {
-    final mediaQueryData = MediaQuery.of(context);
-    final columns = determineRequiredColumnsFromScreenWidth(mediaQueryData);
-
-    int indexedStackCounter = 0;
-    List<SizedBox> indexedStackChildren = [];
-    for (FormSection section in FormSection.values) {
-      Widget thisChild;
-      if (section == FormSection.images) {
-        thisChild = _buildImagePage(section);
-      } else {
-        thisChild = _buildMenuPage(section, columns);
-      }
-      indexedStackChildren.add(
-        SizedBox(
-          height: _selectedIndex == indexedStackCounter ? null : 1,
-          child: thisChild,
-        )
-      );
-      indexedStackCounter++;
-    }
-
     return Scaffold(
       body: Material(
         child: Form(
@@ -915,8 +909,7 @@ class NameFormState extends State<NameForm> {
                     children: [
                       IndexedStack(
                         index: _selectedIndex,
-                        // children: indexedStackChildren,
-                        children: indexedStackChildren
+                        children: _createWidgetsForFormSections(),
                       ),
                     ],
                   ),
@@ -944,20 +937,40 @@ class NameFormState extends State<NameForm> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _isNavigationRailVisible.value = !_isNavigationRailVisible.value;
-        },
-        child: ValueListenableBuilder<bool>(
-          valueListenable: _isNavigationRailVisible,
-          builder: (context, value, child) {
-            return value
-                ? const Icon(Icons.chevron_right)
-                : const Icon(Icons.menu_open);
-          },
-        ),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     _isNavigationRailVisible.value = !_isNavigationRailVisible.value;
+      //   },
+      //   child: ValueListenableBuilder<bool>(
+      //     valueListenable: _isNavigationRailVisible,
+      //     builder: (context, value, child) {
+      //       return value
+      //           ? const Icon(Icons.chevron_right)
+      //           : const Icon(Icons.menu_open);
+      //     },
+      //   ),
+      // ),
     );
+  }
+
+  List<SizedBox> _createWidgetsForFormSections() {
+    int currentSectionIndex = 0;
+    List<SizedBox> formSectionWidgets = [];
+    for (FormSection section in FormSection.values) {
+      Widget sectionWidget;
+      if (section == FormSection.images) {
+        sectionWidget = _buildImagePage(section);
+      } else {
+        sectionWidget = _buildMenuPage(section);
+      }
+      formSectionWidgets.add(SizedBox(
+        // Only show the selected widget. All other widgets are collapsed to a height of 1.
+        height: _selectedIndex == currentSectionIndex ? null : 1,
+        child: sectionWidget,
+      ));
+      currentSectionIndex++;
+    }
+    return formSectionWidgets;
   }
 
   Widget _buildBottomNavBar() {
@@ -1003,12 +1016,12 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  Widget _buildMenuPage(FormSection section, var columns) {
+  Widget _buildMenuPage(FormSection section) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        createHeader(originalToLocale[section.toString()]!),
+        _createHeaderWithSideMenuButton(section),
         const Divider(),
         StepperWidget(
           inputFields: inputFields,
@@ -1019,6 +1032,11 @@ class NameFormState extends State<NameForm> {
           onSectionChange: () {
             setState(() {
               _selectedIndex += 1;
+              // waiting for end of this frame to blur focus
+              // FocusScope.of(context).unfocus();
+              // WidgetsBinding.instance.addPostFrameCallback((_) {
+              //   FocusScope.of(context).unfocus();
+              // });
             });
           },
         ),
@@ -1029,12 +1047,40 @@ class NameFormState extends State<NameForm> {
   Widget _buildImagePage(FormSection section) {
     return Column(
       children: [
-        createHeader(originalToLocale[section.toString()]!),
+        _createHeaderWithSideMenuButton(section),
         const Divider(),
         paddedWidget(_buildSingleTextInputForAnmerkungInImageSection()),
         const Divider(),
         paddedWidget(_buildImageGridAndButtonBarForImageSection()),
       ],
+    );
+  }
+
+  Widget _createHeaderWithSideMenuButton(FormSection section) {
+    return Row(
+      children: [
+        Flexible(
+          child: Center(
+              child: createHeader(originalToLocale[section.toString()]!)),
+        ),
+        _createSideMenuIconButton()
+      ],
+    );
+  }
+
+  Widget _createSideMenuIconButton() {
+    return ValueListenableBuilder<bool>(
+      valueListenable: _isNavigationRailVisible,
+      builder: (context, value, child) {
+        return IconButton(
+          icon: value
+              ? const Icon(Icons.chevron_right)
+              : const Icon(Icons.menu_open),
+          onPressed: () {
+            _isNavigationRailVisible.value = !_isNavigationRailVisible.value;
+          },
+        );
+      },
     );
   }
 

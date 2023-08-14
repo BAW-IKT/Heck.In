@@ -133,7 +133,7 @@ class WebViewPageState extends State<WebViewPage> {
     }
 
     // load last stored locale
-    currentLocale = prefs.getString("locale")!;
+    currentLocale = prefs.getString("locale") ?? "EN";
 
     // set to last known pos
     await geo.getLastKnownLocation();
@@ -162,7 +162,7 @@ class WebViewPageState extends State<WebViewPage> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        showSnackbar(context, "Error when upding geo information: $e");
+        showSnackbar(context, "Error when updating geo information: $e");
       });
     }
 

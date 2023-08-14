@@ -118,7 +118,7 @@ class ToolTipDialog extends StatelessWidget {
 
     return AlertDialog(
       title: Text(header),
-      content: Text(message),
+      content: Text(message, textAlign: TextAlign.justify),
       // content: Linkify(
       //   onOpen: (link) async {
       //     if (!await launchUrl(Uri.parse(link.url))) {

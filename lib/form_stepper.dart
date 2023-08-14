@@ -64,8 +64,8 @@ class StepperWidgetState extends State<StepperWidget> {
       currentStep: _index,
       physics: const ClampingScrollPhysics(),
       onStepCancel: _decrementStepIndex,
-      onStepContinue: _incrementStepIndex,
-      onStepTapped: _setStepIndex,
+      onStepContinue: _incrementStepIndexAndDropKeyboardFocus,
+      onStepTapped: _setStepIndexAndDropKeyboardFocus,
       steps: steps,
       controlsBuilder: (BuildContext context, ControlsDetails details) =>
           _buildControls(context, details, stepCompletionStatus),
@@ -102,7 +102,8 @@ class StepperWidgetState extends State<StepperWidget> {
     });
   }
 
-  void _incrementStepIndex() {
+  void _incrementStepIndexAndDropKeyboardFocus() {
+    // FocusScope.of(context).unfocus();
     if (_index >= steps.length - 1) return;
     setState(() {
       _index += 1;
@@ -110,7 +111,8 @@ class StepperWidgetState extends State<StepperWidget> {
     _scrollToCurrentStep();
   }
 
-  void _setStepIndex(int index) {
+  void _setStepIndexAndDropKeyboardFocus(int index) {
+    // FocusScope.of(context).unfocus();
     setState(() {
       _index = index;
     });
