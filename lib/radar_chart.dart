@@ -22,6 +22,7 @@ class RadarChartDialog extends StatefulWidget {
 
 class RadarChartDialogState extends State<RadarChartDialog> {
   Map<String, String> engTrans = getEnglishRadarPlotTranslations();
+
   List<Widget> _buildLegend() {
     return widget.groupColors.entries.map((entry) {
       return Padding(
@@ -52,45 +53,8 @@ class RadarChartDialogState extends State<RadarChartDialog> {
 
   @override
   Widget build(BuildContext context) {
-    const int maxEntries = 13;
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = Theme.of(context).colorScheme.onSecondary;
-
-    List<RadarDataSet> radarDataSets = [];
-
-    widget.groupColors.forEach((group, color) {
-      List<RadarEntry> entries =
-          List.filled(maxEntries, const RadarEntry(value: 0));
-
-      int index = 0;
-      widget.data.forEach((key, value) {
-        if (widget.dataToGroup[key] == group) {
-          entries[index] = RadarEntry(value: value);
-        }
-        index++;
-      });
-
-      radarDataSets.add(
-        RadarDataSet(
-          dataEntries: entries,
-          fillColor: color.withOpacity(0.40),
-          borderColor: color,
-        ),
-      );
-
-      // Create an additional dataset to hide entries with value 0
-      List<RadarEntry> hiddenEntries =
-          List.filled(maxEntries, RadarEntry(value: 0));
-      radarDataSets.add(
-        RadarDataSet(
-          dataEntries: hiddenEntries,
-          fillColor: backgroundColor,
-          borderColor: backgroundColor,
-        ),
-      );
-    });
 
     return Dialog(
       child: SizedBox(
@@ -116,52 +80,91 @@ class RadarChartDialogState extends State<RadarChartDialog> {
               ),
             ),
             const SizedBox(height: 40),
-            Expanded(
-              child: RadarChart(
-                RadarChartData(
-                  tickCount: 5,
-                  dataSets: radarDataSets,
-                  getTitle: (index, count) {
-                    // calculate rotation
-                    double rotationAngle = -90 + count;
-                    if (count > 180) {
-                      rotationAngle = 90 + count;
-                    }
-
-                    // if text is too long, break it
-                    String tickText = widget.data.keys.elementAt(index);
-                    tickText = widget.currentLocale == "EN" ? engTrans[tickText]! : tickText;
-                    if (tickText.contains("&")) {
-                      var tickSplits = tickText.split("&");
-                      tickSplits[0] += "&";
-                      tickText = tickSplits.join("\n");
-                    }
-
-                    return RadarChartTitle(
-                      text: tickText,
-                      angle: rotationAngle,
-                      // positionPercentageOffset: 0.7,
-                    );
-                  },
-                  ticksTextStyle: TextStyle(
-                      fontSize: 8,
-                      color: isDarkMode ? Colors.white70 : Colors.black87),
-                  titlePositionPercentageOffset: isTablet ? 0.25 : 0.35,
-                  titleTextStyle: TextStyle(fontSize: isTablet ? 8 : 7),
-                  radarBackgroundColor: backgroundColor.withOpacity(0.5),
-                  gridBorderData:
-                      const BorderSide(color: Colors.black26, width: 2),
-                  tickBorderData:
-                      const BorderSide(color: Colors.black26, width: 2),
-                  radarBorderData:
-                      const BorderSide(color: Colors.black87, width: 2),
-                ),
-              ),
-            ),
+            Expanded(child: buildRadarChart(isTablet)),
             const SizedBox(height: 40),
           ],
         ),
       ),
     );
+  }
+
+  Widget buildRadarChart(bool isTablet) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color backgroundColor = Theme.of(context).colorScheme.onSecondary;
+    return RadarChart(
+      RadarChartData(
+        tickCount: 5,
+        dataSets: buildRadarDataSets(backgroundColor),
+        getTitle: (index, count) {
+          // calculate rotation
+          double rotationAngle = -90 + count;
+          if (count > 180) {
+            rotationAngle = 90 + count;
+          }
+
+          // if text is too long, break it
+          String tickText = widget.data.keys.elementAt(index);
+          tickText =
+              widget.currentLocale == "EN" ? engTrans[tickText]! : tickText;
+          if (tickText.contains("&")) {
+            var tickSplits = tickText.split("&");
+            tickSplits[0] += "&";
+            tickText = tickSplits.join("\n");
+          }
+
+          return RadarChartTitle(
+            text: tickText,
+            angle: rotationAngle,
+            // positionPercentageOffset: 0.7,
+          );
+        },
+        ticksTextStyle: TextStyle(
+            fontSize: 8, color: isDarkMode ? Colors.white70 : Colors.black87),
+        titlePositionPercentageOffset: isTablet ? 0.25 : 0.35,
+        titleTextStyle: TextStyle(fontSize: isTablet ? 8 : 7),
+        radarBackgroundColor: backgroundColor.withOpacity(0.5),
+        gridBorderData: const BorderSide(color: Colors.black26, width: 2),
+        tickBorderData: const BorderSide(color: Colors.black26, width: 2),
+        radarBorderData: const BorderSide(color: Colors.black87, width: 2),
+      ),
+    );
+  }
+
+  List<RadarDataSet> buildRadarDataSets(Color backgroundColor) {
+    List<RadarDataSet> radarDataSets = [];
+    const int maxEntries = 13;
+
+    widget.groupColors.forEach((group, color) {
+      List<RadarEntry> entries =
+          List.filled(maxEntries, const RadarEntry(value: 0));
+
+      int index = 0;
+      widget.data.forEach((key, value) {
+        if (widget.dataToGroup[key] == group) {
+          entries[index] = RadarEntry(value: value);
+        }
+        index++;
+      });
+
+      radarDataSets.add(
+        RadarDataSet(
+          dataEntries: entries,
+          fillColor: color.withOpacity(0.40),
+          borderColor: color,
+        ),
+      );
+
+      // Create an additional dataset to hide entries with value 0
+      List<RadarEntry> hiddenEntries =
+          List.filled(maxEntries, const RadarEntry(value: 0));
+      radarDataSets.add(
+        RadarDataSet(
+          dataEntries: hiddenEntries,
+          fillColor: backgroundColor,
+          borderColor: backgroundColor,
+        ),
+      );
+    });
+    return radarDataSets;
   }
 }
