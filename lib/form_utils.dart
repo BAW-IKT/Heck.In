@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 
@@ -196,6 +198,32 @@ class LocaleMap {
 
     return map;
   }
+}
+
+Map<String, dynamic> filterAndSimplifySubmittedFormData(
+    Map<String, dynamic> formData) {
+  String locale = formData["locale"];
+  List<String> valuesToExclude = ["fredl", "locale", "images", "uid"];
+  Map<String, String> translate = {
+    "geo_latitude": locale == "EN" ? "Latitude" : "Breitengrad",
+    "geo_longitude": locale == "EN" ? "Longitude" : "Längengrad",
+    "form_submit_timestamp": locale == "EN" ? "Timestamp" : "Zeitpunkt",
+  };
+
+  Map<String, dynamic> filteredMap = {};
+
+  for (var entry in formData.entries) {
+    if (!valuesToExclude.contains(entry.key)) {
+      String newKey =
+          translate.containsKey(entry.key) ? translate[entry.key]! : entry.key;
+      filteredMap[newKey] = entry.value;
+    }
+  }
+
+  SplayTreeMap<String, dynamic> sortedMap =
+      SplayTreeMap<String, dynamic>.from(filteredMap);
+
+  return sortedMap;
 }
 
 void validateSelectedValueOfDropdownFieldMatchesCurrentLocale(

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hedge_profiler_flutter/utils_export_pdf.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -310,7 +311,16 @@ class NameFormState extends State<NameForm> {
     _isSaving.value = true;
 
     // write to the database, show snackbar with result, stop loading indicator
-    db.writeDocument(dataMap, _selectedImages, (success, message) {
+    db.writeDocument(dataMap, _selectedImages,
+        (success, message, dataWithImageAndTimestamp) {
+      if (success) {
+        Map<String, dynamic> simpleData =
+            filterAndSimplifySubmittedFormData(dataWithImageAndTimestamp);
+        PdfCreator pdfCreator =
+            PdfCreator(simpleData, originalToLocale, _selectedImages);
+        pdfCreator.createAndOpenPDF();
+      }
+
       _isSaving.value = false;
       String statusText = currentLocale == "EN"
           ? "Document saved successfully"
@@ -616,6 +626,7 @@ class NameFormState extends State<NameForm> {
     localeMap.initialize(inputFields, sections);
     localeToOriginal = localeMap.getLocaleToOriginal(currentLocale);
     originalToLocale = localeMap.getOriginalToLocale(currentLocale);
+    _decideToBuildBottomWidgetBar();
     return locale ?? "EN";
   }
 

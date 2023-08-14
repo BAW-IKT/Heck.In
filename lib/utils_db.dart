@@ -35,7 +35,7 @@ Future<String> signInAnonymousUserAndGetUID() async{
 Future<void> writeDocument(
     Map<String, dynamic> formData,
     List<File> images,
-    Function(bool, String) onResult) async {
+    Function(bool, String, Map<String, dynamic>) onResult) async {
   try {
     // Sign in anonymously
     String uid = await signInAnonymousUserAndGetUID();
@@ -69,9 +69,9 @@ Future<void> writeDocument(
     await document.set(documentData);
 
     // Call the callback function with success status and message
-    onResult(true, 'success');
+    onResult(true, 'success', documentData);
   } catch (e) {
     // Call the callback function with error status and message
-    onResult(false, '$e');
+    onResult(false, '$e', {});
   }
 }
