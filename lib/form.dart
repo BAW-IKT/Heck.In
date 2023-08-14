@@ -312,13 +312,9 @@ class NameFormState extends State<NameForm> {
 
     // write to the database, show snackbar with result, stop loading indicator
     db.writeDocument(dataMap, _selectedImages,
-        (success, message, dataWithImageAndTimestamp) {
+        (success, message, formDataWithImagesAndTimestamp) {
       if (success) {
-        Map<String, dynamic> simpleData =
-            filterAndSimplifySubmittedFormData(dataWithImageAndTimestamp);
-        PdfCreator pdfCreator =
-            PdfCreator(simpleData, originalToLocale, _selectedImages);
-        pdfCreator.createAndOpenPDF();
+        _generatePdfDataAndCreatePdf(formDataWithImagesAndTimestamp);
       }
 
       _isSaving.value = false;
@@ -327,6 +323,18 @@ class NameFormState extends State<NameForm> {
           : "Dokument erfolgreich gespeichert";
       showSnackbar(context, success ? statusText : message, success: success);
     });
+  }
+
+  Future<void> _generatePdfDataAndCreatePdf(
+      Map<String, dynamic> formDataWithImagesAndTimestamp) async {
+    Map<String, dynamic> simpleFormData =
+        filterAndSimplifySubmittedFormData(formDataWithImagesAndTimestamp);
+    PdfCreator pdf = PdfCreator();
+    pdf.addFormData(simpleFormData, originalToLocale);
+    pdf.addImages(_selectedImages);
+    pdf.saveToFileAndOpenPDF();
+    await updateRadarChartData();
+
   }
 
   Future<void> _loadPersistedImages() async {

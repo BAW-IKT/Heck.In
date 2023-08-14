@@ -5,15 +5,13 @@ import 'package:open_file_plus/open_file_plus.dart';
 import 'package:pdf/widgets.dart';
 
 class PdfCreator {
-  final Map<String, dynamic> formData;
-  final Map<String, String> originalToLocale;
-  final List<File> images;
   late String filePath;
-  late Document pdf;
+  Document pdf = Document();
 
-  PdfCreator(this.formData, this.originalToLocale, this.images);
+  PdfCreator();
 
-  List<TableRow> processFormData() {
+  List<TableRow> processFormData(
+      Map<String, dynamic> formData, Map<String, String> originalToLocale) {
     List<TableRow> rows = [];
 
     formData.forEach((key, value) {
@@ -45,22 +43,16 @@ class PdfCreator {
     return rows;
   }
 
-  Future<void> createAndOpenPDF() async {
-    pdf = Document();
-    _addFormData();
-    _addImages();
-    saveToFileAndOpenPDF();
-  }
-
-  void _addFormData() {
+  void addFormData(
+      Map<String, dynamic> formData, Map<String, String> originalToLocale) {
     pdf.addPage(Page(
         build: (Context context) => Table(columnWidths: {
               0: const FlexColumnWidth(1),
               1: const FlexColumnWidth(1),
-            }, children: processFormData())));
+            }, children: processFormData(formData, originalToLocale))));
   }
 
-  void _addImages() {
+  void addImages(List<File> images) {
     for (File imageFile in images) {
       final image = MemoryImage(imageFile.readAsBytesSync());
       pdf.addPage(Page(
@@ -69,6 +61,14 @@ class PdfCreator {
         ),
       ));
     }
+  }
+
+  void addRadarChartData() {
+
+  }
+
+  void addRadarChartGraph() {
+
   }
 
   void saveToFileAndOpenPDF() async {
