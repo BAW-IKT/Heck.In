@@ -339,8 +339,6 @@ class NameFormState extends State<NameForm> {
     Uint8List? graphData = await _openRadarChartCreatePngAndCloseAgain();
     pdf.addRadarChartGraph(graphData);
     pdf.saveToFileAndOpenPDF();
-    await updateRadarChartData();
-    // Uint8List radarChartData = currentRadarChartDialog
   }
 
   Future<void> _loadPersistedImages() async {
@@ -537,7 +535,7 @@ class NameFormState extends State<NameForm> {
     _radarChartDataListsReduced = {};
   }
 
-  Future<void> updateRadarChartData() async {
+  Future<void> updateRadarChartData({bool exportReady = false}) async {
     resetRadarChartData();
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -547,7 +545,7 @@ class NameFormState extends State<NameForm> {
 
     // perform calculations, update _radarChartData
     _radarChartData = calc.performCalculations(_radarChartDataListsReduced);
-    currentRadarChartDialog = await createRadarChartDialog();
+    currentRadarChartDialog = await createRadarChartDialog(exportReady);
   }
 
   void updateRadarDataFull(SharedPreferences prefs) {
@@ -812,12 +810,13 @@ class NameFormState extends State<NameForm> {
 
   Future<Uint8List?> _openRadarChartCreatePngAndCloseAgain() async {
     final imageData = Completer<Uint8List>();
+    _chartDataFuture = updateRadarChartData(exportReady: true);
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return FutureBuilder(
-          future: updateRadarChartData(),
+          future: _chartDataFuture,
           builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -836,7 +835,7 @@ class NameFormState extends State<NameForm> {
     return await imageData.future;
   }
 
-  Future<RadarChartDialog> createRadarChartDialog() async {
+  Future<RadarChartDialog> createRadarChartDialog(bool exportReady) async {
     return RadarChartDialog(
       data: _radarChartData,
       dataToGroup: _radarDataToGroup,
@@ -845,6 +844,7 @@ class NameFormState extends State<NameForm> {
       setCapturePngFromRadarChartCallback: (fn) {
         capturePngFromRadarChartFunction = fn;
       },
+      exportReady: exportReady,
     );
   }
 
