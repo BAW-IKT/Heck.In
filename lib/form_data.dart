@@ -110,11 +110,12 @@ String getMapDescription(MapDescriptor descriptor, String currentLocale) {
 
 String getMapDescriptionForMenu(MapDescriptor descriptor, String currentLocale) {
   String description = getMapDescription(descriptor, currentLocale);
-  if (currentLocale == "EN") {
-    return "View $description";
-  } else {
-    return "$description Öffnen";
-  }
+  return description;
+  // if (currentLocale == "EN") {
+  //   return "View $description";
+  // } else {
+  //   return "$description Öffnen";
+  // }
 }
 
 String getImageDescriptorPath(ImageDescriptor descriptor) {

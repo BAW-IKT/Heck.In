@@ -216,18 +216,30 @@ class RadarChartDialogState extends State<RadarChartDialog> {
       );
     });
 
-    // Create an additional dataset to hide entries with value 0
-    List<RadarEntry> hiddenEntries =
+    // dataset with background color to hide other entries with 0 scores
+    List<RadarEntry> entryWithBackgroundColorToHideOtherEntriesWithValueZero =
         List.filled(maxEntries, const RadarEntry(value: 0));
     radarDataSets.add(
       RadarDataSet(
-        dataEntries: hiddenEntries,
+        dataEntries: entryWithBackgroundColorToHideOtherEntriesWithValueZero,
         fillColor: middleRoseCenterColor,
         borderColor: middleRoseBorderColor,
         borderWidth: 0,
         entryRadius: 5.3,
       ),
     );
+
+    // invisible dataset to always scale from 0 to 5
+    List<RadarEntry> invisibleEntryToAlwaysScaleToMax =
+        List.filled(maxEntries, const RadarEntry(value: 5));
+    radarDataSets.add(
+      RadarDataSet(
+        dataEntries: invisibleEntryToAlwaysScaleToMax,
+        fillColor: Colors.transparent,
+        borderColor: Colors.transparent,
+      ),
+    );
+
     return radarDataSets;
   }
 
