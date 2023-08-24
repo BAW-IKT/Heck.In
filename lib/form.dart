@@ -333,11 +333,12 @@ class NameFormState extends State<NameForm> {
       Map<String, dynamic> formDataWithImagesAndTimestamp) async {
     Map<String, dynamic> simpleFormData =
         filterAndSimplifySubmittedFormData(formDataWithImagesAndTimestamp);
-    PdfCreator pdf = PdfCreator();
-    pdf.addFormData(simpleFormData, originalToLocale);
-    pdf.addImages(_selectedImages);
+    PdfCreator pdf = PdfCreator(originalToLocale, currentLocale);
+    pdf.addFormData(simpleFormData);
+    pdf.addRadarChartData(_radarChartDataListsReduced);
     Uint8List? graphData = await _openRadarChartCreatePngAndCloseAgain();
     pdf.addRadarChartGraph(graphData);
+    pdf.addImages(_selectedImages);
     pdf.saveToFileAndOpenPDF();
   }
 

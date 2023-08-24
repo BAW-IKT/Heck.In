@@ -8,12 +8,28 @@ import 'package:pdf/widgets.dart';
 class PdfCreator {
   late String filePath;
   Document pdf = Document();
+  late Map<String, String> originalToLocale;
+  late String currentLocale;
 
-  PdfCreator();
+  // thats a constructor
+  PdfCreator(this.originalToLocale, this.currentLocale);
 
-  List<TableRow> processFormData(
-      Map<String, dynamic> formData, Map<String, String> originalToLocale) {
+  void addFormData(Map<String, dynamic> formData) {
+    int rowsPerPage = 50;
+    List<TableRow> rows = createRowsFromFormData(formData);
+    addHeaderToRows(
+        rows, currentLocale == "EN" ? "Input values" : "Eingabedaten");
+
+    addPagesFromRows(rows, rowsPerPage, columnWidths: {
+      0: const FlexColumnWidth(1),
+      1: const FlexColumnWidth(1),
+    });
+  }
+
+  List<TableRow> createRowsFromFormData(Map<String, dynamic> formData) {
     List<TableRow> rows = [];
+
+    addDividerToRows(rows, 2);
 
     formData.forEach((key, value) {
       String translatedKey =
@@ -25,7 +41,6 @@ class PdfCreator {
               ? originalToLocale[value[i]]!
               : value[i];
           rows.add(TableRow(children: [
-            // Add key for the first row only
             i == 0 ? Text(translatedKey) : Text(''),
             Text(translatedItem),
           ]));
@@ -41,31 +56,107 @@ class PdfCreator {
       }
     });
 
+    addDividerToRows(rows, 2);
+
     return rows;
   }
 
-  void addFormData(
-      Map<String, dynamic> formData, Map<String, String> originalToLocale) {
-    pdf.addPage(Page(
-        build: (Context context) => Table(columnWidths: {
-              0: const FlexColumnWidth(1),
-              1: const FlexColumnWidth(1),
-            }, children: processFormData(formData, originalToLocale))));
+  void addDividerToRows(List<TableRow> rows, int columns) {
+    List<Widget> dividerChildren =
+        List<Widget>.generate(columns, (index) => Divider());
+
+    rows.add(TableRow(children: dividerChildren));
   }
 
   void addImages(List<File> images) {
-    for (File imageFile in images) {
+    for (int i = 0; i < images.length; i++) {
+      final imageFile = images[i];
       final image = MemoryImage(imageFile.readAsBytesSync());
-      pdf.addPage(Page(
-        build: (Context context) => Center(
-          child: Image(image),
+      int imageIndex = i + 1;
+      pdf.addPage(
+        Page(
+          build: (Context context) => Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Text(
+                    currentLocale == "EN"
+                        ? "Image $imageIndex"
+                        : "Bild $imageIndex",
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+              ),
+              Divider(),
+              Expanded(child: Center(child: Image(image))),
+            ],
+          ),
         ),
-      ));
+      );
     }
   }
 
-  void addRadarChartData() {
+  void addRadarChartData(Map<String, dynamic> radarChartData) {
+    int rowsPerPage = 48;
+    List<TableRow> rows = createRowsFromRadarChartData(radarChartData);
+    addHeaderToRows(rows, currentLocale == "EN" ? "Scores" : "Ergebnisse");
 
+    addPagesFromRows(rows, rowsPerPage, columnWidths: {
+      0: const FlexColumnWidth(1),
+      1: const FlexColumnWidth(1),
+      2: const FlexColumnWidth(0.3)
+    });
+  }
+
+  List<TableRow> createRowsFromRadarChartData(
+      Map<String, dynamic> radarChartData) {
+    List<TableRow> rows = [];
+    for (var group in radarChartData.entries) {
+      bool groupNameWritten = false;
+      group.value.entries.forEach((parameter) {
+        // divider before actual content at beginning of group
+        if (!groupNameWritten) {
+          addDividerToRows(rows, 3);
+        }
+        rows.add(
+          TableRow(children: [
+            Text(groupNameWritten ? "" : group.key),
+            Text(originalToLocale[parameter.key]!),
+            Text(parameter.value.toString()),
+          ]),
+        );
+        groupNameWritten = true;
+      });
+    }
+
+    addDividerToRows(rows, 3);
+
+    return rows;
+  }
+
+  void addHeaderToRows(List<TableRow> rows, String headerText) {
+    rows.insert(
+        0,
+        TableRow(children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 16),
+            child: Text(headerText,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          ),
+        ]));
+  }
+
+  void addPagesFromRows(List<TableRow> rows, int rowsPerPage,
+      {required Map<int, TableColumnWidth> columnWidths}) {
+    for (int i = 0; i < rows.length; i += rowsPerPage) {
+      pdf.addPage(Page(
+          build: (Context context) => Table(
+              columnWidths: columnWidths,
+              children: rows.sublist(
+                  i,
+                  i + rowsPerPage > rows.length
+                      ? rows.length
+                      : i + rowsPerPage))));
+    }
   }
 
   void addRadarChartGraph(Uint8List? graphAsImage) {
