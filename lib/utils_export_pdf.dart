@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:external_path/external_path.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file_plus/open_file_plus.dart';
@@ -67,8 +68,16 @@ class PdfCreator {
 
   }
 
-  void addRadarChartGraph() {
-
+  void addRadarChartGraph(Uint8List? graphAsImage) {
+    if (graphAsImage == null) {
+      return;
+    }
+    final image = MemoryImage(graphAsImage);
+    pdf.addPage(Page(
+      build: (Context context) => Center(
+        child: Image(image),
+      ),
+    ));
   }
 
   void saveToFileAndOpenPDF() async {

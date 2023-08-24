@@ -72,6 +72,10 @@ class NameFormState extends State<NameForm> {
   // String selectedMenuItem = "";
   List<String> menuItems = [];
 
+  RadarChartDialog? currentRadarChartDialog;
+  Future<void>? _chartDataFuture;
+  Future<Uint8List> Function()? capturePngFromRadarChartFunction;
+
   final ValueNotifier<bool> _showBottomBarNotifier = ValueNotifier<bool>(false);
 
   @override
@@ -332,9 +336,11 @@ class NameFormState extends State<NameForm> {
     PdfCreator pdf = PdfCreator();
     pdf.addFormData(simpleFormData, originalToLocale);
     pdf.addImages(_selectedImages);
+    Uint8List? graphData = await _openRadarChartCreatePngAndCloseAgain();
+    pdf.addRadarChartGraph(graphData);
     pdf.saveToFileAndOpenPDF();
     await updateRadarChartData();
-
+    // Uint8List radarChartData = currentRadarChartDialog
   }
 
   Future<void> _loadPersistedImages() async {
@@ -541,6 +547,7 @@ class NameFormState extends State<NameForm> {
 
     // perform calculations, update _radarChartData
     _radarChartData = calc.performCalculations(_radarChartDataListsReduced);
+    currentRadarChartDialog = await createRadarChartDialog();
   }
 
   void updateRadarDataFull(SharedPreferences prefs) {
@@ -771,7 +778,41 @@ class NameFormState extends State<NameForm> {
     );
   }
 
+  IconButton _buildSaveDebugButton() {
+    return IconButton(
+      icon: const Icon(
+        Icons.analytics_outlined,
+        color: MyColors.red,
+      ),
+      onPressed: () {
+
+        _saveFormData();
+      },
+    );
+  }
+
   void _openRadarChart() {
+    _chartDataFuture = updateRadarChartData();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return FutureBuilder(
+          future: _chartDataFuture,
+          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return currentRadarChartDialog!;
+            } else {
+              return const CircularProgressIndicator();
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Future<Uint8List?> _openRadarChartCreatePngAndCloseAgain() async {
+    final imageData = Completer<Uint8List>();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -779,17 +820,30 @@ class NameFormState extends State<NameForm> {
           future: updateRadarChartData(),
           builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
-              return RadarChartDialog(
-                data: _radarChartData,
-                dataToGroup: _radarDataToGroup,
-                groupColors: _radarGroupColors,
-                currentLocale: currentLocale,
-              );
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                imageData.complete(await capturePngFromRadarChartFunction!());
+                Navigator.of(context).pop();
+              });
+              return currentRadarChartDialog!;
             } else {
-              return const CircularProgressIndicator(); // or any other loading indicator
+              return const CircularProgressIndicator();
             }
           },
         );
+      },
+    );
+
+    return await imageData.future;
+  }
+
+  Future<RadarChartDialog> createRadarChartDialog() async {
+    return RadarChartDialog(
+      data: _radarChartData,
+      dataToGroup: _radarDataToGroup,
+      groupColors: _radarGroupColors,
+      currentLocale: currentLocale,
+      setCapturePngFromRadarChartCallback: (fn) {
+        capturePngFromRadarChartFunction = fn;
       },
     );
   }
@@ -854,7 +908,7 @@ class NameFormState extends State<NameForm> {
                 },
                 labelType: NavigationRailLabelType.selected,
                 destinations: _buildNavigationRailDestinations(),
-                // trailing: _buildTrailingNavigationRailDestinations(),
+                trailing: _buildTrailingNavigationRailDestinations(),
               ),
             ),
           ),
@@ -907,6 +961,7 @@ class NameFormState extends State<NameForm> {
       ),
       // _buildGoToMapDebugButton(),
       _buildRadarChartButton(),
+      _buildSaveDebugButton(),
       _buildAnimatedSubmitButton(),
       const SizedBox(height: 50),
     ]);
