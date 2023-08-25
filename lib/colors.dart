@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class MyColors {
   static const Color blue = Color.fromRGBO(169, 194, 195, 1);
-  static const Color green = Color.fromRGBO(162, 214, 168, 1);
+  static const Color green = Color.fromRGBO(86, 208, 115, 1);
   static const Color greenDark = Color.fromRGBO(88, 162, 95, 1);
-  static const Color orange = Color.fromRGBO(230, 194, 164, 1);
+  static const Color orange = Color.fromRGBO(228, 157, 98, 1);
   static const Color red = Color.fromRGBO(211, 137, 137, 1);
   static const Color redDark = Color.fromRGBO(195, 93, 93, 1);
-  static const Color yellow = Color.fromRGBO(233, 213, 93, 1);
+  static const Color yellow = Color.fromRGBO(236, 193, 56, 1);
   static const Color purple = Color.fromRGBO(217, 106, 252, 1);
   static const Color teal = Color.fromRGBO(0, 150, 136, 1);
   static const Color coral = Color.fromRGBO(245, 125, 105, 1);
