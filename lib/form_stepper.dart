@@ -173,6 +173,7 @@ class StepperWidgetState extends State<StepperWidget> {
     return ElevatedButton(
       onPressed: () {
         if (allStepsComplete) {
+          // FocusScope.of(context).unfocus();
           widget.onSectionChange();
         } else {
           _buildSnackbarForMissingSteps();
@@ -222,21 +223,23 @@ class StepperWidgetState extends State<StepperWidget> {
   }
 
   void _mapWidgetToSubSections(Map field, Widget thisInput) {
-    if (!field.containsKey("subSection${widget.currentLocale}")) {
+    String localeKey = "subSection${widget.currentLocale}";
+    String label = field["label"];
+    if (!field.containsKey(localeKey) || field[localeKey] == null) {
       String fieldLabel = field["label${widget.currentLocale}"];
       subSections[fieldLabel] = [thisInput];
-      subSectionToOriginales[fieldLabel] = [field["label"]];
+      subSectionToOriginales[fieldLabel] = [label];
     } else {
-      String subSection = field["subSection${widget.currentLocale}"];
+      String subSection = field[localeKey];
       if (!subSections.containsKey(subSection)) {
         subSections[subSection] = [thisInput];
       } else {
         subSections[subSection].add(thisInput);
       }
       if (!subSectionToOriginales.containsKey(subSection)) {
-        subSectionToOriginales[subSection] = [field["label"]];
+        subSectionToOriginales[subSection] = [label];
       } else {
-        subSectionToOriginales[subSection]?.add(field["label"]);
+        subSectionToOriginales[subSection]?.add(label);
       }
     }
   }
@@ -297,6 +300,7 @@ class StepperWidgetState extends State<StepperWidget> {
         key: UniqueKey(),
         field: field,
         onValueChange: (label, value) {
+          // FocusScope.of(context).unfocus();
           widget.onWidgetChanged(label, value);
           setState(() {
 
