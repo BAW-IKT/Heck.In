@@ -372,8 +372,9 @@ List<Map<String, dynamic>> createFormFields() {
       'valuesEN': ['', 'purple', 'blue ', 'white-blue-light blue ', 'light yellow-white ', 'red, orange'],
       'valuesDE': ['', 'violett', 'blau ', 'weißblau-hellblau ', 'hellgelb-weiß ', 'rot, orange'],
       'valueMap': {
-        'Klimaschutz': [null, 5, 4, 3, 2, 1],
-        'Bodenschutz': [null, 1, 2, 3, 4, 5],
+        'Klimaschutz': [null, 1, 2, 3, 4, 5],
+        'Bodenschutz': [null, 5, 4, 3, 2, 1],
+        'Ertragssteigerung': [null, 5, 4, 3, 2, 1],
       },
     },
     {
