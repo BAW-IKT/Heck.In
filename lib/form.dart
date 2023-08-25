@@ -913,7 +913,7 @@ class NameFormState extends State<NameForm> {
     return Container(
       color: MyColors.sideBarBackground,
       child: Row(children: [
-        const VerticalDivider(thickness: 1, width: 1),
+        const VerticalDivider(thickness: 1, width: 1, color: MyColors.dividerColor),
         SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -1034,19 +1034,23 @@ class NameFormState extends State<NameForm> {
           );
         },
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     _isNavigationRailVisible.value = !_isNavigationRailVisible.value;
-      //   },
-      //   child: ValueListenableBuilder<bool>(
-      //     valueListenable: _isNavigationRailVisible,
-      //     builder: (context, value, child) {
-      //       return value
-      //           ? const Icon(Icons.chevron_right)
-      //           : const Icon(Icons.menu_open);
-      //     },
-      //   ),
-      // ),
+      // floatingActionButton: _buildFloatingActionButton(),
+    );
+  }
+
+  FloatingActionButton _buildFloatingActionButton() {
+    return FloatingActionButton(
+      onPressed: () {
+        _isNavigationRailVisible.value = !_isNavigationRailVisible.value;
+      },
+      child: ValueListenableBuilder<bool>(
+        valueListenable: _isNavigationRailVisible,
+        builder: (context, value, child) {
+          return value
+              ? const Icon(Icons.chevron_right)
+              : const Icon(Icons.menu_open);
+        },
+      ),
     );
   }
 
@@ -1071,45 +1075,55 @@ class NameFormState extends State<NameForm> {
   }
 
   Widget _buildBottomNavBar() {
-    return BottomNavigationBar(
-      //Define your own attributes for the bottom navigation bar here
-      items: <BottomNavigationBarItem>[
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.analytics_outlined, color: MyColors.green),
-          label: currentLocale == "EN" ? "View result" : "Ergebnis ansehen",
-        ),
-        BottomNavigationBarItem(
-          icon: ValueListenableBuilder<bool>(
-            valueListenable: _isSaving,
-            builder: (context, value, child) {
-              return value
-                  // Show the progress indicator when saving
-                  ? const CircularProgressIndicator()
-                  // Show the send and archive icon when not saving
-                  : const Icon(Icons.send_and_archive, color: MyColors.green);
-            },
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: MyColors.dividerColor,
+            width: 1,
           ),
-          label: currentLocale == "EN" ? "Save result" : "Ergebnis speichern",
         ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.delete, color: MyColors.red),
-          label: currentLocale == "EN" ? "Reset Form" : "Formular löschen",
-        ),
-        // Add more items here
-      ],
-      onTap: (index) {
-        switch (index) {
-          case 0:
-            _openRadarChart();
-            break;
-          case 1:
-            _saveFormData();
-            break;
-          case 2:
-            _promptToClearImageAndFormData();
-            break;
-        }
-      },
+      ),
+      child: BottomNavigationBar(
+        //Define your own attributes for the bottom navigation bar here
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.analytics_outlined, color: MyColors.green),
+            label: currentLocale == "EN" ? "View result" : "Ergebnis ansehen",
+          ),
+          BottomNavigationBarItem(
+            icon: ValueListenableBuilder<bool>(
+              valueListenable: _isSaving,
+              builder: (context, value, child) {
+                return value
+                    // Show the progress indicator when saving
+                    ? const CircularProgressIndicator()
+                    // Show the send and archive icon when not saving
+                    : const Icon(Icons.send_and_archive, color: MyColors.green);
+              },
+            ),
+            label: currentLocale == "EN" ? "Save result" : "Ergebnis speichern",
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.delete, color: MyColors.red),
+            label: currentLocale == "EN" ? "Reset Form" : "Formular löschen",
+          ),
+          // Add more items here
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              _openRadarChart();
+              break;
+            case 1:
+              _saveFormData();
+              break;
+            case 2:
+              _promptToClearImageAndFormData();
+              break;
+          }
+        },
+      ),
     );
   }
 
@@ -1119,7 +1133,7 @@ class NameFormState extends State<NameForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _createHeaderWithSideMenuButton(section),
-        const Divider(),
+        const Divider(color: MyColors.dividerColor),
         StepperWidget(
           inputFields: inputFields,
           sectionToBuild: section,
@@ -1145,9 +1159,9 @@ class NameFormState extends State<NameForm> {
     return Column(
       children: [
         _createHeaderWithSideMenuButton(section),
-        const Divider(),
+        const Divider(color: MyColors.dividerColor,),
         paddedWidget(_buildSingleTextInputForAnmerkungInImageSection()),
-        const Divider(),
+        const Divider(color: MyColors.dividerColor,),
         paddedWidget(_buildImageGridAndButtonBarForImageSection()),
         _selectedImages.isEmpty
             ? paddedWidget(_createInfoTextForImagePage(),
@@ -1158,14 +1172,25 @@ class NameFormState extends State<NameForm> {
   }
 
   Widget _createHeaderWithSideMenuButton(FormSection section) {
-    return Row(
-      children: [
-        Flexible(
-          child: Center(
-              child: createHeader(originalToLocale[section.toString()]!)),
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: MyColors.dividerColor,  // Choose the color of the border
+            width: 1,  // Choose the width of the border
+          ),
         ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Flexible(
+            child: Center(
+              child: createHeader(originalToLocale[section.toString()]!)),
+          ),
         _createSideMenuIconButton()
-      ],
+        ],
+      ),
     );
   }
 

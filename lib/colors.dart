@@ -15,6 +15,7 @@ class MyColors {
   static const Color grey = Colors.grey;
   static const Color white = Colors.white;
   static const Color sideBarBackground = Color.fromRGBO(162, 214, 168, 0.15);
+  static const Color dividerColor = Color.fromRGBO(150, 150, 150, 0.3);
   // static const Color sideBarBackground = Colors.transparent;
   static const Color topBarColor = Color.fromRGBO(162, 214, 168, 0.15);
   static const Color blueDark = Color.fromRGBO(0, 96, 205, 1);
