@@ -256,7 +256,6 @@ List<Map<String, dynamic>> createFormFields() {
       // 'descriptionEN': 'Enter the name of the reviewer',
       // 'descriptionDE': 'Geben Sie den Namen des Gutachters ein',
       "action": null,
-      // 'action': MapDescriptor.arcanum,
       'section': FormSection.general,
       'borderColor': MyColors.orange,
       'controller': TextEditingController(),

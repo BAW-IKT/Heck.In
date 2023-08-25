@@ -478,30 +478,36 @@ class WebViewPageState extends State<WebViewPage> {
   }
 
   void loadMapGeonodeLebensraumverletzung() {
+    // TODO: requested at https://geonode.lebensraumvernetzung.at/messages/thread/1/
+    // TODO: email sent to: v10@bmk.gv.at
     loadPageWrapper(
         "https://geonode.lebensraumvernetzung.at/maps/63/view#/",
         MapDescriptor.geonodeLebensraumVernetzung);
   }
 
   void loadMapEcosystemAccounts() {
+    // TODO: email sent to: jrc-inca@ec.europa.eu
     loadPageWrapper(
         "https://ecosystem-accounts.jrc.ec.europa.eu/map",
         MapDescriptor.ecosystem);
   }
 
   void loadMapGeoland() {
+    // TODO: email sent to: thomas.piechl@ktn.gv.at
     loadPageWrapper(
         "https://www.geoland.at/webgisviewer/geoland/map/Geoland_Viewer/Geoland",
         MapDescriptor.geoland);
   }
 
   void loadMapNoeNaturschutz() {
+    // TODO: email sent to: gis-support@noel.gv.at
     loadPageWrapper(
         "https://atlas.noe.gv.at/atlas/portal/noe-atlas/map/Naturraum/Naturschutz",
         MapDescriptor.noeNaturschutz);
   }
 
   void loadMapEEAEuropa() {
+    // TODO: request sent via https://www.eea.europa.eu/en/about/contact-us/ask
     loadPageWrapper(
         "https://www.eea.europa.eu/data-and-maps/explore-interactive-maps/european-protected-areas-1",
         MapDescriptor.eeaProtectedAreas);
