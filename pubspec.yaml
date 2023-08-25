@@ -98,6 +98,8 @@ flutter:
     - data/lsw_logo.png
     - data/kwb_noe4.png
     - data/kwb_noe_Regionen.png
+    - data/Tabelle_Altersklassen.jpg
+    - data/Tabelle_Altersklassen_engl.jpg
     - data/Roboto-Regular.ttf
     - data/Roboto-Bold.ttf
   fonts:

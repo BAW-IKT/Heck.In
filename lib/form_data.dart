@@ -124,6 +124,10 @@ String getImageDescriptorPath(ImageDescriptor descriptor) {
       return "data/kwb_noe4.png";
     case ImageDescriptor.kwb_noe_regionen:
       return "data/kwb_noe_Regionen.png";
+    case ImageDescriptor.tabelle_altersklassen:
+      return "data/Tabelle_Altersklassen.jpg";
+    case ImageDescriptor.tabelle_altersklassen_engl:
+      return "data/Tabelle_Altersklassen_engl.jpg";
   }
 }
 
@@ -134,6 +138,10 @@ String getImageDescriptorDescription(ImageDescriptor descriptor,
       return currentLocale == "EN" ? "Water balance map" : "Wasserbilanz Karte";
     case ImageDescriptor.kwb_noe_regionen:
       return currentLocale == "EN" ? "Hedge region map" : "Heckenregion Karte";
+    case ImageDescriptor.tabelle_altersklassen:
+      return "Altersklassen";
+    case ImageDescriptor.tabelle_altersklassen_engl:
+      return "Age Groups";
   }
 }
 
@@ -679,7 +687,7 @@ List<Map<String, dynamic>> createFormFields() {
       "labelDE": "Alterszusammensetzung",
       "descriptionEN": """Enter the age composition""",
       "descriptionDE": """Die Einschätzung des Alters der Pflanzen in der Hecke erfordert etwas Übung. Zur leichteren Einschätzung wurde aus ZWÖLFER (1982a) typische Kriterien für die Alters(klassen)zuordnung entnommen (siehe Tabelle 3). Es ist möglich, dass mehrere Altersklassen in einer Hecke vorkommen. """,
-      "action": null,
+      "actionEN": ImageDescriptor.tabelle_altersklassen_engl, "actionDE": ImageDescriptor.tabelle_altersklassen,
       "section": FormSection.structure,
       "subSectionEN": "Biodiversity Layers",
       "subSectionDE": "Biodiversitätsschichten",
@@ -1006,7 +1014,9 @@ enum MapDescriptor {
 
 enum ImageDescriptor {
   kwb_noe4,
-  kwb_noe_regionen
+  kwb_noe_regionen,
+  tabelle_altersklassen,
+  tabelle_altersklassen_engl
 }
 
 enum InputType {

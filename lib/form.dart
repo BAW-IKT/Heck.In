@@ -703,10 +703,12 @@ class NameFormState extends State<NameForm> {
 
   void buildAndHandleToolTip(String originalFieldLabel) async {
     Map field = inputFields[inputFieldLabelToIndex[originalFieldLabel]!];
-    bool createNavigateToButton =
-        field.containsKey("action") && field["action"] != null;
-    String navigateToButtonText =
-        createNavigateToButton ? _getDescriptiveButtonTextFromFieldAction(field) : "";
+    bool createNavigateToButton = _isValidField(field, "action") ||
+        _isValidField(field, "actionEN") ||
+        _isValidField(field, "actionDE");
+    String navigateToButtonText = createNavigateToButton
+        ? _getDescriptiveButtonTextFromFieldAction(field)
+        : "";
     VoidCallback navigateFunction =
         createNavigateToButton ? _getFunctionFromFieldAction(field) : () {};
 
@@ -727,13 +729,15 @@ class NameFormState extends State<NameForm> {
   }
 
   VoidCallback _getFunctionFromFieldAction(Map field) {
-    if (field["action"] is MapDescriptor) {
+    var fieldToUse = _getFieldBasedOnLocale(field);
+
+    if (fieldToUse is MapDescriptor) {
       return () {
-        widget.webViewPageState.loadMapFromDescriptor(field["action"]);
+        widget.webViewPageState.loadMapFromDescriptor(fieldToUse);
         // Navigator.of(context).pop(true);
       };
-    } else if (field["action"] is ImageDescriptor) {
-      String imagePath = getImageDescriptorPath(field["action"]);
+    } else if (fieldToUse is ImageDescriptor) {
+      String imagePath = getImageDescriptorPath(fieldToUse);
       return () {
         Navigator.push(
           context,
@@ -747,11 +751,29 @@ class NameFormState extends State<NameForm> {
     }
   }
 
+  dynamic _getFieldBasedOnLocale(Map field) {
+    if (_isValidField(field, "action")) {
+      return field["action"];
+    }
+    if (currentLocale == "EN" && _isValidField(field, "actionEN")) {
+      return field["actionEN"];
+    }
+    if (currentLocale == "DE" && _isValidField(field, "actionDE")) {
+      return field["actionDE"];
+    }
+    return null;
+  }
+
+  bool _isValidField(Map field, String key) {
+    return field.containsKey(key) && field[key] != null;
+  }
+
   String _getDescriptiveButtonTextFromFieldAction(Map field) {
-    if (field["action"] is MapDescriptor) {
-      return getMapDescription(field["action"], currentLocale);
-    } else if (field["action"] is ImageDescriptor) {
-      return getImageDescriptorDescription(field["action"], currentLocale);
+    dynamic fieldToUse = _getFieldBasedOnLocale(field);
+    if (fieldToUse is MapDescriptor) {
+      return getMapDescription(fieldToUse, currentLocale);
+    } else if (fieldToUse is ImageDescriptor) {
+      return getImageDescriptorDescription(fieldToUse, currentLocale);
     } else {
       return "";
     }
