@@ -78,6 +78,7 @@ class _DropdownInputState extends State<DropdownInput> {
       ),
       items: dropdownItems,
       onChanged: (value) {
+        // FocusScope.of(context).unfocus();
         widget.onValueChange(widget.field["label"], value.toString());
         setState(() {
           dropdownValue = value.toString();

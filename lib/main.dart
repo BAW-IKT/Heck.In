@@ -284,14 +284,14 @@ class WebViewPageState extends State<WebViewPage> {
           loadMapArcanum();
         },
       ),
-      ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
-        title: Text(
-            getMapDescriptionForMenu(MapDescriptor.bodenkarte, currentLocale)),
-        onTap: () {
-          loadMapBodenkarte();
-        },
-      ),
+      // ListTile(
+      //   leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+      //   title: Text(
+      //       getMapDescriptionForMenu(MapDescriptor.bodenkarte, currentLocale)),
+      //   onTap: () {
+      //     loadMapBodenkarte();
+      //   },
+      // ),
       ListTile(
         leading: const Icon(Icons.map_outlined, color: MyColors.teal),
         title: Text(getMapDescriptionForMenu(

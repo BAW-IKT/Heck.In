@@ -1149,6 +1149,10 @@ class NameFormState extends State<NameForm> {
         paddedWidget(_buildSingleTextInputForAnmerkungInImageSection()),
         const Divider(),
         paddedWidget(_buildImageGridAndButtonBarForImageSection()),
+        _selectedImages.isEmpty
+            ? paddedWidget(_createInfoTextForImagePage(),
+                horizontalPadding: 40, verticalPadding: 80)
+            : Container(),
       ],
     );
   }
@@ -1163,6 +1167,20 @@ class NameFormState extends State<NameForm> {
         _createSideMenuIconButton()
       ],
     );
+  }
+
+  Widget _createInfoTextForImagePage() {
+    return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      const Icon(
+        Icons.info,
+        color: MyColors.red,
+      ),
+      Text(
+        currentLocale == "EN"
+            ? "Please attach at least one image before the results can be retrieved."
+            : "Bitte fügen Sie mindestens ein Bild an, bevor die Ergebnisse abgerufen werden können.",
+      )
+    ]);
   }
 
   Widget _createSideMenuIconButton() {

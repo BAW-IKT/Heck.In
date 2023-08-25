@@ -66,7 +66,7 @@ Future<void> writeDocument(
     documentData['images'] = downloadUrls;
     documentData['form_submit_timestamp'] = timestamp.toString();
     documentData['uid'] = uid;
-    // await document.set(documentData);  // TODO: uncomment
+    await document.set(documentData);
 
     // Call the callback function with success status and message
     onResult(true, 'success', documentData);
