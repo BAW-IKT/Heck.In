@@ -191,7 +191,7 @@ class FormCalc {
 
     // Kulturerbe
     double kulturerbeSum = getSum(getList("Kulturerbe", [
-      "naturdenkmal",
+      // "naturdenkmal",
       "traditionelle_heckenregion",
       "franziszeischer_kataster",
       "netzwerk",
