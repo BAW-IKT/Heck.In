@@ -17,14 +17,16 @@ class MyColors {
   static const Color sideBarBackground = Color.fromRGBO(162, 214, 168, 0.15);
   // static const Color sideBarBackground = Colors.transparent;
   static const Color topBarColor = Color.fromRGBO(162, 214, 168, 0.15);
+  static const Color blueDark = Color.fromRGBO(0, 96, 205, 1);
+  static const Color blueLight = Color.fromRGBO(100, 166, 235, 1);
 }
 
 // class MyColors {
 //   static const Color blue = Color.fromRGBO(0, 96, 205, 1);
-//   static const Color green = Color.fromRGBO(0, 176, 0, 1);
+//   static const Color green = Color.fromRGBO(0, 176, 0, 0.8);
 //   static const Color greenDark = Color.fromRGBO(0, 168, 0, 1);
 //   static const Color orange = Color.fromRGBO(255, 153, 0, 1);
-//   static const Color red = Color.fromRGBO(255, 51, 51, 1);
+//   static const Color red = Color.fromRGBO(255, 51, 51, 0.8);
 //   static const Color redDark = Color.fromRGBO(193, 20, 20, 1);
 //   static const Color yellow = Color.fromRGBO(255, 209, 0, 1);
 //   static const Color purple = Color.fromRGBO(123, 31, 162, 1);
@@ -36,4 +38,6 @@ class MyColors {
 //   static const Color sideBarBackground = Color.fromRGBO(0, 96, 205, 0.15);
 //   // static const Color sideBarBackground = Colors.transparent;
 //   static const Color topBarColor = Color.fromRGBO(0, 96, 205, 0.15);
+//   static const Color blueDark = Color.fromRGBO(0, 96, 205, 1);
+//   static const Color blueLight = Color.fromRGBO(100, 166, 235, 1);
 // }

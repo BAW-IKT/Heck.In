@@ -77,31 +77,49 @@ String getMapDescription(MapDescriptor descriptor, String currentLocale) {
     case MapDescriptor.NULL:
       break;
     case MapDescriptor.arcanum:
-      readableDescription = currentLocale == "EN" ? "Arkanum Map" : "Arkanum Karte";
+      readableDescription = currentLocale == "EN"
+          ? "Franziscean Cadastre"
+          : "Franziszeischer Kataster";
       break;
     case MapDescriptor.bodenkarte:
-      readableDescription = currentLocale == "EN" ? "Bodenkarte Map" : "Bodenkarte";
+      readableDescription = currentLocale == "EN"
+          ? "Bodenkarte"
+          : "Bodenkarte";
       break;
     case MapDescriptor.bodenkarteNutzbareFeldkapazitaet:
-      readableDescription = currentLocale == "EN" ? "Bodenkarte Map" : "Bodenkarte";
+      readableDescription = currentLocale == "EN"
+          ? "Field Capacity"
+          : "Feldkapazität";
       break;
     case MapDescriptor.bodenkarteHumusBilanz:
-      readableDescription = currentLocale == "EN" ? "Bodenkarte Map" : "Bodenkarte";
+      readableDescription = currentLocale == "EN"
+          ? "Humus Balance"
+          : "Humusbilanz";
       break;
     case MapDescriptor.geonodeLebensraumVernetzung:
-      readableDescription = currentLocale == "EN" ? "Habitat Connectivity Map" : "Lebensraum Vernetzungs Karte";
+      readableDescription = currentLocale == "EN"
+          ? "Wildlife Corridor"
+          : "Wildtierkorridor";
       break;
     case MapDescriptor.ecosystem:
-      readableDescription = currentLocale == "EN" ? "Ecosystem Map" : "Ökosystem Karte";
+      readableDescription = currentLocale == "EN"
+          ? "Population Density"
+          : "Bevölkerungsdichte";
       break;
     case MapDescriptor.geoland:
-      readableDescription = currentLocale == "EN" ? "Geoland Map" : "Geoland Karte";
+      readableDescription = currentLocale == "EN"
+          ? "Measuring"
+          : "Messen & Zeichnen";
       break;
     case MapDescriptor.noeNaturschutz:
-      readableDescription = currentLocale == "EN" ? "NÖ Nature Conversation Map" : "NÖ Naturschutz Karte";
+      readableDescription = currentLocale == "EN"
+          ? "Natural Monument"
+          : "Naturdenkmal";
       break;
     case MapDescriptor.eeaProtectedAreas:
-      readableDescription = currentLocale == "EN" ? "EEA Protected Areas Map" : "EEA Schutzgebiete Karte";
+      readableDescription = currentLocale == "EN"
+          ? "EEA Protected Areas"
+          : "EEA Schutzgebiete";
       break;
   }
   return readableDescription;

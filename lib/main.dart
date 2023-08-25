@@ -277,7 +277,7 @@ class WebViewPageState extends State<WebViewPage> {
   List<ListTile> _buildMainMenuDrawerMapListTiles() {
     return [
       ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.coral),
+        leading: const Icon(Icons.map_outlined, color: MyColors.blueDark),
         title: Text(
             getMapDescriptionForMenu(MapDescriptor.arcanum, currentLocale)),
         onTap: () {
@@ -293,7 +293,7 @@ class WebViewPageState extends State<WebViewPage> {
       //   },
       // ),
       ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        leading: const Icon(Icons.map_outlined, color: MyColors.blueLight),
         title: Text(getMapDescriptionForMenu(
             MapDescriptor.bodenkarteNutzbareFeldkapazitaet, currentLocale)),
         onTap: () {
@@ -301,7 +301,7 @@ class WebViewPageState extends State<WebViewPage> {
         },
       ),
       ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        leading: const Icon(Icons.map_outlined, color: MyColors.blueDark),
         title: Text(getMapDescriptionForMenu(
             MapDescriptor.bodenkarteHumusBilanz, currentLocale)),
         onTap: () {
@@ -309,7 +309,7 @@ class WebViewPageState extends State<WebViewPage> {
         },
       ),
       ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        leading: const Icon(Icons.map_outlined, color: MyColors.blueLight),
         title: Text(getMapDescriptionForMenu(
             MapDescriptor.geonodeLebensraumVernetzung, currentLocale)),
         onTap: () {
@@ -317,7 +317,7 @@ class WebViewPageState extends State<WebViewPage> {
         },
       ),
       ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        leading: const Icon(Icons.map_outlined, color: MyColors.blueDark),
         title: Text(
             getMapDescriptionForMenu(MapDescriptor.ecosystem, currentLocale)),
         onTap: () {
@@ -325,7 +325,7 @@ class WebViewPageState extends State<WebViewPage> {
         },
       ),
       ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        leading: const Icon(Icons.map_outlined, color: MyColors.blueLight),
         title: Text(
             getMapDescriptionForMenu(MapDescriptor.geoland, currentLocale)),
         onTap: () {
@@ -333,7 +333,7 @@ class WebViewPageState extends State<WebViewPage> {
         },
       ),
       ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        leading: const Icon(Icons.map_outlined, color: MyColors.blueDark),
         title: Text(getMapDescriptionForMenu(
             MapDescriptor.noeNaturschutz, currentLocale)),
         onTap: () {
@@ -341,7 +341,7 @@ class WebViewPageState extends State<WebViewPage> {
         },
       ),
       ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.teal),
+        leading: const Icon(Icons.map_outlined, color: MyColors.blueLight),
         title: Text(getMapDescriptionForMenu(
             MapDescriptor.eeaProtectedAreas, currentLocale)),
         onTap: () {
