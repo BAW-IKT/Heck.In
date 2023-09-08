@@ -1,34 +1,77 @@
 {
   "project_info": {
-    "project_number": "524968564952",
-    "project_id": "hedge-profiler",
-    "storage_bucket": "hedge-profiler.appspot.com"
+    "project_number": "577534913795",
+    "project_id": "hedge-profiler-ad954",
+    "storage_bucket": "hedge-profiler-ad954.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:524968564952:android:fcdf00db10573f2bb85fad",
+        "mobilesdk_app_id": "1:577534913795:android:a9e8e47c45e3c06ff0cd36",
         "android_client_info": {
-          "package_name": "hedge_profiler_flutter.com.baw.hedgeprofiler.hedge_profiler_flutter"
+          "package_name": "com.baw.hedgeprofiler"
         }
       },
       "oauth_client": [
         {
-          "client_id": "524968564952-iksigatab2dcdnqv8hhoo6eh3gq8g96l.apps.googleusercontent.com",
+          "client_id": "577534913795-jgrbq6l811p2c1ddt5htctlopnc2t2mr.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAwMbmlnFLVRukKKJKLw7gOBSdpxY9YDHc"
+          "current_key": "AIzaSyCXxodLPV_yEedRfo1eLFNRQDd2RZGttNg"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "524968564952-iksigatab2dcdnqv8hhoo6eh3gq8g96l.apps.googleusercontent.com",
+              "client_id": "577534913795-jgrbq6l811p2c1ddt5htctlopnc2t2mr.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "577534913795-iuvrrqs93m2igr4hfep2rctq3gkf90hg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.baw.hedgeprofiler.hedgeProfilerFlutter"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:577534913795:android:cbe768d9bc11c118f0cd36",
+        "android_client_info": {
+          "package_name": "hedge_profiler_flutter.com.baw.hedgeprofiler.hedge_profiler_flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "577534913795-jgrbq6l811p2c1ddt5htctlopnc2t2mr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXxodLPV_yEedRfo1eLFNRQDd2RZGttNg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "577534913795-jgrbq6l811p2c1ddt5htctlopnc2t2mr.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "577534913795-iuvrrqs93m2igr4hfep2rctq3gkf90hg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.baw.hedgeprofiler.hedgeProfilerFlutter"
+              }
             }
           ]
         }

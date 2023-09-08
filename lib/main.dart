@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hedge_profiler_flutter/form_data.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -85,7 +86,7 @@ class WebViewPageState extends State<WebViewPage> {
   @override
   void initState() {
     super.initState();
-
+    _checkPermissions();
     _updateLocationAndLocales();
     _initDatabase();
 
@@ -117,6 +118,14 @@ class WebViewPageState extends State<WebViewPage> {
       );
 
     _controller = controller;
+  }
+
+  void _checkPermissions() async {
+    if (await Permission.storage.request().isDenied) {
+      showSnackbar(
+          context, "No storage permission - cannot write images to storage",
+          success: false);
+    }
   }
 
   /// refreshes geo coordinates and updates variables for menu accordingly

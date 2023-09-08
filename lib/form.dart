@@ -113,7 +113,6 @@ class NameFormState extends State<NameForm> {
 
     _populateLabelToInputTypeMap();
     _populateInputs();
-    _checkPermissions();
     _getLostImageData();
     _loadPersistedImages();
   }
@@ -503,17 +502,6 @@ class NameFormState extends State<NameForm> {
       showSnackbar(context, "couldn't restore images - ${response.exception}",
           success: false);
     }
-  }
-
-  void _checkPermissions() async {
-    if (await Permission.storage.request().isDenied) {
-      showSnackbar(
-          context, "No storage permission - cannot write images to storage",
-          success: false);
-    }
-    // if (await Permission.camera.request().isDenied) {
-    //   _showSnackBar("No camera permission - cannot take pictures", success: false);
-    // }
   }
 
   void resetRadarChartData() {
