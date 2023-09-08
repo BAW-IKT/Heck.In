@@ -478,8 +478,7 @@ class WebViewPageState extends State<WebViewPage> {
   }
 
   void loadMapGeonodeLebensraumverletzung() {
-    // TODO: requested at https://geonode.lebensraumvernetzung.at/messages/thread/1/
-    // TODO: email sent to: v10@bmk.gv.at
+    // localized URL not available according to roland.grillmayer@umweltbundesamt.at
     loadPageWrapper(
         "https://geonode.lebensraumvernetzung.at/maps/63/view#/",
         MapDescriptor.geonodeLebensraumVernetzung);
@@ -492,10 +491,13 @@ class WebViewPageState extends State<WebViewPage> {
         MapDescriptor.ecosystem);
   }
 
-  void loadMapGeoland() {
-    // TODO: email sent to: thomas.piechl@ktn.gv.at
+  void loadMapGeoland() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var latitude = prefs.getString("geo_latitude");
+    var longitude = prefs.getString("geo_longitude");
     loadPageWrapper(
-        "https://www.geoland.at/webgisviewer/geoland/map/Geoland_Viewer/Geoland",
+        "https://www.geoland.at/webgisviewer/geoland/map/Geoland_Viewer/Geoland"
+            "?center=$longitude,$latitude&scale=20000",
         MapDescriptor.geoland);
   }
 
@@ -507,7 +509,7 @@ class WebViewPageState extends State<WebViewPage> {
   }
 
   void loadMapEEAEuropa() {
-    // TODO: request sent via https://www.eea.europa.eu/en/about/contact-us/ask
+    // localized URL not available according to Mayra.ZURBARAN-NUCCI@ec.europa.eu
     loadPageWrapper(
         "https://www.eea.europa.eu/data-and-maps/explore-interactive-maps/european-protected-areas-1",
         MapDescriptor.eeaProtectedAreas);

@@ -931,7 +931,7 @@ class NameFormState extends State<NameForm> {
                 },
                 labelType: NavigationRailLabelType.selected,
                 destinations: _buildNavigationRailDestinations(),
-                trailing: _buildTrailingNavigationRailDestinations(),
+                // trailing: _buildTrailingNavigationRailDestinations(),
               ),
             ),
           ),
