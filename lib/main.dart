@@ -276,89 +276,37 @@ class WebViewPageState extends State<WebViewPage> {
 
   List<ListTile> _buildMainMenuDrawerMapListTiles() {
     return [
-      ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.blueDark),
-        title: Text(
-            getMapDescriptionForMenu(MapDescriptor.arcanum, currentLocale)),
-        onTap: () {
-          loadMapArcanum();
-        },
-      ),
-      // ListTile(
-      //   leading: const Icon(Icons.map_outlined, color: MyColors.teal),
-      //   title: Text(
-      //       getMapDescriptionForMenu(MapDescriptor.bodenkarte, currentLocale)),
-      //   onTap: () {
-      //     loadMapBodenkarte();
-      //   },
-      // ),
-      ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.blueLight),
-        title: Text(getMapDescriptionForMenu(
-            MapDescriptor.bodenkarteNutzbareFeldkapazitaet, currentLocale)),
-        onTap: () {
-          loadMapBodenkarteNutzbareFeldkapazitaet();
-        },
-      ),
-      ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.blueDark),
-        title: Text(getMapDescriptionForMenu(
-            MapDescriptor.bodenkarteHumusBilanz, currentLocale)),
-        onTap: () {
-          loadMapBodenkarteHumusBilanz();
-        },
-      ),
-      ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.blueLight),
-        title: Text(getMapDescriptionForMenu(
-            MapDescriptor.geonodeLebensraumVernetzung, currentLocale)),
-        onTap: () {
-          loadMapGeonodeLebensraumverletzung();
-        },
-      ),
-      ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.blueDark),
-        title: Text(
-            getMapDescriptionForMenu(MapDescriptor.ecosystem, currentLocale)),
-        onTap: () {
-          loadMapEcosystemAccounts();
-        },
-      ),
-      ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.blueLight),
-        title: Text(
-            getMapDescriptionForMenu(MapDescriptor.geoland, currentLocale)),
-        onTap: () {
-          loadMapGeoland();
-        },
-      ),
-      ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.blueDark),
-        title: Text(getMapDescriptionForMenu(
-            MapDescriptor.noeNaturschutz, currentLocale)),
-        onTap: () {
-          loadMapNoeNaturschutz();
-        },
-      ),
-      ListTile(
-        leading: const Icon(Icons.map_outlined, color: MyColors.blueLight),
-        title: Text(getMapDescriptionForMenu(
-            MapDescriptor.eeaProtectedAreas, currentLocale)),
-        onTap: () {
-          loadMapEEAEuropa();
-        },
-      )
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueDark), MapDescriptor.arcanum, loadMapArcanum),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueLight), MapDescriptor.bodenkarteNutzbareFeldkapazitaet, loadMapBodenkarteNutzbareFeldkapazitaet),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueDark), MapDescriptor.bodenkarteHumusBilanz, loadMapBodenkarteHumusBilanz),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueLight), MapDescriptor.geonodeLebensraumVernetzung, loadMapGeonodeLebensraumverletzung),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueDark), MapDescriptor.ecosystem, loadMapEcosystemAccounts),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueLight), MapDescriptor.geoland, loadMapGeoland),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueDark), MapDescriptor.noeNaturschutz, loadMapNoeNaturschutz),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueLight), MapDescriptor.eeaProtectedAreas, loadMapEEAEuropa),
     ];
   }
 
-  DrawerHeader _buildMainMenuDrawerHeader() {
-    return DrawerHeader(
-      decoration: const BoxDecoration(
-        color: MyColors.blue,
-      ),
-      child: Column(
+  ListTile getMapListTile(Icon icon, MapDescriptor mapDesc, Function mapFunc) {
+    return ListTile(
+      leading: icon,
+      title: Text(getMapDescriptionForMenu(mapDesc, currentLocale)),
+      onTap: () {
+        mapFunc();
+      },
+    );
+  }
+
+  Widget _buildMainMenuDrawerHeader() {
+    return Container(
+      height: 150,
+      color: MyColors.blue,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const SizedBox(height: 40),
           Text(
             currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler",
             style: const TextStyle(
@@ -366,11 +314,31 @@ class WebViewPageState extends State<WebViewPage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 14),
           _buildGeoStatusText(),
         ],
       ),
+      )
     );
+    // return DrawerHeader(
+    //   decoration: const BoxDecoration(
+    //     color: MyColors.blue,
+    //   ),
+    //   child: Column(
+    //     crossAxisAlignment: CrossAxisAlignment.stretch,
+    //     children: [
+    //       Text(
+    //         currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler",
+    //         style: const TextStyle(
+    //           fontSize: 20,
+    //           fontWeight: FontWeight.bold,
+    //         ),
+    //       ),
+    //       const SizedBox(height: 14),
+    //       _buildGeoStatusText(),
+    //     ],
+    //   ),
+    // );
   }
 
   Column _buildBottomPartForMainMenuDrawer() {
