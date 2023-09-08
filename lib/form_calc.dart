@@ -288,7 +288,7 @@ class FormCalc {
   }
 
   /// Returns a single item from the map, allows multiplications
-  double getItem(String group, String parameter, {multiplicator: 1}) {
+  double getItem(String group, String parameter, {multiplicator = 1}) {
     for (var entry in _radarChartData[group].entries) {
       if (entry.key == parameter) {
         return entry.value.toDouble() * multiplicator;

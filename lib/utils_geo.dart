@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
-import 'package:hedge_profiler_flutter/snackbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<bool> checkLocationPermissions() async {
