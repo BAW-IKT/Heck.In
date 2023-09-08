@@ -332,7 +332,7 @@ class NameFormState extends State<NameForm> {
   Future<void> _generatePdfDataAndCreatePdf(
       Map<String, dynamic> formDataWithImagesAndTimestamp) async {
     Map<String, dynamic> simpleFormData =
-        filterAndSimplifySubmittedFormData(formDataWithImagesAndTimestamp);
+        filterAndSimplifySubmittedFormData(formDataWithImagesAndTimestamp, localeMap);
     PdfCreator pdf = PdfCreator(originalToLocale, currentLocale);
     pdf.addFormData(simpleFormData);
     pdf.addRadarChartData(_radarChartDataListsReduced);

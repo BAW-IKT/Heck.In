@@ -1053,3 +1053,10 @@ enum FormSection {
   plants,
   images
 }
+
+List<String> excludedFieldsFromExport = [
+  "locale",
+  "images",
+  "uid",
+  "geo_last_change"
+];

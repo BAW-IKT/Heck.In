@@ -15,7 +15,7 @@ class PdfCreator {
   PdfCreator(this.originalToLocale, this.currentLocale);
 
   void addFormData(Map<String, dynamic> formData) {
-    int rowsPerPage = 50;
+    int rowsPerPage = 46;
     List<TableRow> rows = createRowsFromFormData(formData);
     addHeaderToRows(
         rows, currentLocale == "EN" ? "Input values" : "Eingabedaten");
@@ -35,7 +35,23 @@ class PdfCreator {
       String translatedKey =
           originalToLocale.containsKey(key) ? originalToLocale[key]! : key;
 
-      if (value is List) {
+      if (value == null) {
+        // sections in bold (have null as value)
+        rows.add(TableRow(children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            // adjust the value to your requirements
+            child: Text(translatedKey,
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            // adjust the value to your requirements
+            child: Text(''),
+          ),
+        ]));
+      } else if (value is List) {
+        // nested lists of values
         for (var i = 0; i < value.length; i++) {
           String translatedItem = originalToLocale.containsKey(value[i])
               ? originalToLocale[value[i]]!
@@ -46,6 +62,7 @@ class PdfCreator {
           ]));
         }
       } else {
+        // normal key-value pairs
         String translatedValue = originalToLocale.containsKey(value)
             ? originalToLocale[value]!
             : value;

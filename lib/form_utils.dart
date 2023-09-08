@@ -1,6 +1,5 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
+import 'package:hedge_profiler_flutter/form_data.dart';
 import 'package:photo_view/photo_view.dart';
 
 void doNothing() {}
@@ -201,9 +200,8 @@ class LocaleMap {
 }
 
 Map<String, dynamic> filterAndSimplifySubmittedFormData(
-    Map<String, dynamic> formData) {
+    Map<String, dynamic> formData, LocaleMap localeMap) {
   String locale = formData["locale"];
-  List<String> valuesToExclude = ["fredl", "locale", "images", "uid"];
   Map<String, String> translate = {
     "geo_latitude": locale == "EN" ? "Latitude" : "Breitengrad",
     "geo_longitude": locale == "EN" ? "Longitude" : "Längengrad",
@@ -212,18 +210,51 @@ Map<String, dynamic> filterAndSimplifySubmittedFormData(
 
   Map<String, dynamic> filteredMap = {};
 
+  // exclude certain fileds defined in form_data, translate certain fields
   for (var entry in formData.entries) {
-    if (!valuesToExclude.contains(entry.key)) {
+    if (!excludedFieldsFromExport.contains(entry.key)) {
       String newKey =
           translate.containsKey(entry.key) ? translate[entry.key]! : entry.key;
       filteredMap[newKey] = entry.value;
     }
   }
 
-  SplayTreeMap<String, dynamic> sortedMap =
-      SplayTreeMap<String, dynamic>.from(filteredMap);
+  // bring in order of sections
+  List<String> processed = [];
+  Map<String, dynamic> orderedMapWithSections = {};
+  for (Map<String, dynamic> sec in localeMap.sections) {
+    if (sec["label"] == FormSection.images) {
+      continue;
+    }
+    orderedMapWithSections[sec["label$locale"]] = null;  // header
+    for (Map<String, dynamic> field in localeMap.formFields) {
+      String fieldLabel = field["label"];
+      if (field["section"] == sec["label"]
+          && !excludedFieldsFromExport.contains(fieldLabel)) {
+        // skips attaching anmerkungen in case its null (prevents creation of header)
+        if (filteredMap[fieldLabel] != null) {
+          orderedMapWithSections[fieldLabel] = filteredMap[fieldLabel];
+        }
+        processed.add(fieldLabel);
+      }
+    }
+  }
 
-  return sortedMap;
+  // add parameters that are not form inputs (geo coords)
+  if (filteredMap.length > processed.length) {
+    String variousHeader = locale == "EN" ? "Various" : "Diverses";
+    orderedMapWithSections[variousHeader] = null;
+    for (var filteredEntry in filteredMap.entries) {
+      if (!processed.contains(filteredEntry.key)) {
+        orderedMapWithSections[filteredEntry.key] = filteredEntry.value;
+      }
+    }
+  }
+
+  // SplayTreeMap<String, dynamic> sortedMap =
+  //     SplayTreeMap<String, dynamic>.from(filteredMap);
+
+  return orderedMapWithSections;
 }
 
 void validateSelectedValueOfDropdownFieldMatchesCurrentLocale(
