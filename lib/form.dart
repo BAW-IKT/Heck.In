@@ -20,12 +20,14 @@ class NameForm extends StatefulWidget {
   final GlobalKey<NameFormState> formKey;
   final WebViewPageState webViewPageState;
   final bool showForm;
+  final bool darkMode;
 
   const NameForm({
     Key? key,
     required this.formKey,
     required this.webViewPageState,
     required this.showForm,
+    required this.darkMode,
   }) : super(key: key);
 
   @override
@@ -333,8 +335,9 @@ class NameFormState extends State<NameForm> {
         filterAndSimplifySubmittedFormData(formDataWithImagesAndTimestamp, localeMap);
     PdfCreator pdf = PdfCreator(originalToLocale, currentLocale);
     pdf.addFormData(simpleFormData);
-    pdf.addRadarChartData(_radarChartDataListsReduced);
     Uint8List? graphData = await _openRadarChartCreatePngAndCloseAgain();
+    pdf.addRadarChartDataDetailed(_radarChartDataListsReduced);
+    pdf.addRadarChartDataOverview(_radarChartData);
     pdf.addRadarChartGraph(graphData);
     pdf.addImages(_selectedImages);
     pdf.saveToFileAndOpenPDF();
@@ -855,6 +858,7 @@ class NameFormState extends State<NameForm> {
         capturePngFromRadarChartFunction = fn;
       },
       exportReady: exportReady,
+      darkMode: widget.darkMode,
     );
   }
 

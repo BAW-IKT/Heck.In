@@ -15,6 +15,7 @@ class RadarChartDialog extends StatefulWidget {
   final void Function(Future<Uint8List> Function())
       setCapturePngFromRadarChartCallback;
   final bool exportReady;
+  final bool darkMode;
 
   RadarChartDialog({
     Key? key,
@@ -24,6 +25,7 @@ class RadarChartDialog extends StatefulWidget {
     required this.currentLocale,
     required this.setCapturePngFromRadarChartCallback,
     required this.exportReady,
+    required this.darkMode,
   }) : super(key: key);
 
   @override
@@ -41,8 +43,8 @@ class RadarChartDialogState extends State<RadarChartDialog> {
     double? sizedBoxHeight = isTablet ? 500 : 450;
     double? sizedBoxWidth = isTablet ? 800 : 450;
 
-    Color headerColor = MyColors.white;
-    Color legendTextColor = Colors.white70;
+    Color headerColor = widget.darkMode ? MyColors.white : MyColors.black;
+    Color legendTextColor = widget.darkMode ? Colors.white70 : Colors.black87;
     if (widget.exportReady) {
       headerColor = MyColors.black;
       legendTextColor = Colors.black87;
@@ -153,7 +155,9 @@ class RadarChartDialogState extends State<RadarChartDialog> {
         RadarChartData(
           tickCount: 5,
           dataSets: buildRadarDataSets(
-              middleRoseCenterCenter, middleRoseBorderCenter),
+              middleRoseCenterCenter,
+              middleRoseBorderCenter
+          ),
           getTitle: (index, count) {
             // calculate rotation
             double rotationAngle = -90 + count;

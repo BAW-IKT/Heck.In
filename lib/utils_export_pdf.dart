@@ -29,7 +29,7 @@ class PdfCreator {
   List<TableRow> createRowsFromFormData(Map<String, dynamic> formData) {
     List<TableRow> rows = [];
 
-    addDividerToRows(rows, 2);
+    addDividerToRowsEnd(rows, 2);
 
     formData.forEach((key, value) {
       String translatedKey =
@@ -73,16 +73,26 @@ class PdfCreator {
       }
     });
 
-    addDividerToRows(rows, 2);
+    addDividerToRowsEnd(rows, 2);
 
     return rows;
   }
 
-  void addDividerToRows(List<TableRow> rows, int columns) {
-    List<Widget> dividerChildren =
-        List<Widget>.generate(columns, (index) => Divider());
+  void addDividerToRowsStart(List<TableRow> rows, int columns) {
+    rows.insert(0, _buildDividerTableRow(columns));
+  }
 
-    rows.add(TableRow(children: dividerChildren));
+  void addDividerToRowsEnd(List<TableRow> rows, int columns) {
+    rows.add(_buildDividerTableRow(columns));
+  }
+
+  TableRow _buildDividerTableRow(int columns) {
+    return TableRow(
+      children: List<Widget>.generate(
+        columns,
+        (index) => Divider(),
+      ),
+    );
   }
 
   void addImages(List<File> images) {
@@ -112,15 +122,35 @@ class PdfCreator {
     }
   }
 
-  void addRadarChartData(Map<String, dynamic> radarChartData) {
+  void addRadarChartDataDetailed(Map<String, dynamic> radarChartData) {
     int rowsPerPage = 48;
     List<TableRow> rows = createRowsFromRadarChartData(radarChartData);
-    addHeaderToRows(rows, currentLocale == "EN" ? "Scores" : "Ergebnisse");
+    addHeaderToRows(
+        rows,
+        currentLocale == "EN"
+            ? "Scores (Detailed)"
+            : "Ergebnisse (Detailliert)");
 
     addPagesFromRows(rows, rowsPerPage, columnWidths: {
       0: const FlexColumnWidth(1),
       1: const FlexColumnWidth(1),
       2: const FlexColumnWidth(0.3)
+    });
+  }
+
+  void addRadarChartDataOverview(Map<String, dynamic> radarChartData) {
+    int rowsPerPage = 20;
+    List<TableRow> rows = radarChartData.entries
+        .map((entry) =>
+            TableRow(children: [Text(entry.key), Text(entry.value.toString())]))
+        .toList();
+    addDividerToRowsStart(rows, 2);
+    addDividerToRowsEnd(rows, 2);
+    addHeaderToRows(rows,
+        currentLocale == "EN" ? "Scores (Overview)" : "Ergebnisse (Überblick)");
+    addPagesFromRows(rows, rowsPerPage, columnWidths: {
+      0: const FlexColumnWidth(1),
+      1: const FlexColumnWidth(1)
     });
   }
 
@@ -132,7 +162,7 @@ class PdfCreator {
       group.value.entries.forEach((parameter) {
         // divider before actual content at beginning of group
         if (!groupNameWritten) {
-          addDividerToRows(rows, 3);
+          addDividerToRowsEnd(rows, 3);
         }
         rows.add(
           TableRow(children: [
@@ -145,7 +175,7 @@ class PdfCreator {
       });
     }
 
-    addDividerToRows(rows, 3);
+    addDividerToRowsEnd(rows, 3);
 
     return rows;
   }

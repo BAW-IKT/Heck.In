@@ -243,6 +243,7 @@ class WebViewPageState extends State<WebViewPage> {
                             formKey: _nameFormKey,
                             webViewPageState: this,
                             showForm: _showNameForm,
+                            darkMode: _darkMode,
                           ),
                         ),
                       ),
@@ -260,12 +261,6 @@ class WebViewPageState extends State<WebViewPage> {
   Drawer _buildMainMenuDrawer() {
     List<Widget> drawerChildren = [];
     drawerChildren.add(_buildMainMenuDrawerHeader());
-    drawerChildren.add(ListTile(
-        leading: const Icon(Icons.deblur),
-        title: Text("DBG"),
-        onTap: () {
-          _showFirstLaunchDialog();
-        }));
     drawerChildren.add(_buildMainMenuDrawerRateHedgeListTile());
     for (ListTile mapListTile in _buildMainMenuDrawerMapListTiles()) {
       drawerChildren.add(mapListTile);
