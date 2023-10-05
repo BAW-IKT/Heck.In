@@ -42,7 +42,7 @@ dependencies:
   image_picker: ^1.0.4
   firebase_core: ^2.10.0
   cloud_firestore: ^4.5.3
-  permission_handler: ^10.2.0
+  permission_handler: ^11.0.1
   firebase_storage: ^11.1.2
   path: ^1.8.2
   firebase_auth: ^4.5.0
