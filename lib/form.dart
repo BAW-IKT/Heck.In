@@ -5,7 +5,6 @@ import 'package:hedge_profiler_flutter/utils_export_pdf.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'colors.dart';
 import 'form_data.dart';
 import 'form_utils.dart';

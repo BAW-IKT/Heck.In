@@ -1058,5 +1058,6 @@ List<String> excludedFieldsFromExport = [
   "locale",
   "images",
   "uid",
-  "geo_last_change"
+  "geo_last_change",
+  "first_time"
 ];

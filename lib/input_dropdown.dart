@@ -7,7 +7,7 @@ class DropdownInput extends StatefulWidget {
   final String currentLocale;
   final Function(String, String) onValueChange;
 
-  DropdownInput({
+  const DropdownInput({
     Key? key,
     required this.field,
     required this.onValueChange,

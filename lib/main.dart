@@ -12,11 +12,21 @@ import 'firebase_options.dart';
 import 'form.dart';
 import 'snackbar.dart';
 import 'utils_geo.dart' as geo;
+import 'splash_screen.dart';
 
-void main() => runApp(const HedgeProfilerApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool firstTime = !(prefs.containsKey("first_time_launch") &&
+      prefs.getString("first_time_launch") == "false");
+  runApp(HedgeProfilerApp(firstTime: firstTime));
+}
 
 class HedgeProfilerApp extends StatefulWidget {
-  const HedgeProfilerApp({super.key});
+  final bool firstTime;
+
+  const HedgeProfilerApp({Key? key, required this.firstTime}) : super(key: key);
 
   @override
   HedgeProfilerAppState createState() => HedgeProfilerAppState();
@@ -35,7 +45,7 @@ class HedgeProfilerAppState extends State<HedgeProfilerApp> {
       theme: ThemeData(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
       themeMode: _themeMode,
-      home: const WebViewPage(),
+      home: widget.firstTime ? const SplashScreen() : const WebViewPage(),
     );
   }
 
@@ -250,6 +260,12 @@ class WebViewPageState extends State<WebViewPage> {
   Drawer _buildMainMenuDrawer() {
     List<Widget> drawerChildren = [];
     drawerChildren.add(_buildMainMenuDrawerHeader());
+    drawerChildren.add(ListTile(
+        leading: const Icon(Icons.deblur),
+        title: Text("DBG"),
+        onTap: () {
+          _showFirstLaunchDialog();
+        }));
     drawerChildren.add(_buildMainMenuDrawerRateHedgeListTile());
     for (ListTile mapListTile in _buildMainMenuDrawerMapListTiles()) {
       drawerChildren.add(mapListTile);
@@ -270,6 +286,13 @@ class WebViewPageState extends State<WebViewPage> {
     );
   }
 
+  void _showFirstLaunchDialog() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString("first_time_launch", "true");
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => const SplashScreen()));
+  }
+
   ListTile _buildMainMenuDrawerRateHedgeListTile() {
     return ListTile(
       leading: const Icon(Icons.eco_rounded, color: MyColors.green),
@@ -285,14 +308,26 @@ class WebViewPageState extends State<WebViewPage> {
 
   List<ListTile> _buildMainMenuDrawerMapListTiles() {
     return [
-      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueDark), MapDescriptor.arcanum, loadMapArcanum),
-      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueLight), MapDescriptor.bodenkarteNutzbareFeldkapazitaet, loadMapBodenkarteNutzbareFeldkapazitaet),
-      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueDark), MapDescriptor.bodenkarteHumusBilanz, loadMapBodenkarteHumusBilanz),
-      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueLight), MapDescriptor.geonodeLebensraumVernetzung, loadMapGeonodeLebensraumverletzung),
-      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueDark), MapDescriptor.ecosystem, loadMapEcosystemAccounts),
-      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueLight), MapDescriptor.geoland, loadMapGeoland),
-      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueDark), MapDescriptor.noeNaturschutz, loadMapNoeNaturschutz),
-      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueLight), MapDescriptor.eeaProtectedAreas, loadMapEEAEuropa),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueDark),
+          MapDescriptor.arcanum, loadMapArcanum),
+      getMapListTile(
+          const Icon(Icons.map_outlined, color: MyColors.blueLight),
+          MapDescriptor.bodenkarteNutzbareFeldkapazitaet,
+          loadMapBodenkarteNutzbareFeldkapazitaet),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueDark),
+          MapDescriptor.bodenkarteHumusBilanz, loadMapBodenkarteHumusBilanz),
+      getMapListTile(
+          const Icon(Icons.map_outlined, color: MyColors.blueLight),
+          MapDescriptor.geonodeLebensraumVernetzung,
+          loadMapGeonodeLebensraumverletzung),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueDark),
+          MapDescriptor.ecosystem, loadMapEcosystemAccounts),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueLight),
+          MapDescriptor.geoland, loadMapGeoland),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueDark),
+          MapDescriptor.noeNaturschutz, loadMapNoeNaturschutz),
+      getMapListTile(const Icon(Icons.map_outlined, color: MyColors.blueLight),
+          MapDescriptor.eeaProtectedAreas, loadMapEEAEuropa),
     ];
   }
 
@@ -308,27 +343,41 @@ class WebViewPageState extends State<WebViewPage> {
 
   Widget _buildMainMenuDrawerHeader() {
     return Container(
-      height: 150,
-      color: MyColors.blue,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 40),
-          Text(
-            currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler",
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+        height: 150,
+        color: MyColors.blue,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Text(
+                    currentLocale == "EN"
+                        ? "Hedge Profiler"
+                        : "Hecken Profiler",
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                        Icons.info_outline,
+                        color: MyColors.blueDark
+                    ),
+                    onPressed: () {
+                      _showFirstLaunchDialog();
+                    },
+                  )
+                ],
+              ),
+              const SizedBox(height: 14),
+              _buildGeoStatusText(),
+            ],
           ),
-          const SizedBox(height: 14),
-          _buildGeoStatusText(),
-        ],
-      ),
-      )
-    );
+        ));
     // return DrawerHeader(
     //   decoration: const BoxDecoration(
     //     color: MyColors.blue,
@@ -422,8 +471,7 @@ class WebViewPageState extends State<WebViewPage> {
     var longitude = prefs.getString("geo_longitude");
     String stem = "https://maps.arcanum.com/en/map";
     String map = "europe-19century-secondsurvey";
-    loadPageWrapper(
-        "$stem/$map/?lon=$longitude&lat=$latitude&zoom=15",
+    loadPageWrapper("$stem/$map/?lon=$longitude&lat=$latitude&zoom=15",
         MapDescriptor.arcanum);
   }
 
@@ -456,15 +504,13 @@ class WebViewPageState extends State<WebViewPage> {
 
   void loadMapGeonodeLebensraumverletzung() {
     // localized URL not available according to roland.grillmayer@umweltbundesamt.at
-    loadPageWrapper(
-        "https://geonode.lebensraumvernetzung.at/maps/63/view#/",
+    loadPageWrapper("https://geonode.lebensraumvernetzung.at/maps/63/view#/",
         MapDescriptor.geonodeLebensraumVernetzung);
   }
 
   void loadMapEcosystemAccounts() {
     // TODO: email sent to: jrc-inca@ec.europa.eu
-    loadPageWrapper(
-        "https://ecosystem-accounts.jrc.ec.europa.eu/map",
+    loadPageWrapper("https://ecosystem-accounts.jrc.ec.europa.eu/map",
         MapDescriptor.ecosystem);
   }
 
@@ -474,7 +520,7 @@ class WebViewPageState extends State<WebViewPage> {
     var longitude = prefs.getString("geo_longitude");
     loadPageWrapper(
         "https://www.geoland.at/webgisviewer/geoland/map/Geoland_Viewer/Geoland"
-            "?center=$longitude,$latitude&scale=20000",
+        "?center=$longitude,$latitude&scale=20000",
         MapDescriptor.geoland);
   }
 
