@@ -1059,5 +1059,6 @@ List<String> excludedFieldsFromExport = [
   "images",
   "uid",
   "geo_last_change",
-  "first_time"
+  "first_time",
+  "data_consent",
 ];

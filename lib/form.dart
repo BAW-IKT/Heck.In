@@ -142,9 +142,9 @@ class NameFormState extends State<NameForm> {
 
     for (Map field in inputFields) {
       InputType inputType = field["type"];
-      if (inputType == InputType.text
-          || inputType == InputType.number
-          || inputType == InputType.dropdown) {
+      if (inputType == InputType.text ||
+          inputType == InputType.number ||
+          inputType == InputType.dropdown) {
         String? storedValue = prefs.getString(field["label"]) ?? "";
         if (inputType == InputType.text || inputType == InputType.number) {
           field["controller"].text = storedValue;
@@ -166,9 +166,6 @@ class NameFormState extends State<NameForm> {
   /// action triggered by static widgets onChanged events
   void onWidgetChanged(String widgetLabel, String widgetValue,
       {removeValue = false}) async {
-
-
-
     InputType inputType = labelToInputType[widgetLabel]!;
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -191,7 +188,8 @@ class NameFormState extends State<NameForm> {
         }
         inputFields[widgetIndex]["selectedValues"].add(widgetValue);
       }
-      prefs.setStringList(widgetLabel, inputFields[widgetIndex]["selectedValues"]);
+      prefs.setStringList(
+          widgetLabel, inputFields[widgetIndex]["selectedValues"]);
     } else {
       inputFields[widgetIndex]["selectedValue"] = widgetValue;
       prefs.setString(widgetLabel, widgetValue);
@@ -301,9 +299,6 @@ class NameFormState extends State<NameForm> {
 
   /// get form and image data and persist to database
   void _saveFormData() async {
-    // clear validation warnings
-    // setState(() {});
-
     // re-map preferences (contains all input fields)
     SharedPreferences prefs = await SharedPreferences.getInstance();
     Map<String, dynamic> dataMap = {};
@@ -314,25 +309,35 @@ class NameFormState extends State<NameForm> {
     // start loading indicator
     _isSaving.value = true;
 
-    // write to the database, show snackbar with result, stop loading indicator
-    db.writeDocument(dataMap, _selectedImages,
-        (success, message, formDataWithImagesAndTimestamp) {
-      if (success) {
-        _generatePdfDataAndCreatePdf(formDataWithImagesAndTimestamp);
-      }
+    String successText = currentLocale == "EN"
+        ? "Document saved successfully"
+        : "Dokument erfolgreich gespeichert";
 
-      _isSaving.value = false;
-      String statusText = currentLocale == "EN"
-          ? "Document saved successfully"
-          : "Dokument erfolgreich gespeichert";
-      showSnackbar(context, success ? statusText : message, success: success);
-    });
+    // write to the database, show snackbar with result, stop loading indicator
+    bool dataConsentGiven =
+        prefs.getString("data_consent") == "true" ? true : false;
+    if (dataConsentGiven) {
+      db.writeDocument(dataMap, _selectedImages,
+          (success, message, formDataWithImagesAndTimestamp) {
+        if (success) {
+          _generatePdfDataAndCreatePdf(formDataWithImagesAndTimestamp);
+        }
+
+        _isSaving.value = false;
+
+        showSnackbar(context, success ? successText : message,
+            success: success);
+      });
+    } else {
+      _generatePdfDataAndCreatePdf(dataMap);
+      showSnackbar(context, successText, success: true);
+    }
   }
 
   Future<void> _generatePdfDataAndCreatePdf(
       Map<String, dynamic> formDataWithImagesAndTimestamp) async {
-    Map<String, dynamic> simpleFormData =
-        filterAndSimplifySubmittedFormData(formDataWithImagesAndTimestamp, localeMap);
+    Map<String, dynamic> simpleFormData = filterAndSimplifySubmittedFormData(
+        formDataWithImagesAndTimestamp, localeMap);
     PdfCreator pdf = PdfCreator(originalToLocale, currentLocale);
     pdf.addFormData(simpleFormData);
     Uint8List? graphData = await _openRadarChartCreatePngAndCloseAgain();
@@ -796,7 +801,6 @@ class NameFormState extends State<NameForm> {
         color: MyColors.red,
       ),
       onPressed: () {
-
         _saveFormData();
       },
     );
@@ -862,8 +866,7 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  NavigationRailDestination _buildNavigationRailDestination(
-      FormSection section,
+  NavigationRailDestination _buildNavigationRailDestination(FormSection section,
       {Color colorDone = MyColors.green,
       Color colorIncomplete = MyColors.orange}) {
     ValueListenable<bool> listener =
@@ -876,7 +879,8 @@ class NameFormState extends State<NameForm> {
       }
     }
 
-    String railLabel = sections[sectionIdx]["label$currentLocale"].split(" ")[0];
+    String railLabel =
+        sections[sectionIdx]["label$currentLocale"].split(" ")[0];
     return NavigationRailDestination(
       icon: ValueListenableBuilder<bool>(
         valueListenable: listener,
@@ -904,7 +908,8 @@ class NameFormState extends State<NameForm> {
     return Container(
       color: MyColors.sideBarBackground,
       child: Row(children: [
-        const VerticalDivider(thickness: 1, width: 1, color: MyColors.dividerColor),
+        const VerticalDivider(
+            thickness: 1, width: 1, color: MyColors.dividerColor),
         SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -965,11 +970,7 @@ class NameFormState extends State<NameForm> {
     return Column(children: [
       const SizedBox(height: 50),
       IconButton(
-        icon: Icon(Icons.clear,
-            color: Theme
-                .of(context)
-                .colorScheme
-                .error),
+        icon: Icon(Icons.clear, color: Theme.of(context).colorScheme.error),
         onPressed: () => _showClearDialogWithOptionsForFormAndImages(),
         // onPressed: () => _clearImages(goToFirstSectionAfterwards: true),
       ),
@@ -1076,7 +1077,6 @@ class NameFormState extends State<NameForm> {
         ),
       ),
       child: BottomNavigationBar(
-        //Define your own attributes for the bottom navigation bar here
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: const Icon(Icons.analytics_outlined, color: MyColors.green),
@@ -1099,7 +1099,6 @@ class NameFormState extends State<NameForm> {
             icon: const Icon(Icons.delete, color: MyColors.red),
             label: currentLocale == "EN" ? "Reset Form" : "Formular löschen",
           ),
-          // Add more items here
         ],
         onTap: (index) {
           switch (index) {
@@ -1150,9 +1149,13 @@ class NameFormState extends State<NameForm> {
     return Column(
       children: [
         _createHeaderWithSideMenuButton(section),
-        const Divider(color: MyColors.dividerColor,),
+        const Divider(
+          color: MyColors.dividerColor,
+        ),
         paddedWidget(_buildSingleTextInputForAnmerkungInImageSection()),
-        const Divider(color: MyColors.dividerColor,),
+        const Divider(
+          color: MyColors.dividerColor,
+        ),
         paddedWidget(_buildImageGridAndButtonBarForImageSection()),
         _selectedImages.isEmpty
             ? paddedWidget(_createInfoTextForImagePage(),
@@ -1167,8 +1170,8 @@ class NameFormState extends State<NameForm> {
       decoration: const BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: MyColors.dividerColor,  // Choose the color of the border
-            width: 1,  // Choose the width of the border
+            color: MyColors.dividerColor, // Choose the color of the border
+            width: 1, // Choose the width of the border
           ),
         ),
       ),
@@ -1177,9 +1180,9 @@ class NameFormState extends State<NameForm> {
         children: [
           Flexible(
             child: Center(
-              child: createHeader(originalToLocale[section.toString()]!)),
+                child: createHeader(originalToLocale[section.toString()]!)),
           ),
-        _createSideMenuIconButton()
+          _createSideMenuIconButton()
         ],
       ),
     );

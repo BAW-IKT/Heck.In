@@ -55,6 +55,8 @@ dependencies:
   external_path: ^1.0.3
   open_file_plus: ^3.4.1
   intl: ^0.18.1
+  flutter_linkify: ^6.0.0
+  url_launcher: ^6.2.1
 
 # build release with: flutter build apk --release
 

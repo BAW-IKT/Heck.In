@@ -153,6 +153,10 @@ class LocaleMap {
       return map;
     }
 
+    if (locale == "null") {
+      locale = "EN";
+    }
+
     for (Map<String, dynamic> field in formFields) {
       map[field["label$locale"]] = field["label"];
       if (field.containsKey("values")) {
@@ -177,6 +181,10 @@ class LocaleMap {
 
     if (locale.isEmpty) {
       return map;
+    }
+
+    if (locale == "null") {
+      locale = "EN";
     }
 
     for (Map<String, dynamic> field in formFields) {
