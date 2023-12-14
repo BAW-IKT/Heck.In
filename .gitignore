@@ -135,3 +135,5 @@ app.*.symbols
 # python admin script
 venv/
 admin/*.json
+/android/app/google-services.json
+/lib/firebase_options.dart
