@@ -956,7 +956,7 @@ List<Map<String, dynamic>> createFormFields() {
       "subSectionDE": null,
       "borderColor": MyColors.coral,
       "values": const ['jagd_zb_hochstand', 'erholung_zb_bank', 'bildung_zb_schautafel', 'kulturdenkmal', 'naturdenkmal', 'nichts'],
-      "valuesEN": const ['hunting, e.g. high stand', 'recreation, e.g. bench', 'education, e.g. display board', 'cultural monument', 'natural monument' 'none'],
+      "valuesEN": const ['hunting, e.g. high stand', 'recreation, e.g. bench', 'education, e.g. display board', 'cultural monument', 'natural monument', 'none'],
       "valuesDE": const ['Jagd, z.B. Hochstand', 'Erholung, z.B. Bank', 'Bildung, z.B. Schautafel', 'Kulturdenkmal', 'Naturdenkmal', 'nichts'],
       'valueMap': {
         'Rohstoffe': [null, 1, 0, 0, 0, 0, 0],
