@@ -164,7 +164,7 @@ class SplashScreen extends StatelessWidget {
                     ElevatedButton(
                       child: Text(
                         languageCode == "de" ? "Akzeptieren" : "Accept",
-                        style: TextStyle(color: MyColors.green),
+                        style: const TextStyle(color: MyColors.green),
                       ),
                       onPressed: () async {
                         SharedPreferences prefs =
