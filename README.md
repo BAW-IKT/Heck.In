@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Mnikley/Heck.In/releases/download/v1.8.0/heck_in.apk" target="_blank"><img src="https://img.shields.io/badge/Download-App-blue?style=for-the-badge&logo=android" alt="Download App"></a>
+  <a href="https://github.com/Mnikley/Heck.In/releases/download/v1.8.0/heck_in.apk" target="_blank" id="download"><img src="https://img.shields.io/badge/Download-App-blue?style=for-the-badge&logo=android" alt="Download App"></a>
 </p>
 
 # Heck.In
