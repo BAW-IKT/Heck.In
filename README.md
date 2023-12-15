@@ -16,3 +16,19 @@ If you have any questions or problems, we will be happy to help you. Contact our
 
 ## Data Collection
 Upon completion of the assessment, the result is transmitted anonymously to a server of the <a href="https://www.baw.at">Austrian Federal Office for Water Management</a>. No personal data of yours will be stored, the technical data will be merged and should provide an overview of the condition of hedges in various regions in the future. If you do not agree to this transmission, you can actively deselect the corresponding option before completing the assessment.
+
+## Screenshots
+<table>
+    <tr>
+        <td><img src="https://github.com/Mnikley/Heck.In/assets/75040444/c51ef675-cc1c-415c-a984-b6d7b3b945f7" alt="resources2" height="25%vw"></td>
+        <td><img src="https://github.com/Mnikley/Heck.In/assets/75040444/1fbf0499-653c-4a12-8b39-93e76d1aa719" alt="tooltip2" height="25%vw"></td>
+        <td><img src="https://github.com/Mnikley/Heck.In/assets/75040444/14f0e506-37ee-4a8c-a0fa-966c0a38623b" alt="form2" height="25%vw"></td>
+        <td><img src="https://github.com/Mnikley/Heck.In/assets/75040444/ef4630f6-22f0-4968-b0e2-ab36385e1f82" alt="graph2" height="25%vw"></td>
+    </tr>
+</table>
+<table>
+  <tr>
+    <td><img src="https://github.com/Mnikley/Heck.In/assets/75040444/f1b904ee-6157-48c7-961d-f70ee4ff2069" alt="export" height="25%vw"></td>
+  </tr>
+</table>
+
