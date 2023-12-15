@@ -41,7 +41,7 @@ class HedgeProfilerAppState extends State<HedgeProfilerApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Hedge Profiler',
+      title: 'Heck.In',
       theme: ThemeData(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
       themeMode: _themeMode,
@@ -348,11 +348,8 @@ class WebViewPageState extends State<WebViewPage> {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  Text(
-                    currentLocale == "EN"
-                        ? "Hedge Profiler"
-                        : "Hecken Profiler",
-                    style: const TextStyle(
+                  const Text("Heck.In",
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
