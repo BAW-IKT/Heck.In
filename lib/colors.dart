@@ -22,6 +22,7 @@ class MyColors {
   static const Color blueLight = Color.fromRGBO(100, 166, 235, 1);
 }
 
+// old color scheme
 // class MyColors {
 //   static const Color blue = Color.fromRGBO(0, 96, 205, 1);
 //   static const Color green = Color.fromRGBO(0, 176, 0, 0.8);
