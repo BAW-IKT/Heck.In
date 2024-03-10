@@ -6,15 +6,17 @@ import 'package:url_launcher/url_launcher.dart';
 import 'main.dart';
 
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  final bool darkMode;
+
+  const SplashScreen({
+    super.key,
+    required this.darkMode,
+  });
 
   @override
   Widget build(BuildContext context) {
     String languageCode = Localizations.localeOf(context).languageCode;
-    final Brightness brightnessValue =
-        MediaQuery.of(context).platformBrightness;
-    bool darkMode = brightnessValue == Brightness.light ? false : true;
-    Color textColor = darkMode == true ? MyColors.white : MyColors.black;
+    Color textColor = darkMode == true ? MyColors.white80 : MyColors.black;
     Color acceptColor = darkMode == true ? MyColors.greenDark : MyColors.green;
 
     String? encodeQueryParameters(Map<String, String> params) {

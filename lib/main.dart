@@ -46,7 +46,7 @@ class HedgeProfilerAppState extends State<HedgeProfilerApp> {
       theme: ThemeData(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
       themeMode: _themeMode,
-      home: widget.firstTime ? const SplashScreen() : const WebViewPage(),
+      home: widget.firstTime ? const SplashScreen(darkMode: false) : const WebViewPage(),
     );
   }
 
@@ -287,7 +287,7 @@ class WebViewPageState extends State<WebViewPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("first_time_launch", "true");
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => const SplashScreen()));
+        .push(MaterialPageRoute(builder: (context) => SplashScreen(darkMode: _darkMode)));
   }
 
   ListTile _buildMainMenuDrawerRateHedgeListTile() {
@@ -341,7 +341,7 @@ class WebViewPageState extends State<WebViewPage> {
   Widget _buildMainMenuDrawerHeader() {
     return Container(
         height: 150,
-        color: MyColors.blue,
+        color: _darkMode ? MyColors.topBarColor : MyColors.blue,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -639,7 +639,7 @@ class WebViewPageState extends State<WebViewPage> {
               icon: const Icon(Icons.my_location_sharp,
                   color: MyColors.blueDark, size: 20),
               onPressed: () {
-                _showFirstLaunchDialog();
+                _updateLocationAndLocales();
               },
             ),
           ],
