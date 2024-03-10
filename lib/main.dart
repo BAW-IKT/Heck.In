@@ -10,6 +10,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'colors.dart';
 import 'firebase_options.dart';
 import 'form.dart';
+import 'history.dart';
 import 'snackbar.dart';
 import 'utils_geo.dart' as geo;
 import 'splash_screen.dart';
@@ -71,6 +72,7 @@ class WebViewPageState extends State<WebViewPage> {
   final ValueNotifier<double> _loadingPercentage = ValueNotifier<double>(0.0);
   late final WebViewController _controller;
 
+  bool _showGeoCoordsInSidebar = false;
   bool _showNameForm = true;
   GlobalKey<NameFormState> _nameFormKey = GlobalKey<NameFormState>();
 
@@ -348,47 +350,26 @@ class WebViewPageState extends State<WebViewPage> {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  const Text("Heck.In",
+                  const Text(
+                    "Heck.In",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(
-                        Icons.info_outline,
-                        color: MyColors.blueDark
-                    ),
+                    icon: const Icon(Icons.info_outline,
+                        color: MyColors.blueDark),
                     onPressed: () {
                       _showFirstLaunchDialog();
                     },
                   )
                 ],
               ),
-              const SizedBox(height: 14),
               _buildGeoStatusText(),
             ],
           ),
         ));
-    // return DrawerHeader(
-    //   decoration: const BoxDecoration(
-    //     color: MyColors.blue,
-    //   ),
-    //   child: Column(
-    //     crossAxisAlignment: CrossAxisAlignment.stretch,
-    //     children: [
-    //       Text(
-    //         currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler",
-    //         style: const TextStyle(
-    //           fontSize: 20,
-    //           fontWeight: FontWeight.bold,
-    //         ),
-    //       ),
-    //       const SizedBox(height: 14),
-    //       _buildGeoStatusText(),
-    //     ],
-    //   ),
-    // );
   }
 
   Column _buildBottomPartForMainMenuDrawer() {
@@ -396,7 +377,8 @@ class WebViewPageState extends State<WebViewPage> {
       children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
           _buildLanguageToggleButton(),
-          _buildGeoRefreshButton(),
+          // _buildGeoRefreshButton(),
+          _buildHistoryButton(),
           _buildDarkmodeToggleButton(),
         ]),
         const SizedBox(height: 30),
@@ -610,6 +592,22 @@ class WebViewPageState extends State<WebViewPage> {
     );
   }
 
+  Widget _buildHistoryButton() {
+    return ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => PdfFileList(
+                    currentLocale: currentLocale, darkMode: _darkMode)),
+          );
+        },
+        child: Column(children: [
+          const Icon(Icons.history, color: MyColors.coral),
+          currentLocale == "EN" ? const Text("History") : const Text("Verlauf")
+        ]));
+  }
+
   Widget _buildGeoRefreshButton() {
     return ElevatedButton(
         onPressed: _updateLocationAndLocales,
@@ -637,15 +635,25 @@ class WebViewPageState extends State<WebViewPage> {
               _geoLastChange,
               style: const TextStyle(fontSize: 10, fontStyle: FontStyle.italic),
             ),
+            IconButton(
+              icon: const Icon(Icons.my_location_sharp,
+                  color: MyColors.blueDark, size: 20),
+              onPressed: () {
+                _showFirstLaunchDialog();
+              },
+            ),
           ],
         ),
-        Align(
-          alignment: Alignment.topLeft,
-          child: Text(
-            _geoLastKnown,
-            style: const TextStyle(fontSize: 10, fontStyle: FontStyle.italic),
+        Visibility(
+          visible: _showGeoCoordsInSidebar,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: Text(
+              _geoLastKnown,
+              style: const TextStyle(fontSize: 10, fontStyle: FontStyle.italic),
+            ),
           ),
-        ),
+        )
       ],
     );
   }
