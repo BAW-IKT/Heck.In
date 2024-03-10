@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
@@ -18,7 +20,7 @@ Future<List<DocumentSnapshot>> getAllDocuments() async {
   return documents;
 }
 
-Future<String> signInAnonymousUserAndGetUID() async{
+Future<String> signInAnonymousUserAndGetUID() async {
   FirebaseAuth auth = FirebaseAuth.instance;
   User user;
   if (auth.currentUser == null) {
@@ -32,13 +34,16 @@ Future<String> signInAnonymousUserAndGetUID() async{
 
 /// creates a document based on the given arguments
 /// returns a tuple (bool, String) with success status and message
-Future<void> writeDocument(
-    Map<String, dynamic> formData,
-    List<File> images,
+Future<void> writeDocument(Map<String, dynamic> formData, List<File> images,
     Function(bool, String, Map<String, dynamic>) onResult) async {
+
+  Duration timeOut = const Duration(seconds: 10);
+
   try {
-    // Sign in anonymously
-    String uid = await signInAnonymousUserAndGetUID();
+    String uid =
+        await signInAnonymousUserAndGetUID().timeout(timeOut, onTimeout: () {
+      throw TimeoutException("Could not sign in anonymously");
+    });
 
     // Get a reference to the Firestore collection
     final collection = FirebaseFirestore.instance.collection(collectionName);
@@ -51,14 +56,21 @@ Future<void> writeDocument(
     List<String> downloadUrls = [];
     for (File image in images) {
       String imageName = path.basename(image.path);
-      Reference imageRef = FirebaseStorage.instance.ref().child('$uid/$imageName');
-      await imageRef.putFile(image);
-      String downloadUrl = await imageRef.getDownloadURL();
+      Reference imageRef =
+          FirebaseStorage.instance.ref().child('$uid/$imageName');
+
+      await imageRef.putFile(image).timeout(timeOut, onTimeout: () {
+        throw TimeoutException("Could not synchronize image data");
+      });
+
+      String downloadUrl =
+          await imageRef.getDownloadURL().timeout(timeOut, onTimeout: () {
+        throw TimeoutException("Could not synchronize image URLs");
+      });
       downloadUrls.add(downloadUrl);
     }
 
-    // Set the data for the new document
-    // populate formdata, images, timestamp and geo coords
+    // Set the data for the new document, add images, timestamp and uid
     Map<String, dynamic> documentData = {};
     for (var entry in formData.entries) {
       documentData[entry.key] = entry.value;
@@ -66,12 +78,14 @@ Future<void> writeDocument(
     documentData['images'] = downloadUrls;
     documentData['form_submit_timestamp'] = timestamp.toString();
     documentData['uid'] = uid;
-    await document.set(documentData);
+
+    await document.set(documentData).timeout(timeOut, onTimeout: () {
+      throw TimeoutException("Could not set document data");
+    });
 
     // Call the callback function with success status and message
-    onResult(true, 'success', documentData);
+    onResult(true, "success", documentData);
   } catch (e) {
-    // Call the callback function with error status and message
-    onResult(false, '$e', {});
+    onResult(false, "$e", {});
   }
 }
