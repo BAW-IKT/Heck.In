@@ -141,3 +141,4 @@ admin/*.json
 /ios/Runner/GoogleService-Info.plist
 
 *.env
+data/.env
