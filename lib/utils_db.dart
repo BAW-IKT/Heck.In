@@ -1,91 +1,51 @@
 import 'dart:async';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:path/path.dart' as path;
-import 'package:firebase_auth/firebase_auth.dart';
-
 import 'dart:io';
+import 'dart:typed_data';
 
-String collectionName = "hedge_profiles";
-
-/// returns all documents from the collection
-Future<List<DocumentSnapshot>> getAllDocuments() async {
-  List<DocumentSnapshot> documents = [];
-  QuerySnapshot snapshot =
-      await FirebaseFirestore.instance.collection(collectionName).get();
-  for (var doc in snapshot.docs) {
-    documents.add(doc);
-  }
-  return documents;
-}
-
-Future<String> signInAnonymousUserAndGetUID() async {
-  FirebaseAuth auth = FirebaseAuth.instance;
-  User user;
-  if (auth.currentUser == null) {
-    UserCredential userCredential = await auth.signInAnonymously();
-    user = userCredential.user!;
-  } else {
-    user = auth.currentUser!;
-  }
-  return user.uid;
-}
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:mongo_dart/mongo_dart.dart';
 
 /// creates a document based on the given arguments
 /// returns a tuple (bool, String) with success status and message
 Future<void> writeDocument(Map<String, dynamic> formData, List<File> images,
     Function(bool, String, Map<String, dynamic>) onResult) async {
-
-  Duration timeOut = const Duration(seconds: 10);
-
   try {
-    String uid =
-        await signInAnonymousUserAndGetUID().timeout(timeOut, onTimeout: () {
-      throw TimeoutException("Could not sign in anonymously");
-    });
-
-    // Get a reference to the Firestore collection
-    final collection = FirebaseFirestore.instance.collection(collectionName);
-
-    // Create a new document with a unique ID
-    final document = collection.doc();
-    DateTime timestamp = DateTime.now();
-
-    // Upload images to Firebase Storage and get download URLs
-    List<String> downloadUrls = [];
-    for (File image in images) {
-      String imageName = path.basename(image.path);
-      Reference imageRef =
-          FirebaseStorage.instance.ref().child('$uid/$imageName');
-
-      await imageRef.putFile(image).timeout(timeOut, onTimeout: () {
-        throw TimeoutException("Could not synchronize image data");
-      });
-
-      String downloadUrl =
-          await imageRef.getDownloadURL().timeout(timeOut, onTimeout: () {
-        throw TimeoutException("Could not synchronize image URLs");
-      });
-      downloadUrls.add(downloadUrl);
-    }
-
-    // Set the data for the new document, add images, timestamp and uid
-    Map<String, dynamic> documentData = {};
-    for (var entry in formData.entries) {
-      documentData[entry.key] = entry.value;
-    }
-    documentData['images'] = downloadUrls;
-    documentData['form_submit_timestamp'] = timestamp.toString();
-    documentData['uid'] = uid;
-
-    await document.set(documentData).timeout(timeOut, onTimeout: () {
-      throw TimeoutException("Could not set document data");
-    });
-
-    // Call the callback function with success status and message
-    onResult(true, "success", documentData);
+    Map<String, dynamic> documentData = await writeToMongoDb(images, formData);
+    onResult(true, "success", formData);
   } catch (e) {
     onResult(false, "$e", {});
   }
+}
+
+Future<Map<String, dynamic>> writeToMongoDb(
+    List<File> images, Map<String, dynamic> formData) async {
+  Map<String, dynamic> documentData = {};
+  for (var entry in formData.entries) {
+    documentData[entry.key] = entry.value;
+  }
+
+  List<Uint8List> encodedImageList = [];
+  for (File image in images) {
+    Uint8List imageData = await loadImageAsBytes(image.path);
+    encodedImageList.add(imageData);
+  }
+
+  // TODO: ensure all data is there (raw, consolidated)
+  documentData["images"] = encodedImageList;
+  documentData["form_submit_timestamp"] = DateTime.now();
+
+  var db = await Db.create(dotenv.get("DB_URI"));
+  await db.open();
+
+  DbCollection collection = db.collection("hedges");
+  await collection.insert(documentData);
+  await db.close();
+
+  return documentData;
+}
+
+Future<Uint8List> loadImageAsBytes(String imagePath) async {
+  var imageFile = File(imagePath);
+  Uint8List imageBytes = await imageFile.readAsBytes();
+  return imageBytes;
 }
