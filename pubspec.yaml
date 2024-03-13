@@ -52,8 +52,8 @@ dependencies:
   open_file_plus: ^3.4.1
   intl: ^0.19.0
   url_launcher: ^6.2.5
+  flutter_dotenv: ^5.1.0
   mongo_dart: ^0.10.0
-  flutter_secure_storage: ^4.2.1
 
 # build release with: flutter build apk --release
 
@@ -99,6 +99,7 @@ flutter:
     - data/Tabelle_Altersklassen_engl.jpg
     - data/Roboto-Regular.ttf
     - data/Roboto-Bold.ttf
+    - data/.env
   fonts:
     - family: Roboto
       fonts:

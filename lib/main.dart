@@ -1,14 +1,13 @@
 import 'dart:io';
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hedge_profiler_flutter/form_data.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'colors.dart';
-import 'firebase_options.dart';
 import 'form.dart';
 import 'history.dart';
 import 'snackbar.dart';
@@ -18,6 +17,7 @@ import 'splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await dotenv.load(fileName: "data/.env");
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool firstTime = !(prefs.containsKey("first_time_launch") &&
       prefs.getString("first_time_launch") == "false");
@@ -84,23 +84,11 @@ class WebViewPageState extends State<WebViewPage> {
   bool _darkMode = true;
   bool _isLoading = true;
 
-  /// initializes the firebase app
-  _initDatabase() async {
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    } catch (e) {
-      showSnackbar(context, e.toString());
-    }
-  }
-
   @override
   void initState() {
     super.initState();
     _checkPermissions();
     _updateLocationAndLocales();
-    _initDatabase();
 
     final WebViewController controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
