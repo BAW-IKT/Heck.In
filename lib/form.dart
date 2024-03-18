@@ -306,20 +306,22 @@ class NameFormState extends State<NameForm> {
       dataMap[key] = prefs.get(key);
     }
 
-    bool dataConsentGiven = prefs.getString("data_consent") == "true" ? true : false;
+    bool dataConsentGiven =
+        prefs.getString("data_consent") == "true" ? true : false;
 
     String successText = currentLocale == "EN"
         ? "Document saved successfully"
         : "Dokument erfolgreich gespeichert";
 
     // write to the database, show snackbar with result, stop loading indicator
-
     if (dataConsentGiven) {
       _isSaving.value = true;
 
-      db.writeDocument(dataMap, _selectedImages,
-          (success, message, formDataWithImagesAndTimestamp) {
-
+      db.writeDocument(
+          dataMap,
+          _radarChartDataFull,
+          _radarChartDataListsReduced,
+          _selectedImages, (success, message, formDataWithImagesAndTimestamp) {
         if (success) {
           _generatePdfDataAndCreatePdf(formDataWithImagesAndTimestamp);
         } else {
