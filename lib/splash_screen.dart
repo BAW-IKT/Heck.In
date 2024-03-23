@@ -17,7 +17,8 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     String languageCode = Localizations.localeOf(context).languageCode;
     Color textColor = darkMode == true ? MyColors.white80 : MyColors.black;
-    Color acceptColor = darkMode == true ? MyColors.greenDark : MyColors.green;
+    Color acceptColor = darkMode == true ? MyColors.green : MyColors.greenDark;
+    Color backgroundColor = darkMode == true ? MyColors.black : MyColors.white;
 
     String? encodeQueryParameters(Map<String, String> params) {
       return params.entries
@@ -66,6 +67,7 @@ class SplashScreen extends StatelessWidget {
     }
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Center(
