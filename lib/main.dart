@@ -75,7 +75,7 @@ class WebViewPageState extends State<WebViewPage> {
   final ValueNotifier<double> _loadingPercentage = ValueNotifier<double>(0.0);
   late final WebViewController _controller;
 
-  bool _showGeoCoordsInSidebar = false;
+  final bool _showGeoCoordsInSidebar = false;
   bool _showNameForm = true;
   GlobalKey<NameFormState> _nameFormKey = GlobalKey<NameFormState>();
 
@@ -91,6 +91,7 @@ class WebViewPageState extends State<WebViewPage> {
   void initState() {
     super.initState();
     _checkPermissions();
+    _updateDarkMode();
     _updateLocationAndLocales();
 
     final WebViewController controller = WebViewController()
@@ -123,14 +124,14 @@ class WebViewPageState extends State<WebViewPage> {
     _controller = controller;
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final brightness = MediaQuery.of(context).platformBrightness;
-    setState(() {
-      _darkMode = brightness == Brightness.dark;
-    });
-  }
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   final brightness = MediaQuery.of(context).platformBrightness;
+  //   setState(() {
+  //     _darkMode = brightness == Brightness.dark;
+  //   });
+  // }
 
   void _checkPermissions() async {
     PermissionStatus locationStatus = await Permission.location.status;
@@ -140,6 +141,10 @@ class WebViewPageState extends State<WebViewPage> {
     if (!locationStatus.isGranted) await Permission.location.request();
     if (!storageStatus.isGranted) await Permission.storage.request();
     if (!cameraStatus.isGranted) await Permission.camera.request();
+  }
+
+  void _updateDarkMode() async {
+    _darkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
   }
 
   /// refreshes geo coordinates and updates variables for menu accordingly
