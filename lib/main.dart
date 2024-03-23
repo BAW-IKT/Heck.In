@@ -84,7 +84,7 @@ class WebViewPageState extends State<WebViewPage> {
   String _geoLastKnown = 'no location available';
   String systemLocale = Platform.localeName.startsWith("de") ? "DE" : "EN";
   String currentLocale = "EN";
-  bool _darkMode = true;
+  bool _darkMode = false;
   bool _isLoading = true;
 
   @override
@@ -121,6 +121,15 @@ class WebViewPageState extends State<WebViewPage> {
       );
 
     _controller = controller;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final brightness = MediaQuery.of(context).platformBrightness;
+    setState(() {
+      _darkMode = brightness == Brightness.dark;
+    });
   }
 
   void _checkPermissions() async {
