@@ -189,63 +189,55 @@ class WebViewPageState extends State<WebViewPage> {
   /// NameForm is stacked on top and controlled with _showNameForm
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
+    return WillPopScope(
+      onWillPop: _onBackButtonPressed,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: MyColors.topBarColor,
+          title: Text(
+              currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler"),
         ),
-      );
-    } else {
-      return WillPopScope(
-        onWillPop: _onBackButtonPressed,
-        child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: MyColors.topBarColor,
-            title: Text(
-                currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler"),
-          ),
-          drawer: _buildMainMenuDrawer(),
-          body: Stack(
-            children: [
-              WebViewWidget(
-                controller: _controller,
-              ),
-              ValueListenableBuilder<double>(
-                valueListenable: _loadingPercentage,
-                builder: (context, value, child) {
-                  return value < 100
-                      ? LinearProgressIndicator(
-                          value: value / 100.0,
-                        )
-                      : const SizedBox.shrink();
-                },
-              ),
-              Offstage(
-                offstage: !_showNameForm,
-                // when _showNameForm is false, the Container will be off the screen
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: Container(
-                        color: MyColors.black.withOpacity(0.5),
-                        child: Center(
-                          child: NameForm(
-                            formKey: _nameFormKey,
-                            webViewPageState: this,
-                            showForm: _showNameForm,
-                            darkMode: _darkMode,
-                          ),
+        drawer: _buildMainMenuDrawer(),
+        body: Stack(
+          children: [
+            WebViewWidget(
+              controller: _controller,
+            ),
+            ValueListenableBuilder<double>(
+              valueListenable: _loadingPercentage,
+              builder: (context, value, child) {
+                return value < 100
+                    ? LinearProgressIndicator(
+                        value: value / 100.0,
+                      )
+                    : const SizedBox.shrink();
+              },
+            ),
+            Offstage(
+              offstage: !_showNameForm,
+              // when _showNameForm is false, the Container will be off the screen
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Container(
+                      color: MyColors.black.withOpacity(0.5),
+                      child: Center(
+                        child: NameForm(
+                          formKey: _nameFormKey,
+                          webViewPageState: this,
+                          showForm: _showNameForm,
+                          darkMode: _darkMode,
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
-    }
+      ),
+    );
   }
 
   Drawer _buildMainMenuDrawer() {
@@ -328,36 +320,46 @@ class WebViewPageState extends State<WebViewPage> {
 
   Widget _buildMainMenuDrawerHeader() {
     return Container(
-        height: 150,
-        color: _darkMode ? MyColors.topBarColor : MyColors.blue,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  const Text(
-                    "Heck.In",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+      height: 150,
+      color: _darkMode ? MyColors.topBarColor : MyColors.blue,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                const Text(
+                  "Heck.In",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.info_outline,
-                        color: MyColors.blueDark),
-                    onPressed: () {
-                      _showFirstLaunchDialog();
-                    },
-                  )
-                ],
-              ),
-              _buildGeoStatusText(),
-            ],
-          ),
-        ));
+                ),
+                IconButton(
+                  icon:
+                      const Icon(Icons.info_outline, color: MyColors.blueDark),
+                  onPressed: () {
+                    _showFirstLaunchDialog();
+                  },
+                ),
+                _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.0,
+                        ),
+                      )
+                    : Container(),
+              ],
+            ),
+            _buildGeoStatusText(),
+          ],
+        ),
+      ),
+    );
   }
 
   Column _buildBottomPartForMainMenuDrawer() {
