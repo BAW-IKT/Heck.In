@@ -84,7 +84,7 @@ class WebViewPageState extends State<WebViewPage> {
   String _geoLastKnown = 'no location available';
   String systemLocale = Platform.localeName.startsWith("de") ? "DE" : "EN";
   String currentLocale = "EN";
-  bool _darkMode = false;
+  bool _darkMode = true;
   bool _isLoading = true;
 
   @override
