@@ -124,47 +124,13 @@ class WebViewPageState extends State<WebViewPage> {
   }
 
   void _checkPermissions() async {
-    await _checkPermission(Permission.storage, "Storage permission denied - cannot write images to storage");
-    await _checkPermission(Permission.location, "Location permission denied - cannot get the current location");
-  }
+    PermissionStatus locationStatus = await Permission.location.status;
+    PermissionStatus storageStatus = await Permission.storage.status;
+    PermissionStatus cameraStatus = await Permission.camera.status;
 
-  Future _checkPermission(Permission permission, String deniedMessage) async {
-    PermissionStatus status = await permission.status;
-
-    switch (status) {
-      case PermissionStatus.denied:
-        try {
-          PermissionStatus newStatus = await permission.request().timeout(const Duration(seconds: 5));
-          if (!newStatus.isGranted) {
-            showSnackbar(context, deniedMessage, success: false);
-          }
-        } on TimeoutException catch (_) {
-          showSnackbar(context, "${permission.toString()} permission request timeout", success: false);
-        }
-        break;
-      case PermissionStatus.permanentlyDenied:
-        showSnackbar(
-            context,
-            "${permission.toString()} permission permanently denied - please enable it from the app settings",
-            success: false);
-        break;
-      case PermissionStatus.restricted:
-      case PermissionStatus.limited:
-        showSnackbar(
-            context,
-            "${permission.toString()} permission restricted - cannot write images to storage",
-            success: false);
-        break;
-      case PermissionStatus.provisional:
-        showSnackbar(
-            context,
-            "${permission.toString()} permission is provisional, a final permission will be requested later.",
-            success: false);
-        break;
-      case PermissionStatus.granted:
-        // No Snackbar when the permission is granted as per your request
-        break;
-    }
+    if (!locationStatus.isGranted) await Permission.location.request();
+    if (!storageStatus.isGranted) await Permission.storage.request();
+    if (!cameraStatus.isGranted) await Permission.camera.request();
   }
 
   /// refreshes geo coordinates and updates variables for menu accordingly
