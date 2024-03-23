@@ -17,8 +17,8 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     String languageCode = Localizations.localeOf(context).languageCode;
     Color textColor = darkMode == true ? MyColors.white80 : MyColors.black;
-    Color acceptColor = darkMode == true ? MyColors.green : MyColors.greenDark;
-    Color backgroundColor = darkMode == true ? MyColors.black : MyColors.white;
+    Color acceptColor = MyColors.greenDark;
+    Color backgroundColor = darkMode == true ? MyColors.sideBarBackground : MyColors.white;
 
     String? encodeQueryParameters(Map<String, String> params) {
       return params.entries
