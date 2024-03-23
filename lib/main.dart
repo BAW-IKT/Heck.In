@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -46,7 +47,9 @@ class HedgeProfilerAppState extends State<HedgeProfilerApp> {
       theme: ThemeData(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
       themeMode: _themeMode,
-      home: widget.firstTime ? const SplashScreen(darkMode: false) : const WebViewPage(),
+      home: widget.firstTime
+          ? const SplashScreen(darkMode: false)
+          : const WebViewPage(),
     );
   }
 
@@ -121,68 +124,111 @@ class WebViewPageState extends State<WebViewPage> {
   }
 
   void _checkPermissions() async {
-    if (await Permission.storage.request().isDenied) {
-      showSnackbar(
-          context, "No storage permission - cannot write images to storage",
-          success: false);
+    await _checkPermission(Permission.storage, "Storage permission denied - cannot write images to storage");
+    await _checkPermission(Permission.location, "Location permission denied - cannot get the current location");
+  }
+
+  Future _checkPermission(Permission permission, String deniedMessage) async {
+    PermissionStatus status = await permission.status;
+
+    switch (status) {
+      case PermissionStatus.denied:
+        try {
+          PermissionStatus newStatus = await permission.request().timeout(const Duration(seconds: 5));
+          if (!newStatus.isGranted) {
+            showSnackbar(context, deniedMessage, success: false);
+          }
+        } on TimeoutException catch (_) {
+          showSnackbar(context, "${permission.toString()} permission request timeout", success: false);
+        }
+        break;
+      case PermissionStatus.permanentlyDenied:
+        showSnackbar(
+            context,
+            "${permission.toString()} permission permanently denied - please enable it from the app settings",
+            success: false);
+        break;
+      case PermissionStatus.restricted:
+      case PermissionStatus.limited:
+        showSnackbar(
+            context,
+            "${permission.toString()} permission restricted - cannot write images to storage",
+            success: false);
+        break;
+      case PermissionStatus.provisional:
+        showSnackbar(
+            context,
+            "${permission.toString()} permission is provisional, a final permission will be requested later.",
+            success: false);
+        break;
+      case PermissionStatus.granted:
+        // No Snackbar when the permission is granted as per your request
+        break;
     }
   }
 
   /// refreshes geo coordinates and updates variables for menu accordingly
   _updateLocationAndLocales() async {
+    String geoLastChange = "n/a";
+    String lat = "n/a";
+    String lon = "n/a";
+    String geoLastKnown = "$lat,$lon";
+
     setState(() {
       _isLoading = true;
     });
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    // initially set locale
-    if (!prefs.containsKey("locale")) {
-      prefs.setString("locale", systemLocale);
-    }
-
-    // load last stored locale
-    currentLocale = prefs.getString("locale") ?? "EN";
-
-    // set to last known pos
-    await geo.getLastKnownLocation();
-    setState(() {
-      _geoLastChange =
-          prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
-      String lat = prefs.getString("geo_latitude") ?? "n/a";
-      String lon = prefs.getString("geo_longitude") ?? "n/a";
-      _geoLastKnown = "$lat,$lon";
-    });
-
-    // wait for refresh of coords
     try {
-      // wait for refresh of coords with a timeout of 5 seconds
-      await geo.updateLocation().timeout(const Duration(seconds: 5),
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // initially set locale
+      if (!prefs.containsKey("locale")) {
+        prefs.setString("locale", systemLocale);
+      }
+
+      // load last stored locale
+      currentLocale = prefs.getString("locale") ?? "EN";
+
+      // set to last known pos
+      await geo.getLastKnownLocation().timeout(const Duration(seconds: 5),
           onTimeout: () {
-        setState(() {
-          _isLoading = false;
-        });
         showSnackbar(
             context,
             currentLocale == "EN"
-                ? "Updating geo information timed out after 5 seconds"
-                : "Geo koordinaten konnten nach 5 Sekunden nicht aktualisiert werden");
+                ? "Timeout when fetching geo information"
+                : "Geo koordinaten konnten nicht abgerufen werden");
       });
+
+      geoLastChange =
+          prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
+      lat = prefs.getString("geo_latitude") ?? "n/a";
+      lon = prefs.getString("geo_longitude") ?? "n/a";
+      geoLastKnown = "$lat,$lon";
+
+      // wait for refresh of coords with a timeout of 5 seconds
+      await geo.updateLocation().timeout(const Duration(seconds: 5),
+          onTimeout: () {
+        showSnackbar(
+            context,
+            currentLocale == "EN"
+                ? "Timeout when updating geo information"
+                : "Geo koordinaten konnten nicht aktualisiert werden");
+      });
+
+      geoLastChange =
+          prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
+      lat = prefs.getString("geo_latitude") ?? "n/a";
+      lon = prefs.getString("geo_longitude") ?? "n/a";
+      geoLastKnown = "$lat,$lon";
     } catch (e) {
+      showSnackbar(context, "Error when updating geo information: $e");
+    } finally {
       setState(() {
         _isLoading = false;
-        showSnackbar(context, "Error when updating geo information: $e");
+        _geoLastChange = geoLastChange;
+        _geoLastKnown = geoLastKnown;
       });
     }
-
-    setState(() {
-      _geoLastChange =
-          prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
-      String lat = prefs.getString("geo_latitude") ?? "n/a";
-      String lon = prefs.getString("geo_longitude") ?? "n/a";
-      _geoLastKnown = "$lat,$lon";
-      _isLoading = false;
-    });
   }
 
   /// scaffold of app with menu drawer and WebViewWidget as body
@@ -194,8 +240,7 @@ class WebViewPageState extends State<WebViewPage> {
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: MyColors.topBarColor,
-          title: Text(
-              currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler"),
+          title: Text(currentLocale == "EN" ? "Rate Hedge" : "Hecke Bewerten"),
         ),
         drawer: _buildMainMenuDrawer(),
         body: Stack(
@@ -266,8 +311,8 @@ class WebViewPageState extends State<WebViewPage> {
   void _showFirstLaunchDialog() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("first_time_launch", "true");
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => SplashScreen(darkMode: _darkMode)));
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => SplashScreen(darkMode: _darkMode)));
   }
 
   ListTile _buildMainMenuDrawerRateHedgeListTile() {
