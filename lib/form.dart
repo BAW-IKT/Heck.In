@@ -99,7 +99,7 @@ class NameFormState extends State<NameForm> {
 
   Future<void> initializeForm() async {
     await refreshCurrentLocale();
-    inputFields = createFormFields();
+    inputFields = await createFormFields();
 
     for (var i = 0; i < inputFields.length; i++) {
       inputFieldLabelToIndex[inputFields[i]["label"]] = i;
@@ -1223,25 +1223,29 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  TextFormField _buildSingleTextInputForAnmerkungInImageSection() {
+  Widget _buildSingleTextInputForAnmerkungInImageSection() {
     String anmerkungenLabel = "anmerkungen_kommentare";
-    int anmerkungenIdx = inputFieldLabelToIndex[anmerkungenLabel]!;
-    var anmerkungenField = inputFields[anmerkungenIdx];
-    return TextFormField(
-      controller: anmerkungenField["controller"],
-      decoration: InputDecoration(
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(
-            color: anmerkungenField["borderColor"],
+    if (inputFieldLabelToIndex.containsKey(anmerkungenLabel)) {
+      int anmerkungenIdx = inputFieldLabelToIndex[anmerkungenLabel]!;
+      var anmerkungenField = inputFields[anmerkungenIdx];
+      return TextFormField(
+        controller: anmerkungenField["controller"],
+        decoration: InputDecoration(
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: anmerkungenField["borderColor"],
+            ),
           ),
+          labelText: anmerkungenField["label$currentLocale"],
         ),
-        labelText: anmerkungenField["label$currentLocale"],
-      ),
-      keyboardType: TextInputType.text,
-      onChanged: (value) {
-        onWidgetChanged(anmerkungenLabel, value);
-      },
-    );
+        keyboardType: TextInputType.text,
+        onChanged: (value) {
+          onWidgetChanged(anmerkungenLabel, value);
+        },
+      );
+    } else {
+      return Container();
+    }
   }
 
   Row _buildImageGridAndButtonBarForImageSection() {
