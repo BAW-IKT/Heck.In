@@ -82,7 +82,80 @@ class _PdfFileListState extends State<PdfFileList> {
   }
 
   Widget createListOfExistingHedgePdfs(Color color) {
+  return Column(
+    children: [
+      // Header.
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SizedBox(width: 150, child: Text(widget.currentLocale == "EN" ? "Rating Date" : "Bewertungsdatum", style: TextStyle(color: color, fontWeight: FontWeight.bold))),
+            Row(
+              children: [
+                SizedBox(width: 50, child: Text(widget.currentLocale == "EN" ? "Open" : "Öffnen", style: TextStyle(color: color, fontWeight: FontWeight.bold))),
+                SizedBox(width: 45, child: Text(widget.currentLocale == "EN" ? "Delete" : "Löschen", style: TextStyle(color: color, fontWeight: FontWeight.bold))), // Adjusted width
+              ],
+            ),
+          ],
+        ),
+      ),
+      // This is the list.
+      Expanded(
+        child: ListView.separated(
+          itemCount: _files.length,
+          itemBuilder: (context, index) {
+            String fileName = _files[index].path.split("/").last;
+
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SizedBox(width: 16),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: sanitizeFileName(fileName, color),
+                  ),
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.file_open,
+                        color: MyColors.green,
+                      ),
+                      onPressed: () {
+                          OpenFile.open(_files[index].path);
+                      },
+                    ),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      icon: const Icon(Icons.delete_forever, color: MyColors.red),
+                      onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return _showDeleteRatingAlertDialog(index, fileName);
+                            },
+                          );
+                      },
+                    ),
+                    const SizedBox(width: 14),
+                  ],
+                ),
+              ],
+            );
+          },
+          separatorBuilder: (context, index) => const Divider(),
+        ),
+      ),
+    ],
+  );
+}
+
+  Widget createListOfExistingHedgePdfs2(Color color) {
     return ListView.separated(
+      // foo
       itemCount: _files.length,
       itemBuilder: (context, index) {
         String fileName = _files[index].path.split("/").last;
@@ -144,6 +217,32 @@ class _PdfFileListState extends State<PdfFileList> {
         );
       },
       separatorBuilder: (context, index) => const Divider(),
+    );
+  }
+
+  AlertDialog _showDeleteRatingAlertDialog(int fileIndex, String fileName) {
+    return AlertDialog(
+      title: Text(
+          widget.currentLocale == "EN" ? "Delete Rating" : "Bewertung Löschen"),
+      content: Text(widget.currentLocale == "EN"
+          ? "Please confirm if you want to delete the following file:\n\n $fileName"
+          : "Bitte bestätigen, dass sie die folgende Datei löschen möchten:\n\n $fileName"),
+      actions: <Widget>[
+        TextButton(
+          child: Text(widget.currentLocale == "EN" ? "Cancel" : "Abbrechen"),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        TextButton(
+          child: Text(widget.currentLocale == "EN" ? "Confirm" : "Bestätigen"),
+          onPressed: () {
+            File(_files[fileIndex].path).delete();
+            _listPdfFiles();
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
     );
   }
 
