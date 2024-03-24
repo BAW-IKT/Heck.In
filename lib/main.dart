@@ -91,8 +91,11 @@ class WebViewPageState extends State<WebViewPage> {
   void initState() {
     super.initState();
     _checkPermissions();
-    _updateDarkMode();
     _updateLocationAndLocales();
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _updateDarkMode();
+    });
 
     final WebViewController controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
