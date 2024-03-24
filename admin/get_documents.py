@@ -32,8 +32,7 @@ def fetch_documents():
     for document_index, document in enumerate(collection.find()):
         _id = document.get("_id", f"{uuid.uuid4()}")
         form_data = document.get("form_data", {})
-        graph_data_full = document.get("graph_data_full", {})
-        graph_data_reduced = document.get("graph_data_reduced", {})
+        graph_data = document.get("graph_data", {})
         images = document.get("images", [])
         timestamp = document.get("timestamp", datetime.now())
 
@@ -45,8 +44,7 @@ def fetch_documents():
             print(f"Created folder: {hedge_folder}")
 
         # write dictionary data, 3 .json files per submission
-        for data, description in zip([form_data, graph_data_full, graph_data_reduced],
-                                     ["form_data", "graph_data_full", "graph_data_reduced"]):
+        for data, description in zip([form_data, graph_data], ["form_data", "graph_data"]):
             json_path = os.path.join(hedge_folder, f"{description}.json")
             with open(file=json_path, mode="w", encoding="utf-8") as f_out:
                 json.dump(data, f_out)

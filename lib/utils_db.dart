@@ -9,19 +9,17 @@ import 'package:mongo_dart/mongo_dart.dart';
 /// returns a tuple (bool, String) with success status and message
 Future<void> writeDocument(
     Map<String, dynamic> formData,
-    Map<String, dynamic> radarDataFull,
     Map<String, dynamic> radarDataReduced,
     List<File> images,
     Function(bool, String, Map<String, dynamic>) onResult) async {
   Map<String, dynamic> transaction =
-      await writeToMongoDb(images, formData, radarDataFull, radarDataReduced);
+      await writeToMongoDb(images, formData, radarDataReduced);
   onResult(transaction["success"], transaction["message"], transaction["data"]);
 }
 
 Future<Map<String, dynamic>> writeToMongoDb(
   List<File> images,
   Map<String, dynamic> formData,
-  Map<String, dynamic> radarDataFull,
   Map<String, dynamic> radarDataReduced,
 ) async {
   const timeout = Duration(seconds: 10);
@@ -31,8 +29,7 @@ Future<Map<String, dynamic>> writeToMongoDb(
   Map<String, dynamic> data = {};
   Map<String, dynamic> dbData = {
     "form_data": {},
-    "graph_data_full": radarDataFull,
-    "graph_data_reduced": radarDataReduced,
+    "graph_data": radarDataReduced,
     "images": [],
   };
 
