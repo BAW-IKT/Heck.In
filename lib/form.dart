@@ -317,6 +317,10 @@ class NameFormState extends State<NameForm> {
     if (dataConsentGiven) {
       _isSaving.value = true;
 
+      resetRadarChartData();
+      updateRadarDataFull(prefs);
+      updateRadarDataReduced();
+
       db.writeDocument(
           dataMap,
           _radarChartDataFull,
