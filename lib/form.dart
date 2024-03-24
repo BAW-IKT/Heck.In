@@ -1171,6 +1171,19 @@ class NameFormState extends State<NameForm> {
   }
 
   Widget _createHeaderWithSideMenuButton(FormSection section) {
+    String headerText = originalToLocale[section.toString()]!;
+    Icon headerIcon = const Icon(Icons.info);
+
+    ValueListenable<bool> listener =
+        sectionNotifiers[section] as ValueListenable<bool>;
+    int sectionIdx = 0;
+    for (int i = 0; i < sections.length; i++) {
+      if (sections[i]["label"] == section) {
+        sectionIdx = i;
+        break;
+      }
+    }
+
     return Container(
       decoration: const BoxDecoration(
         border: Border(
@@ -1183,9 +1196,16 @@ class NameFormState extends State<NameForm> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          ValueListenableBuilder<bool>(
+            valueListenable: listener,
+            builder: (context, value, child) {
+              headerIcon = Icon(sections[sectionIdx]["icon"],
+                  color: value ? MyColors.green : MyColors.orange);
+              return paddedWidget(headerIcon, horizontalPadding: 16);
+            },
+          ),
           Flexible(
-            child: Center(
-                child: createHeader(originalToLocale[section.toString()]!)),
+            child: Center(child: createHeader(headerText)),
           ),
           _createSideMenuIconButton()
         ],
