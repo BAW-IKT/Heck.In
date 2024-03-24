@@ -323,7 +323,6 @@ class NameFormState extends State<NameForm> {
 
       db.writeDocument(
           dataMap,
-          _radarChartDataFull,
           _radarChartDataListsReduced,
           _selectedImages, (success, message, formDataWithImagesAndTimestamp) {
         if (success) {
