@@ -99,7 +99,7 @@ class NameFormState extends State<NameForm> {
 
   Future<void> initializeForm() async {
     await refreshCurrentLocale();
-    inputFields = createFormFields();
+    inputFields = await createFormFields();
 
     for (var i = 0; i < inputFields.length; i++) {
       inputFieldLabelToIndex[inputFields[i]["label"]] = i;
@@ -306,21 +306,26 @@ class NameFormState extends State<NameForm> {
       dataMap[key] = prefs.get(key);
     }
 
-    // start loading indicator
-    _isSaving.value = true;
+    bool dataConsentGiven =
+        prefs.getString("data_consent") == "true" ? true : false;
 
     String successText = currentLocale == "EN"
         ? "Document saved successfully"
         : "Dokument erfolgreich gespeichert";
 
     // write to the database, show snackbar with result, stop loading indicator
-    bool dataConsentGiven =
-        prefs.getString("data_consent") == "true" ? true : false;
     if (dataConsentGiven) {
-      db.writeDocument(dataMap, _selectedImages,
-          (success, message, formDataWithImagesAndTimestamp) {
+      _isSaving.value = true;
+
+      db.writeDocument(
+          dataMap,
+          _radarChartDataFull,
+          _radarChartDataListsReduced,
+          _selectedImages, (success, message, formDataWithImagesAndTimestamp) {
         if (success) {
           _generatePdfDataAndCreatePdf(formDataWithImagesAndTimestamp);
+        } else {
+          _generatePdfDataAndCreatePdf(dataMap);
         }
 
         _isSaving.value = false;
@@ -1166,6 +1171,19 @@ class NameFormState extends State<NameForm> {
   }
 
   Widget _createHeaderWithSideMenuButton(FormSection section) {
+    String headerText = originalToLocale[section.toString()]!;
+    Icon headerIcon = const Icon(Icons.info);
+
+    ValueListenable<bool> listener =
+        sectionNotifiers[section] as ValueListenable<bool>;
+    int sectionIdx = 0;
+    for (int i = 0; i < sections.length; i++) {
+      if (sections[i]["label"] == section) {
+        sectionIdx = i;
+        break;
+      }
+    }
+
     return Container(
       decoration: const BoxDecoration(
         border: Border(
@@ -1178,9 +1196,16 @@ class NameFormState extends State<NameForm> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          ValueListenableBuilder<bool>(
+            valueListenable: listener,
+            builder: (context, value, child) {
+              headerIcon = Icon(sections[sectionIdx]["icon"],
+                  color: value ? MyColors.green : MyColors.orange);
+              return paddedWidget(headerIcon, horizontalPadding: 16);
+            },
+          ),
           Flexible(
-            child: Center(
-                child: createHeader(originalToLocale[section.toString()]!)),
+            child: Center(child: createHeader(headerText)),
           ),
           _createSideMenuIconButton()
         ],
@@ -1218,25 +1243,29 @@ class NameFormState extends State<NameForm> {
     );
   }
 
-  TextFormField _buildSingleTextInputForAnmerkungInImageSection() {
+  Widget _buildSingleTextInputForAnmerkungInImageSection() {
     String anmerkungenLabel = "anmerkungen_kommentare";
-    int anmerkungenIdx = inputFieldLabelToIndex[anmerkungenLabel]!;
-    var anmerkungenField = inputFields[anmerkungenIdx];
-    return TextFormField(
-      controller: anmerkungenField["controller"],
-      decoration: InputDecoration(
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(
-            color: anmerkungenField["borderColor"],
+    if (inputFieldLabelToIndex.containsKey(anmerkungenLabel)) {
+      int anmerkungenIdx = inputFieldLabelToIndex[anmerkungenLabel]!;
+      var anmerkungenField = inputFields[anmerkungenIdx];
+      return TextFormField(
+        controller: anmerkungenField["controller"],
+        decoration: InputDecoration(
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: anmerkungenField["borderColor"],
+            ),
           ),
+          labelText: anmerkungenField["label$currentLocale"],
         ),
-        labelText: anmerkungenField["label$currentLocale"],
-      ),
-      keyboardType: TextInputType.text,
-      onChanged: (value) {
-        onWidgetChanged(anmerkungenLabel, value);
-      },
-    );
+        keyboardType: TextInputType.text,
+        onChanged: (value) {
+          onWidgetChanged(anmerkungenLabel, value);
+        },
+      );
+    } else {
+      return Container();
+    }
   }
 
   Row _buildImageGridAndButtonBarForImageSection() {

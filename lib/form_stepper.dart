@@ -60,16 +60,20 @@ class StepperWidgetState extends State<StepperWidget> {
     _addInputFieldsToSections();
     List<bool> stepCompletionStatus = _buildStepsAndGetCompletionStatusList();
 
-    return Stepper(
-      currentStep: _index,
-      physics: const ClampingScrollPhysics(),
-      onStepCancel: _decrementStepIndex,
-      onStepContinue: _incrementStepIndexAndDropKeyboardFocus,
-      onStepTapped: _setStepIndexAndDropKeyboardFocus,
-      steps: steps,
-      controlsBuilder: (BuildContext context, ControlsDetails details) =>
-          _buildControls(context, details, stepCompletionStatus),
-    );
+    if (steps.isNotEmpty) {
+      return Stepper(
+        currentStep: _index,
+        physics: const ClampingScrollPhysics(),
+        onStepCancel: _decrementStepIndex,
+        onStepContinue: _incrementStepIndexAndDropKeyboardFocus,
+        onStepTapped: _setStepIndexAndDropKeyboardFocus,
+        steps: steps,
+        controlsBuilder: (BuildContext context, ControlsDetails details) =>
+            _buildControls(context, details, stepCompletionStatus),
+      );
+    } else {
+      return Container();
+    }
   }
 
   void _addInputFieldsToSections() {

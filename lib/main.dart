@@ -1,15 +1,16 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hedge_profiler_flutter/form_data.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'colors.dart';
-import 'firebase_options.dart';
 import 'form.dart';
+import 'history.dart';
 import 'snackbar.dart';
 import 'utils_geo.dart' as geo;
 import 'splash_screen.dart';
@@ -17,6 +18,7 @@ import 'splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await dotenv.load(fileName: "data/.env");
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool firstTime = !(prefs.containsKey("first_time_launch") &&
       prefs.getString("first_time_launch") == "false");
@@ -45,7 +47,9 @@ class HedgeProfilerAppState extends State<HedgeProfilerApp> {
       theme: ThemeData(useMaterial3: true),
       darkTheme: ThemeData.dark(useMaterial3: true),
       themeMode: _themeMode,
-      home: widget.firstTime ? const SplashScreen() : const WebViewPage(),
+      home: widget.firstTime
+          ? const SplashScreen(darkMode: false)
+          : const WebViewPage(),
     );
   }
 
@@ -71,6 +75,7 @@ class WebViewPageState extends State<WebViewPage> {
   final ValueNotifier<double> _loadingPercentage = ValueNotifier<double>(0.0);
   late final WebViewController _controller;
 
+  final bool _showGeoCoordsInSidebar = false;
   bool _showNameForm = true;
   GlobalKey<NameFormState> _nameFormKey = GlobalKey<NameFormState>();
 
@@ -82,23 +87,15 @@ class WebViewPageState extends State<WebViewPage> {
   bool _darkMode = true;
   bool _isLoading = true;
 
-  /// initializes the firebase app
-  _initDatabase() async {
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    } catch (e) {
-      showSnackbar(context, e.toString());
-    }
-  }
-
   @override
   void initState() {
     super.initState();
     _checkPermissions();
     _updateLocationAndLocales();
-    _initDatabase();
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _updateDarkMode();
+    });
 
     final WebViewController controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -131,131 +128,147 @@ class WebViewPageState extends State<WebViewPage> {
   }
 
   void _checkPermissions() async {
-    if (await Permission.storage.request().isDenied) {
-      showSnackbar(
-          context, "No storage permission - cannot write images to storage",
-          success: false);
-    }
+    PermissionStatus locationStatus = await Permission.location.status;
+    PermissionStatus storageStatus = await Permission.storage.status;
+    PermissionStatus cameraStatus = await Permission.camera.status;
+
+    if (!locationStatus.isGranted) await Permission.location.request();
+    if (!storageStatus.isGranted) await Permission.storage.request();
+    if (!cameraStatus.isGranted) await Permission.camera.request();
+  }
+
+  void _updateDarkMode() async {
+    // _darkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
   }
 
   /// refreshes geo coordinates and updates variables for menu accordingly
   _updateLocationAndLocales() async {
+    String geoLastChange = "n/a";
+    String lat = "n/a";
+    String lon = "n/a";
+    String geoLastKnown = "$lat,$lon";
+
     setState(() {
       _isLoading = true;
     });
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    // initially set locale
-    if (!prefs.containsKey("locale")) {
-      prefs.setString("locale", systemLocale);
-    }
-
-    // load last stored locale
-    currentLocale = prefs.getString("locale") ?? "EN";
-
-    // set to last known pos
-    await geo.getLastKnownLocation();
-    setState(() {
-      _geoLastChange =
-          prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
-      String lat = prefs.getString("geo_latitude") ?? "n/a";
-      String lon = prefs.getString("geo_longitude") ?? "n/a";
-      _geoLastKnown = "$lat,$lon";
-    });
-
-    // wait for refresh of coords
     try {
-      // wait for refresh of coords with a timeout of 5 seconds
-      await geo.updateLocation().timeout(const Duration(seconds: 5),
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // initially set locale
+      if (!prefs.containsKey("locale")) {
+        prefs.setString("locale", systemLocale);
+      }
+
+      // load last stored locale
+      currentLocale = prefs.getString("locale") ?? "EN";
+
+      // set to last known pos
+      await geo.getLastKnownLocation().timeout(const Duration(seconds: 5),
           onTimeout: () {
-        setState(() {
-          _isLoading = false;
-        });
         showSnackbar(
             context,
             currentLocale == "EN"
-                ? "Updating geo information timed out after 5 seconds"
-                : "Geo koordinaten konnten nach 5 Sekunden nicht aktualisiert werden");
+                ? "Timeout when fetching geo information"
+                : "Geo koordinaten konnten nicht abgerufen werden");
       });
+
+      geoLastChange =
+          prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
+      lat = prefs.getString("geo_latitude") ?? "n/a";
+      lon = prefs.getString("geo_longitude") ?? "n/a";
+      geoLastKnown = "$lat,$lon";
+
+      // wait for refresh of coords with a timeout of 5 seconds
+      await geo.updateLocation().timeout(const Duration(seconds: 5),
+          onTimeout: () {
+        showSnackbar(
+            context,
+            currentLocale == "EN"
+                ? "Timeout when updating geo information"
+                : "Geo koordinaten konnten nicht aktualisiert werden");
+      });
+
+      geoLastChange =
+          prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
+      lat = prefs.getString("geo_latitude") ?? "n/a";
+      lon = prefs.getString("geo_longitude") ?? "n/a";
+      geoLastKnown = "$lat,$lon";
     } catch (e) {
+      showSnackbar(context, "Error when updating geo information: $e");
+    } finally {
       setState(() {
         _isLoading = false;
-        showSnackbar(context, "Error when updating geo information: $e");
+        _geoLastChange = geoLastChange;
+        _geoLastKnown = geoLastKnown;
       });
     }
-
-    setState(() {
-      _geoLastChange =
-          prefs.getString("geo_last_change")?.split(".")[0] ?? 'n/a';
-      String lat = prefs.getString("geo_latitude") ?? "n/a";
-      String lon = prefs.getString("geo_longitude") ?? "n/a";
-      _geoLastKnown = "$lat,$lon";
-      _isLoading = false;
-    });
   }
 
   /// scaffold of app with menu drawer and WebViewWidget as body
   /// NameForm is stacked on top and controlled with _showNameForm
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
+    print('Parent widget rebuilding');
+  //   return Scaffold(
+  //     appBar: AppBar(title: Text("foo")),
+  //     body: NameForm(
+  //       formKey: _nameFormKey,
+  //       webViewPageState: this,
+  //       showForm: _showNameForm,
+  //       darkMode: _darkMode,
+  //     ),
+  //   );
+  // }
+
+    return WillPopScope(
+      onWillPop: _onBackButtonPressed,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: MyColors.topBarColor,
+          title: Text(currentLocale == "EN" ? "Rate Hedge" : "Hecke Bewerten"),
         ),
-      );
-    } else {
-      return WillPopScope(
-        onWillPop: _onBackButtonPressed,
-        child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: MyColors.topBarColor,
-            title: Text(
-                currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler"),
-          ),
-          drawer: _buildMainMenuDrawer(),
-          body: Stack(
-            children: [
-              WebViewWidget(
-                controller: _controller,
-              ),
-              ValueListenableBuilder<double>(
-                valueListenable: _loadingPercentage,
-                builder: (context, value, child) {
-                  return value < 100
-                      ? LinearProgressIndicator(
-                          value: value / 100.0,
-                        )
-                      : const SizedBox.shrink();
-                },
-              ),
-              Offstage(
-                offstage: !_showNameForm,
-                // when _showNameForm is false, the Container will be off the screen
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: Container(
-                        color: MyColors.black.withOpacity(0.5),
-                        child: Center(
-                          child: NameForm(
-                            formKey: _nameFormKey,
-                            webViewPageState: this,
-                            showForm: _showNameForm,
-                            darkMode: _darkMode,
-                          ),
+        drawer: _buildMainMenuDrawer(),
+        body: Stack(
+          children: [
+            WebViewWidget(
+              controller: _controller,
+            ),
+            ValueListenableBuilder<double>(
+              valueListenable: _loadingPercentage,
+              builder: (context, value, child) {
+                return value < 100
+                    ? LinearProgressIndicator(
+                        value: value / 100.0,
+                      )
+                    : const SizedBox.shrink();
+              },
+            ),
+            Offstage(
+              offstage: !_showNameForm,
+              // when _showNameForm is false, the Container will be off the screen
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Container(
+                      color: MyColors.black.withOpacity(0.5),
+                      child: Center(
+                        child: NameForm(
+                          formKey: _nameFormKey,
+                          webViewPageState: this,
+                          showForm: _showNameForm,
+                          darkMode: _darkMode,
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
-    }
+      ),
+    );
   }
 
   Drawer _buildMainMenuDrawer() {
@@ -284,8 +297,8 @@ class WebViewPageState extends State<WebViewPage> {
   void _showFirstLaunchDialog() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("first_time_launch", "true");
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => const SplashScreen()));
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => SplashScreen(darkMode: _darkMode)));
   }
 
   ListTile _buildMainMenuDrawerRateHedgeListTile() {
@@ -338,57 +351,46 @@ class WebViewPageState extends State<WebViewPage> {
 
   Widget _buildMainMenuDrawerHeader() {
     return Container(
-        height: 150,
-        color: MyColors.blue,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  const Text("Heck.In",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+      height: 150,
+      color: _darkMode ? MyColors.topBarColor : MyColors.blue,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                const Text(
+                  "Heck.In",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
-                  IconButton(
-                    icon: const Icon(
-                        Icons.info_outline,
-                        color: MyColors.blueDark
-                    ),
-                    onPressed: () {
-                      _showFirstLaunchDialog();
-                    },
-                  )
-                ],
-              ),
-              const SizedBox(height: 14),
-              _buildGeoStatusText(),
-            ],
-          ),
-        ));
-    // return DrawerHeader(
-    //   decoration: const BoxDecoration(
-    //     color: MyColors.blue,
-    //   ),
-    //   child: Column(
-    //     crossAxisAlignment: CrossAxisAlignment.stretch,
-    //     children: [
-    //       Text(
-    //         currentLocale == "EN" ? "Hedge Profiler" : "Hecken Profiler",
-    //         style: const TextStyle(
-    //           fontSize: 20,
-    //           fontWeight: FontWeight.bold,
-    //         ),
-    //       ),
-    //       const SizedBox(height: 14),
-    //       _buildGeoStatusText(),
-    //     ],
-    //   ),
-    // );
+                ),
+                IconButton(
+                  icon:
+                      const Icon(Icons.info_outline, color: MyColors.blueDark),
+                  onPressed: () {
+                    _showFirstLaunchDialog();
+                  },
+                ),
+                _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.0,
+                        ),
+                      )
+                    : Container(),
+              ],
+            ),
+            _buildGeoStatusText(),
+          ],
+        ),
+      ),
+    );
   }
 
   Column _buildBottomPartForMainMenuDrawer() {
@@ -396,7 +398,8 @@ class WebViewPageState extends State<WebViewPage> {
       children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
           _buildLanguageToggleButton(),
-          _buildGeoRefreshButton(),
+          // _buildGeoRefreshButton(),
+          _buildHistoryButton(),
           _buildDarkmodeToggleButton(),
         ]),
         const SizedBox(height: 30),
@@ -610,6 +613,22 @@ class WebViewPageState extends State<WebViewPage> {
     );
   }
 
+  Widget _buildHistoryButton() {
+    return ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => PdfFileList(
+                    currentLocale: currentLocale, darkMode: _darkMode)),
+          );
+        },
+        child: Column(children: [
+          const Icon(Icons.history, color: MyColors.coral),
+          currentLocale == "EN" ? const Text("History") : const Text("Verlauf")
+        ]));
+  }
+
   Widget _buildGeoRefreshButton() {
     return ElevatedButton(
         onPressed: _updateLocationAndLocales,
@@ -637,15 +656,25 @@ class WebViewPageState extends State<WebViewPage> {
               _geoLastChange,
               style: const TextStyle(fontSize: 10, fontStyle: FontStyle.italic),
             ),
+            IconButton(
+              icon: const Icon(Icons.my_location_sharp,
+                  color: MyColors.blueDark, size: 20),
+              onPressed: () {
+                _updateLocationAndLocales();
+              },
+            ),
           ],
         ),
-        Align(
-          alignment: Alignment.topLeft,
-          child: Text(
-            _geoLastKnown,
-            style: const TextStyle(fontSize: 10, fontStyle: FontStyle.italic),
+        Visibility(
+          visible: _showGeoCoordsInSidebar,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: Text(
+              _geoLastKnown,
+              style: const TextStyle(fontSize: 10, fontStyle: FontStyle.italic),
+            ),
           ),
-        ),
+        )
       ],
     );
   }

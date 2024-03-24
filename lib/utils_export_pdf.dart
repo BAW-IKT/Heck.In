@@ -62,14 +62,18 @@ class PdfCreator {
           ]));
         }
       } else {
-        // normal key-value pairs
-        String translatedValue = originalToLocale.containsKey(value)
-            ? originalToLocale[value]!
-            : value;
-        rows.add(TableRow(children: [
-          Text(translatedKey),
-          Text(translatedValue),
-        ]));
+        try {
+          // normal key-value pairs
+          String translatedValue = originalToLocale.containsKey(value)
+              ? originalToLocale[value]!
+              : value;
+          rows.add(TableRow(children: [
+            Text(translatedKey),
+            Text(translatedValue),
+          ]));
+        } catch (e) {
+          print('Key "$key" does not exist in originalToLocale or conversion failed.');
+        }
       }
     });
 

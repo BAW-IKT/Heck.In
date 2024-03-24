@@ -221,7 +221,7 @@ Map<String, String> getEnglishRadarPlotTranslations() {
 ///    'Fortpflanzungs- & Ruhestätte'
 ///    'Erholung & Tourismus'
 ///    'Kulturerbe
-List<Map<String, dynamic>> createFormFields() {
+Future<List<Map<String, dynamic>>> createFormFields() async {
   return [
     // general fields
     {

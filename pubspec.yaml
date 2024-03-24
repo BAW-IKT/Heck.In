@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.8.0+2
+version: 1.9.7+1
 
 environment:
   sdk: '>=2.19.6 <3.0.0'
@@ -34,28 +34,26 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
-  webview_flutter: ^4.0.7
-  path_provider: ^2.0.14
-  shared_preferences: ^2.1.0
-  geolocator: ^10.0.1
-  image_picker: ^1.0.4
-  firebase_core: ^2.10.0
-  cloud_firestore: ^4.5.3
-  permission_handler: ^11.0.1
-  firebase_storage: ^11.1.2
-  path: ^1.8.2
-  firebase_auth: ^4.5.0
+  cupertino_icons: ^1.0.6
+  webview_flutter: ^4.7.0
+  path_provider: ^2.1.2
+  shared_preferences: ^2.2.2
+  geolocator: ^11.0.0
+  image_picker: ^1.0.7
+  permission_handler: ^11.3.0
+  path: ^1.9.0
   flutter_launcher_icons: ^0.13.1
-  fl_chart: ^0.63.0
+  fl_chart: ^0.66.2
   dev: ^1.0.0
   auto_size_text: ^3.0.0
   photo_view: ^0.14.0
-  pdf: ^3.10.4
+  pdf: ^3.10.8
   external_path: ^1.0.3
   open_file_plus: ^3.4.1
-  intl: ^0.18.1
-  url_launcher: ^6.2.1
+  intl: ^0.19.0
+  url_launcher: ^6.2.5
+  flutter_dotenv: ^5.1.0
+  mongo_dart: ^0.10.0
 
 # build release with: flutter build apk --release
 
@@ -101,6 +99,7 @@ flutter:
     - data/Tabelle_Altersklassen_engl.jpg
     - data/Roboto-Regular.ttf
     - data/Roboto-Bold.ttf
+    - data/.env
   fonts:
     - family: Roboto
       fonts:
