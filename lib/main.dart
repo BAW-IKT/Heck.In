@@ -127,15 +127,6 @@ class WebViewPageState extends State<WebViewPage> {
     _controller = controller;
   }
 
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-  //   final brightness = MediaQuery.of(context).platformBrightness;
-  //   setState(() {
-  //     _darkMode = brightness == Brightness.dark;
-  //   });
-  // }
-
   void _checkPermissions() async {
     PermissionStatus locationStatus = await Permission.location.status;
     PermissionStatus storageStatus = await Permission.storage.status;
@@ -147,7 +138,7 @@ class WebViewPageState extends State<WebViewPage> {
   }
 
   void _updateDarkMode() async {
-    _darkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
+    // _darkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
   }
 
   /// refreshes geo coordinates and updates variables for menu accordingly
@@ -218,6 +209,18 @@ class WebViewPageState extends State<WebViewPage> {
   /// NameForm is stacked on top and controlled with _showNameForm
   @override
   Widget build(BuildContext context) {
+    print('Parent widget rebuilding');
+  //   return Scaffold(
+  //     appBar: AppBar(title: Text("foo")),
+  //     body: NameForm(
+  //       formKey: _nameFormKey,
+  //       webViewPageState: this,
+  //       showForm: _showNameForm,
+  //       darkMode: _darkMode,
+  //     ),
+  //   );
+  // }
+
     return WillPopScope(
       onWillPop: _onBackButtonPressed,
       child: Scaffold(
