@@ -43,7 +43,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "hedge_profiler_flutter.com.baw.hedgeprofiler.hedge_profiler_flutter"
+        applicationId "at.baw.heckin"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion 19
