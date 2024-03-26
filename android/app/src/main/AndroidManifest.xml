@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="com.example.hedge_profiler">
+        package="at.baw.heckin">
    <application
         android:label="Heck.in"
         android:name="${applicationName}"

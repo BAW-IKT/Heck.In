@@ -1,0 +1,5 @@
+0ac28f7 Merge pull request #2 from BAW-IKT/feature/history
+b049723 added header to history view, bump to v1.9.7+1
+6e9b8a4 bump to v1.9.6+1
+71cbfc4 added icon to section headers indicating completeness
+70b6186 bump to v1.9.5+2

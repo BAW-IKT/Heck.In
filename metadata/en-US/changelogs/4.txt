@@ -1,0 +1,11 @@
+109ce74 upgrade android compileSdk version to 34, upgrade kotlin version to 1.9.23
+47fbe15 changed app id to at.baw.heckin
+487e080 Merge pull request #6 from BAW-IKT/Mnikley-patch-2
+c3fa8c0 Update README.md
+8f509b4 Merge pull request #5 from BAW-IKT/feature/simplifyAdminScriptExport
+a31baca bump to v1.9.8+1
+851b6e3 removed full graph data from persistence layer
+206c925 Merge pull request #4 from BAW-IKT/bugfix/refreshMapsBeforeWritingDocument
+c37f802 refresh maps before writing documents to backend
+42c8061 Merge pull request #3 from BAW-IKT/Mnikley-patch-1
+7b5e2db Update README.md
