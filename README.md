@@ -3,13 +3,13 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/BAW-IKT/Heck.In/releases/download/v1.9.8/heck_in-V1.9.8.apk" target="_blank" id="download"><img src="https://img.shields.io/badge/Download-App-blue?style=for-the-badge&logo=android" alt="Download App"></a>
+  <a href="https://github.com/BAW-IKT/Heck.In/releases/download/1.9.8/heck_in-V1.9.8.apk" target="_blank" id="download"><img src="https://img.shields.io/badge/Download-App-blue?style=for-the-badge&logo=android" alt="Download App"></a>
 </p>
 
 # Heck.In
 Your app for assessing the ecosystem services of hedgerows! Check out <a href="https://www.baw.at/wasser-boden/projekte/heck-in.html">our website</a> for more information about the project. 
 
-<a href="https://github.com/BAW-IKT/Heck.In/releases/download/v1.9.8/heck_in-V1.9.8.apk" target="_blank"><button style="background-color: #4CAF50; color: white; padding: 14px 20px; margin: 8px 0; border: none; cursor: pointer; width: 100%;"><b>Download the App here!</b></button></a>
+<a href="https://github.com/BAW-IKT/Heck.In/releases/download/1.9.8/heck_in-V1.9.8.apk" target="_blank"><button style="background-color: #4CAF50; color: white; padding: 14px 20px; margin: 8px 0; border: none; cursor: pointer; width: 100%;"><b>Download the App here!</b></button></a>
 
 ## Features
 - **Step by step assessment**: Evaluate your ecosystem according to a <a href="https://zenodo.org/records/8058427">standardized system</a>
