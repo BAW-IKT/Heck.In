@@ -1,0 +1,39 @@
+0d36b7b removed media query
+1245822 stepper is now fail-safe in case input fields are unavailable
+bbd3411 added async retrieval of input fields
+66af442 added post frame callback to update darkmode
+d4be751 set darkmode to true prior to mediaquery, bump to v1.9.4+1
+2507bde fixed initial mediaquery to check darkmode system setting
+5188dfe added mediaquery to check for system darkmode setting on app init
+0711ef4 added dark-mode colors to history widget
+ae9275e simplified permission handling
+b5bb22d added camera permissions
+a77ab2e improved error handling for location- and storage-permission checks
+b6f7068 made loading animation non-blocking & moved to sidebar
+18223bb changed darkmode background color
+324c699 add background color to splash_screen to ensure darkmode compatibility
+25d7e92 created base folder "hedges"
+8a816b6 bump to v1.9.0+1
+d331079 adapted script for MongoDB
+4420270 added error handling when writing to db, added data for radar-chart next to form-data to document that is written to db
+b18cc8b implemented mongodb as backend
+a54c911 extended example.env
+960b04f extended example.env
+1ae4dd4 extended example.env
+4a0f99e added & initialized dot_env
+036bc6f added example.env
+c9ff629 updated .gitignore
+5413328 updated .gitignore
+170a946 added secure storage and mongodb, removed firebase dependencies
+d918b27 added timeouts and detailed exception handling when submitting data to server
+8be0714 improved darkmode colors
+588e0ea implemented history function
+af64edf added system-specific splash screen text colors
+c42b3d9 upgrade dependencies, upgrade to new kotlin version
+19888ca Merge pull request #1 from BAW-IKT/feature/colorsDocumentation
+9810bd1 Update colors.dart
+4b34596 renamed menu header
+881083c Update README.md
+c21df25 Update README.md
+4d41a56 Update README.md
+cd09aea Update README.md

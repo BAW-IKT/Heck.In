@@ -1,0 +1,125 @@
+6db3f56 bump to v1.8.0+2
+cc25426 minor bugfix in form_data.dart
+3ddddd7 modified .gitignore
+63dac45 refactor
+ee7a248 modified .gitignore
+7225cfa Merge remote-tracking branch 'origin/master'
+ce8066a refactoring
+6c4a315 Update README.md
+359b1b2 update info/confirmation text, consent yes/no affecting storage of data
+cb4c014 updated dependencies
+1fa3f78 added sample text to splash screen, fixed colors of ergebnisrose when not on darkmode, added export of radar chart data final values
+2c2fac1 added splash screen & info button in drawer, automatic refactoring
+e8a33d1 replaced db backend
+ad90966 update .gitignore
+9673252 refactoring
+731ac92 improved main menu
+ccd5f03 removed geo_last_change from export, moved excluded fields to form_data
+dd71311 added localized URL for geoland.at map
+8a074e0 added comments to map wrappers for future resolving of lat/lon coordinates
+74eb1ce added borders to header, sidebar and bottom navbar
+0fb1e95 removed Naturdenkmal input (dropdown)
+edc9d89 update colors and map descriptions
+416e702 added info text in case no image is attached
+f57c9d2 updated building of subsections in case subsection is null
+9a03f9d modified form data based on changed requirements
+14ca84e updated colors
+c95d763 added Ertragssteigerung to klimatische_wasserbilanz, fixed values based on alexandra input
+25d131a added possibility for english/german image actions
+b5e94b1 changed radar plot to always range from 0 to 5
+07a25df added graph data to pdf export, added headers and separators
+0d4e0f5 implemented exporting of graph figure
+0edbde7 WIP graph-export
+b5585f3 refactor pre-graph export
+88ad37b refactor pre-graph export
+48ea800 added export of form data and images to pdf
+00e878c removed floating action button from form, added iconbutton to header; refactoring; index=0 after clearing form
+0a37d61 lat: 43.123\n lon: 43.123 to simply 43.123,43.123
+fdb0ddf added bottom navigation bar to form, removed related buttons from sidebar
+f9eea07 added scrollable pictures with photo_view
+3ff2522 preparation for final bottom bar
+c8369a4 added auto_size_text and made dropdown values dynamic resizable with truncation
+563accb added snackbar if section is not complete
+9436c40 added button at end of section to proceed to next section
+faeaca8 resolve error related to Offstage
+470ee3d fix radar chart data generation after change to list, refactoring
+93b21e2 implemented lists with tooltips and sub-headings in case sub-heading differs from label of input type list; removed padding of lists
+84cb392 fix selected dropdownvalue
+804ae35 fix sectionNotifiers
+2a00783 removed DynamicDropdowns
+ae196e1 refactored DropdownInput to separate class
+c197f24 moved stepper into separate file, cleaned up and refactored class, implemented InputType.list and related functions
+f8cd51c wrapped NameForm in Offstage - remembers state now; added back-functionality when in map mode; refactoring
+c306b3e added map actions to form data, added examples of images
+f3525a7 added anmerkungen to image section, applied new color scheme, refactoring
+aab0d3a refactoring sections to enum, updated form data
+2d0daed refactoring
+8b77422 implemented info buttons with map linkouts
+ae1931f changed db storage paths
+b21f889 added dialog for tooltip information
+312e99f added number of maps, added functionality to call maps from form (preparation for info-modals)
+3e7f286 reformat form_data.dart
+409313f colored top and right sidebar
+06f2024 improved scroll behaviour of stepper, cleaned up dependencies
+d9c93ba fixes in re-population of dynamic dropdowns and section-complete checks of stepper
+7288a53 checkmark that changes based on entered values
+2709000 grouped stepper based on subgroups
+769d779 added subsections to form_data
+dd08d9e fix language switch, repopulating form with stored data, dropdowns & dynamic dropdowns
+5d849d2 switch to Stepper, added dynamic fields to check whether section is complete
+219f8c8 aligned stack for form data top
+5c2a072 added images/firebase stuff before running flutter upgrade
+6a7b0e9 added translations (machine readable, english, german) to static & dynamic fields
+b5155e1 regrouped form data to 4 main groups: general, physical characteristics, environmental factors, biodiversity and composition
+25ea0a0 refactored/generalized colors, updated main menu & adapted languages
+b665bd9 updated side menu button to change based on state
+c41f008 reset sectionNotifiers after clearing form data
+6d33fe2 added checker to indicate when section is filled out
+958a18d replaced setStates in WebViewController for loading with ValueNotifier
+e30fef3 removed setState from form_utils, moved storing of values to prefs to main.dart, implemented side-menu in form
+dcbbd4b WIP: dropdowns work, text/numbers not, dynamicdropdowns unsure
+0c93e6a fixed FutureBuilder in NameForm build
+a904023 pre menu revamp
+1981254 added functions to validate static/dynamic widgets in parent, removed validators
+fe4dc1b fix fetching of last known location at app init
+9b9382d V1 language toggler
+d558a5a refactored field names to simple, machine-readable names/ids
+76dc989 added locale map
+7eedec3 finished radar chart group calculations and formulas
+3d03092 WIP radar chart group calculations
+2e4d218 started with radar chart group calculations
+f43e960 refactor of form data for easier definition
+dd8dbe3 added visible indexes to dynamic dropdowns, added remaining form data
+d31a1bb advances in Ergebnisrose
+32091c5 WIP Ergebnisrose
+bc0f4df initial implementation of radar chart
+fea7944 remember geo coords in any case after clearing form
+9a00716 fix text controllers
+84d2ecf added remaining form data
+07e556b moved minDropdownCount and maxDropdownCount to createDynamicFormFields
+a177a7d static inputs are now also written to SharedPreferences during update
+d22ffb3 improved usability for dynamic form fields by adding underlying data to form_data.dart
+577e796 added grid functionality for dynamic dropdown widgets
+7e4ef42 added logos
+e472f71 implemented dynamic dropdowns
+61ac865 attempt of adding dynamic dropdowns; WIP: selected value not updating
+21ba36f dynamic scaling of dropdown headers / values
+ee8bbd2 improved modularity, added spinner to snackbar, advanced in form data
+19c26cc reworked form controllers
+6cbc684 added anonymous auth (only app users can r/w)
+3261f93 added persistance of images to database, reduced image quality to 50%
+7db8159 added persistance of images to external storage, clear image button, confirmation popup when clearing images/form
+c077d0b Update README.md
+af88513 Changes in file structure, added firebase functionality
+fc401cf Added image_picker functionality
+aaa4a4e Finished geolocations, added darkmode switch
+b303995 WIP geolocations
+ea7fe39 Working implementation with form, webview and memorization of input fields
+fb3fa40 Update README.md
+71c3ae8 Merge remote-tracking branch 'origin/master'
+1a98cef initial app commit
+32ab818 Update README.md
+ff7bef5 Update README.md
+2c47bfc Update README.md
+d1c71b3 added .gitignore
+21c5429 Initial commit
